@@ -29,8 +29,12 @@ function loadGA() {
   document.head.appendChild(s);
 
   w.dataLayer = w.dataLayer || [];
-  w.gtag = function (...args: unknown[]) {
-    w.dataLayer!.push(args);
+  w.gtag = function () {
+    // gtag.js only executes commands pushed as an Arguments object
+    // (it checks Object.prototype.toString === "[object Arguments]").
+    // Pushing a rest-param array here silently disables all tracking.
+    // eslint-disable-next-line prefer-rest-params
+    w.dataLayer!.push(arguments);
   };
   w.gtag("js", new Date());
   w.gtag("config", GA_ID);
