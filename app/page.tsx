@@ -263,6 +263,16 @@ export default async function HomePage() {
                   <p>New chapter bringing AI safety conversations and action to the North West.</p>
                 </div>
               </a>
+              <a className="chapter-card" href="/west-of-england">
+                <div className="image-frame" style={{ backgroundImage: `url("/images/chapters/west-of-england/bristol-launch.jpg")` }}></div>
+                <div className="card-copy">
+                  <div className="card-header">
+                    <h3>West of England</h3>
+                    <span className="card-link">Explore West of England →</span>
+                  </div>
+                  <p>New chapter bringing AI safety conversations and action to Bristol and beyond.</p>
+                </div>
+              </a>
               <a
                 className="chapter-card"
                 href="https://docs.google.com/document/d/1wVqsjGatoP3ltspkeqnyeye7I1d_V8XYRPQGaGyvitQ/edit?usp=sharing"

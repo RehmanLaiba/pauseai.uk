@@ -143,6 +143,7 @@ export default function Nav({ chapterName, chapterLogoSrc }: NavProps) {
               <a href="/oxford/" role="menuitem">Oxford</a>
               <a href="/leicester/" role="menuitem">Leicester</a>
               <a href="/manchester/" role="menuitem">Manchester</a>
+              <a href="/west-of-england/" role="menuitem">West of England</a>
             </div>
           </div>
           <a href="/campaigns/">Campaigns</a>
