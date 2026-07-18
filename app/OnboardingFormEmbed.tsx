@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 
 const EMBED_ORIGIN = "https://pauseai.info";
 const EMBED_URL = `${EMBED_ORIGIN}/embed/onboarding-form/?country=United+Kingdom&bg=FDF8F3`;
-const DEFAULT_HEIGHT = 600;
+const DEFAULT_HEIGHT = 0;
 
 export default function OnboardingFormEmbed() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
@@ -31,7 +31,6 @@ export default function OnboardingFormEmbed() {
     <iframe
       ref={iframeRef}
       src={EMBED_URL}
-      loading="lazy"
       width="100%"
       height={height}
       frameBorder={0}
