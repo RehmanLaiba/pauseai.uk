@@ -19,6 +19,7 @@ export const metadata: Metadata = {
 };
 
 const WEST_OF_ENGLAND_WHATSAPP = "https://chat.whatsapp.com/CUjVyzLxjcM88mdQOlU0IN";
+const WEST_OF_ENGLAND_LINKTREE = "https://linktr.ee/PauseAI_West_of_England";
 
 export default function WestOfEnglandPage() {
   return (
@@ -34,6 +35,7 @@ export default function WestOfEnglandPage() {
               </p>
               <div className="actions">
                 <a className="btn primary" href={WEST_OF_ENGLAND_WHATSAPP} target="_blank" rel="noreferrer">Join the WhatsApp group</a>
+                <a className="btn ghost" href={WEST_OF_ENGLAND_LINKTREE} target="_blank" rel="noreferrer">All our links</a>
               </div>
             </div>
             <div className="hero-visual">
@@ -89,6 +91,7 @@ export default function WestOfEnglandPage() {
               <div>
                 <p className="section-lede">Local chat: <a href={WEST_OF_ENGLAND_WHATSAPP} target="_blank" rel="noreferrer">PauseAI West of England WhatsApp</a></p>
                 <p className="section-lede">UK chat: <a href={site.whatsappUrl} target="_blank" rel="noreferrer">PauseAI UK WhatsApp</a></p>
+                <p className="section-lede">All our links: <a href={WEST_OF_ENGLAND_LINKTREE} target="_blank" rel="noreferrer">linktr.ee/PauseAI_West_of_England</a></p>
               </div>
               <a className="btn primary large" href={WEST_OF_ENGLAND_WHATSAPP} target="_blank" rel="noreferrer">Join the WhatsApp group</a>
             </div>
