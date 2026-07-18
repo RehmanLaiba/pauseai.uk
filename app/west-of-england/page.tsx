@@ -24,7 +24,10 @@ const WEST_OF_ENGLAND_LINKTREE = "https://linktr.ee/PauseAI_West_of_England";
 export default function WestOfEnglandPage() {
   return (
     <>
-      <Nav chapterName="West of England" />
+      <Nav
+        chapterName="West of England"
+        chapterLogoSrc="/images/chapters/west-of-england/west-of-england-rondel.png"
+      />
       <main>
         <section className="hero" style={{ paddingBottom: 48 }}>
           <div className="container hero-grid">
