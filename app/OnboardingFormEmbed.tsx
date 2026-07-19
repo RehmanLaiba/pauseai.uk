@@ -9,6 +9,7 @@ const DEFAULT_HEIGHT = 0;
 export default function OnboardingFormEmbed() {
   const iframeRef = useRef<HTMLIFrameElement>(null);
   const [height, setHeight] = useState(DEFAULT_HEIGHT);
+  const hasLoadedRef = useRef(false);
 
   useEffect(() => {
     function handleMessage(event: MessageEvent) {
@@ -16,9 +17,10 @@ export default function OnboardingFormEmbed() {
       const data = event.data;
       if (typeof data?.height === "number") {
         setHeight((prev) => {
-          if (data.height < prev && iframeRef.current) {
+          if (hasLoadedRef.current && data.height < prev && iframeRef.current) {
             iframeRef.current.scrollIntoView({ behavior: "smooth", block: "start" });
           }
+          hasLoadedRef.current = true;
           return data.height;
         });
       }
