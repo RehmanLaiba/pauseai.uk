@@ -18,8 +18,6 @@ export const metadata: Metadata = {
   alternates: { canonical: "/glasgow" },
 };
 
-const SCOTLAND_WHATSAPP = "https://chat.whatsapp.com/E7JeZgcD9qFAyErBasRzmU";
-
 export default function GlasgowPage() {
   return (
     <>
@@ -34,7 +32,7 @@ export default function GlasgowPage() {
               </p>
               <div className="actions">
                 <a className="btn primary" href={site.social.luma} target="_blank" rel="noreferrer">View event calendar</a>
-                <a className="btn ghost" href={SCOTLAND_WHATSAPP} target="_blank" rel="noreferrer">Join Scotland chat</a>
+                <a className="btn ghost" href={site.whatsappUrl} target="_blank" rel="noreferrer">Join the WhatsApp community</a>
               </div>
             </div>
             <div className="hero-visual">
@@ -67,15 +65,14 @@ export default function GlasgowPage() {
             <div className="section-header">
               <h2>Link up with the chapter</h2>
               <p className="section-lede">
-                Join the Scotland chat to connect with local organisers, or the UK chat for UK-wide events and campaigns.
+                Join the WhatsApp community to connect with local organisers and hear about UK-wide events and campaigns.
               </p>
             </div>
             <div className="callout-inner" style={{ marginTop: 18 }}>
               <div>
-                <p className="section-lede">Scotland chat: <a href={SCOTLAND_WHATSAPP} target="_blank" rel="noreferrer">PauseAI Scotland WhatsApp</a></p>
-                <p className="section-lede">UK chat: <a href={site.whatsappUrl} target="_blank" rel="noreferrer">PauseAI UK WhatsApp</a></p>
+                <p className="section-lede">WhatsApp: <a href={site.whatsappUrl} target="_blank" rel="noreferrer">PauseAI UK WhatsApp</a></p>
               </div>
-              <a className="btn primary large" href={SCOTLAND_WHATSAPP} target="_blank" rel="noreferrer">Join Scotland chat</a>
+              <a className="btn primary large" href={site.whatsappUrl} target="_blank" rel="noreferrer">Join the WhatsApp community</a>
             </div>
           </div>
         </section>

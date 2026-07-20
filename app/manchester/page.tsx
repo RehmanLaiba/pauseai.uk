@@ -18,8 +18,6 @@ export const metadata: Metadata = {
   alternates: { canonical: "/manchester" },
 };
 
-const MANCHESTER_WHATSAPP = "https://chat.whatsapp.com/Ja1X3ms77NgHc5jSrZIGVR?mode=gi_t";
-
 export default function ManchesterPage() {
   return (
     <>
@@ -33,7 +31,7 @@ export default function ManchesterPage() {
                 Building a local network in the North West to campaign for AI safety, host discussions, and support national actions.
               </p>
               <div className="actions">
-                <a className="btn primary" href={MANCHESTER_WHATSAPP} target="_blank" rel="noreferrer">Join the WhatsApp community</a>
+                <a className="btn primary" href={site.whatsappUrl} target="_blank" rel="noreferrer">Join the WhatsApp community</a>
                 <a className="btn ghost" href="https://www.instagram.com/pauseai.manchester" target="_blank" rel="noreferrer">Follow us on Instagram</a>
                 <a className="btn ghost" href="https://www.facebook.com/profile.php?id=61577650457496" target="_blank" rel="noreferrer">Follow us on Facebook</a>
                 <a className="btn ghost" href="https://calendly.com/adr-skapars/pauseai-manchester-1-on-1" target="_blank" rel="noreferrer">Book a 1-on-1 chat</a>
@@ -116,13 +114,12 @@ export default function ManchesterPage() {
             <div className="section-header">
               <h2>Link up with the chapter</h2>
               <p className="section-lede">
-                Join the Manchester chat to connect with local organisers, or the UK chat for UK-wide events and campaigns. Want to learn more? Book a 1-on-1 chat.
+                Join the WhatsApp community to connect with local organisers and hear about UK-wide events and campaigns. Want to learn more? Book a 1-on-1 chat.
               </p>
             </div>
             <div className="callout-inner" style={{ marginTop: 18 }}>
               <div>
-                <p className="section-lede">Manchester chat: <a href={MANCHESTER_WHATSAPP} target="_blank" rel="noreferrer">PauseAI Manchester WhatsApp</a></p>
-                <p className="section-lede">UK chat: <a href={site.whatsappUrl} target="_blank" rel="noreferrer">PauseAI UK WhatsApp</a></p>
+                <p className="section-lede">WhatsApp: <a href={site.whatsappUrl} target="_blank" rel="noreferrer">PauseAI UK WhatsApp</a></p>
               </div>
               <div className="actions">
                 <a className="btn primary large" href="https://calendly.com/adr-skapars/pauseai-manchester-1-on-1" target="_blank" rel="noreferrer">Book a 1-on-1 chat</a>

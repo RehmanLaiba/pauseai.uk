@@ -1,6 +1,6 @@
 export const site = {
   gaId: "G-DLLRWZCYD7",
-  whatsappUrl: "https://chat.whatsapp.com/BesRzGOwnfNHuQM9fLIr0J",
+  whatsappUrl: "https://chat.whatsapp.com/F0nj2RjLNeB1P1hyoDFsTz",
   shopUrl: "https://pauseai-shop.fourthwall.com/en-gbp",
   openLetterUrl: "https://pauseai.info/dear-sir-demis-2025",
   contactEmail: "hello@pauseai.uk",
