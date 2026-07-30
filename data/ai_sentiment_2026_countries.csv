@@ -1,0 +1,105 @@
+country,region,stop_permanently_pct,pause_until_safe_pct,continue_oversight_pct,continue_rapidly_pct,not_sure_pct,n,moe_pp
+Greece,Europe,19,23,26,8,24,1743,2.9
+Ukraine,Europe,12,25,30,12,21,2109,2.6
+Serbia,Europe,23,21,25,14,17,2238,2.3
+Hungary,Europe,16,18,33,14,19,1671,2.9
+Sweden,Europe,17,18,30,13,22,1874,2.6
+United Kingdom,Europe,23,20,20,11,26,5656,2.0
+Germany,Europe,18,17,31,14,20,4818,1.6
+Finland,Europe,17,19,28,13,23,1879,2.5
+Belarus,Europe,21,23,23,15,18,2696,2.0
+Lithuania,Europe,18,24,22,12,24,624,4.8
+Austria,Europe,23,17,26,15,19,1071,3.4
+Norway,Europe,19,17,26,12,26,1180,3.2
+Romania,Europe,17,15,28,13,27,2840,2.3
+France,Europe,21,14,19,8,38,4536,1.7
+Netherlands,Europe,20,19,24,17,20,4615,2.1
+Denmark,Europe,20,17,25,17,21,1575,3.5
+Italy,Europe,16,17,23,12,32,4957,1.7
+Spain,Europe,15,15,24,11,35,2196,2.6
+Belgium,Europe,23,18,19,16,24,1971,2.6
+Poland,Europe,20,17,23,18,22,2839,2.1
+Ireland,Europe,26,18,15,19,22,1385,3.1
+Portugal,Europe,21,16,19,17,27,3288,1.9
+Switzerland,Europe,23,14,22,20,21,728,4.2
+Russia,Europe,20,18,22,22,18,1520,2.6
+Moldova,Europe,23,15,19,20,23,846,3.8
+Puerto Rico,Americas,23,21,22,14,20,664,4.6
+Venezuela,Americas,12,20,29,13,26,2703,2.6
+Canada,Americas,21,18,20,11,30,4185,2.1
+Jamaica,Americas,24,17,17,13,29,1173,3.5
+United States,Americas,22,17,19,13,29,5062,1.9
+Argentina,Americas,21,16,21,14,28,2859,2.3
+Uruguay,Americas,22,17,21,15,25,2748,2.4
+Mexico,Americas,19,17,22,14,28,5103,1.6
+Panama,Americas,21,18,19,16,26,2516,2.2
+Chile,Americas,19,15,24,17,25,2588,2.3
+Peru,Americas,21,16,22,18,23,4784,1.5
+Costa Rica,Americas,23,16,19,18,24,2500,2.2
+El Salvador,Americas,22,16,18,17,27,3556,1.9
+Colombia,Americas,21,15,20,17,27,3519,1.9
+Brazil,Americas,16,13,23,14,34,2995,2.6
+Ecuador,Americas,23,16,18,19,24,5277,1.5
+Paraguay,Americas,24,15,18,19,24,3611,1.9
+Guatemala,Americas,27,15,15,20,23,5232,1.6
+Dominican Republic,Americas,22,15,19,19,25,3886,1.8
+Nicaragua,Americas,27,15,15,20,23,5851,1.5
+Bolivia,Americas,27,14,16,23,20,6071,1.4
+Honduras,Americas,26,14,15,20,25,4535,1.7
+South Africa,Sub-Saharan Africa,25,19,18,15,23,5017,1.6
+Cameroon,Sub-Saharan Africa,28,11,20,15,26,2249,2.4
+Tanzania,Sub-Saharan Africa,19,18,19,13,31,1262,3.1
+Kenya,Sub-Saharan Africa,27,16,18,19,20,5068,1.6
+Congo,Sub-Saharan Africa,37,9,15,21,18,1388,3.1
+Uganda,Sub-Saharan Africa,22,19,18,19,22,3866,1.8
+Zimbabwe,Sub-Saharan Africa,29,15,17,21,18,4756,1.6
+Mozambique,Sub-Saharan Africa,32,14,17,23,14,806,3.8
+Ivory Coast,Sub-Saharan Africa,28,11,17,16,28,3534,1.9
+Zambia,Sub-Saharan Africa,28,18,15,23,16,1099,3.4
+Senegal,Sub-Saharan Africa,30,10,17,19,24,3165,2.1
+Namibia,Sub-Saharan Africa,28,13,16,21,22,1171,3.2
+Niger,Sub-Saharan Africa,15,18,14,11,42,161,9.2
+Angola,Sub-Saharan Africa,31,14,15,24,16,2605,2.1
+Ghana,Sub-Saharan Africa,26,18,13,22,21,4178,1.8
+Nigeria,Sub-Saharan Africa,19,19,17,22,23,7253,1.4
+Ethiopia,Sub-Saharan Africa,32,13,13,26,16,4140,1.9
+Lebanon,MENA,18,21,30,13,18,2914,2.1
+Tunisia,MENA,22,20,27,16,15,5048,1.6
+Egypt,MENA,21,20,27,16,16,4644,1.8
+Yemen,MENA,20,18,26,14,22,1435,3.0
+Algeria,MENA,23,17,26,16,18,5486,1.5
+Jordan,MENA,23,17,25,15,20,4632,1.7
+Syria,MENA,19,16,25,13,27,2158,2.5
+Palestine,MENA,24,15,24,16,21,4020,1.8
+Kuwait,MENA,22,18,23,16,21,1596,2.9
+Iraq,MENA,31,15,17,22,15,9092,1.2
+Morocco,MENA,26,15,19,21,19,6778,1.3
+Turkey,MENA,17,16,17,13,37,3011,2.1
+Libya,MENA,31,14,15,24,16,7680,1.3
+Oman,MENA,24,16,18,22,20,1735,2.9
+Israel,MENA,25,13,22,25,15,2010,2.6
+Saudi Arabia,MENA,20,14,21,24,21,6486,1.4
+Bahrain,MENA,24,14,18,27,17,522,5.2
+United Arab Emirates,MENA,17,14,23,27,19,1492,3.1
+Qatar,MENA,20,15,17,26,22,957,3.9
+New Zealand,Asia-Pacific,23,18,24,10,25,837,4.3
+Kazakhstan,Asia-Pacific,19,26,19,15,21,3693,1.8
+Indonesia,Asia-Pacific,18,16,26,14,26,4805,1.6
+Taiwan,Asia-Pacific,10,11,38,15,26,5887,1.5
+Uzbekistan,Asia-Pacific,21,20,18,15,26,4475,1.7
+Georgia,Asia-Pacific,17,17,25,15,26,2220,2.6
+South Korea,Asia-Pacific,15,14,34,20,17,4439,1.6
+Australia,Asia-Pacific,20,18,19,14,29,3664,2.2
+Kyrgyzstan,Asia-Pacific,21,20,19,18,22,2300,2.4
+Sri Lanka,Asia-Pacific,30,16,13,19,22,2908,2.0
+Thailand,Asia-Pacific,15,12,29,16,28,3954,1.9
+Philippines,Asia-Pacific,27,17,17,20,19,7315,1.4
+Bangladesh,Asia-Pacific,20,22,19,23,16,6823,1.4
+India,Asia-Pacific,31,14,12,20,23,15137,0.9
+Pakistan,Asia-Pacific,32,13,15,25,15,7236,1.3
+Malaysia,Asia-Pacific,26,14,15,19,26,4613,1.7
+Vietnam,Asia-Pacific,40,11,10,26,13,16877,0.9
+China,Asia-Pacific,23,9,27,25,16,3648,2.0
+Japan,Asia-Pacific,9,10,25,13,43,6733,1.3
+Tajikistan,Asia-Pacific,26,15,11,22,26,487,5.2
+Singapore,Asia-Pacific,18,12,19,20,31,3720,1.9
