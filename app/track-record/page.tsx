@@ -598,9 +598,18 @@ export default function TrackRecordPage() {
                     </ul>
                     <p>
                       Our conversations were broadly successful, resulting in
-                      MPs sending letters to Kanishka Narayan MP (Minister for
-                      Artificial Intelligence), and requests for further
-                      meetings and briefings.
+                      Chris Vince and Siân Berry writing letters to Kanishka
+                      Narayan MP (Minister for Artificial Intelligence),
+                      Anneliese Dodds and Siân Berry signing PauseAI UK's{" "}
+                      <a
+                        href="https://pauseai.info/dear-sir-demis-2025"
+                        className="inline-link"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        open letter
+                      </a>{" "}
+                      , and other MPs requested further meetings and briefings.
                     </p>
                   </div>
                   <div className="gallery gallery-3">
