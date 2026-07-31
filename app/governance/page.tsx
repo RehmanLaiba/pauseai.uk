@@ -84,8 +84,15 @@ export default function GovernancePage() {
               <ul className="gov-list">
                 <li>They work for an AI company and they are concerned about retaliation from their employer.</li>
                 <li>
-                  They also support some political candidates and they don&rsquo;t want those candidates to be targeted
-                  by AI company super PACs in retaliation.
+                  They also support some political candidates and they don&rsquo;t want those candidates to be{" "}
+                  <a
+                    href="https://www.theguardian.com/us-news/2026/jun/22/new-york-city-house-primary-race"
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    targeted by AI company super PACs
+                  </a>{" "}
+                  in retaliation.
                 </li>
                 <li>
                   They want to support think tanks or inside-game advocates who don&rsquo;t want to be associated with
