@@ -206,12 +206,12 @@
 }
 .entry-text strong { color: var(--text); font-weight: 600; }
 
-.speaker-list {
+.list {
   margin: 4px 0 20px;
   padding-left: 0;
   list-style: none;
 }
-.speaker-list li {
+.list li {
   font-size: 16px;
   line-height: 1.6;
   color: var(--text-secondary);
@@ -219,7 +219,7 @@
   position: relative;
   margin-bottom: 8px;
 }
-.speaker-list li::before {
+.list li::before {
   content: "";
   position: absolute;
   left: 0;
@@ -228,7 +228,7 @@
   height: 1.5px;
   background: var(--pause-orange);
 }
-.speaker-list strong { color: var(--text); font-weight: 600; }
+.list strong { color: var(--text); font-weight: 600; }
 
 /* ─── Galleries ─── */
 .gallery {
