@@ -1,0 +1,281 @@
+[
+  {
+    "section": "global_topline",
+    "group": "Global average",
+    "stop_permanently_pct": 22,
+    "pause_until_safe_pct": 16,
+    "continue_oversight_pct": 21,
+    "continue_rapidly_pct": 17,
+    "not_sure_pct": 24
+  },
+  {
+    "section": "region_average",
+    "group": "Europe",
+    "stop_permanently_pct": 20,
+    "pause_until_safe_pct": 18,
+    "continue_oversight_pct": 24,
+    "continue_rapidly_pct": 14,
+    "not_sure_pct": 24
+  },
+  {
+    "section": "region_average",
+    "group": "Americas",
+    "stop_permanently_pct": 22,
+    "pause_until_safe_pct": 16,
+    "continue_oversight_pct": 20,
+    "continue_rapidly_pct": 17,
+    "not_sure_pct": 25
+  },
+  {
+    "section": "region_average",
+    "group": "MENA",
+    "stop_permanently_pct": 22,
+    "pause_until_safe_pct": 16,
+    "continue_oversight_pct": 22,
+    "continue_rapidly_pct": 19,
+    "not_sure_pct": 21
+  },
+  {
+    "section": "region_average",
+    "group": "Asia-Pacific",
+    "stop_permanently_pct": 22,
+    "pause_until_safe_pct": 16,
+    "continue_oversight_pct": 21,
+    "continue_rapidly_pct": 18,
+    "not_sure_pct": 23
+  },
+  {
+    "section": "region_average",
+    "group": "Sub-Saharan Africa",
+    "stop_permanently_pct": 27,
+    "pause_until_safe_pct": 15,
+    "continue_oversight_pct": 16,
+    "continue_rapidly_pct": 19,
+    "not_sure_pct": 23
+  },
+  {
+    "section": "age",
+    "group": "18-35",
+    "stop_permanently_pct": 28,
+    "pause_until_safe_pct": 15,
+    "continue_oversight_pct": 18,
+    "continue_rapidly_pct": 19,
+    "not_sure_pct": 20
+  },
+  {
+    "section": "age",
+    "group": "36-55",
+    "stop_permanently_pct": 20,
+    "pause_until_safe_pct": 17,
+    "continue_oversight_pct": 23,
+    "continue_rapidly_pct": 18,
+    "not_sure_pct": 22
+  },
+  {
+    "section": "age",
+    "group": "56+",
+    "stop_permanently_pct": 21,
+    "pause_until_safe_pct": 17,
+    "continue_oversight_pct": 20,
+    "continue_rapidly_pct": 17,
+    "not_sure_pct": 25
+  },
+  {
+    "section": "gender",
+    "group": "Male",
+    "stop_permanently_pct": 19,
+    "pause_until_safe_pct": 14,
+    "continue_oversight_pct": 22,
+    "continue_rapidly_pct": 23,
+    "not_sure_pct": 22
+  },
+  {
+    "section": "gender",
+    "group": "Female",
+    "stop_permanently_pct": 25,
+    "pause_until_safe_pct": 18,
+    "continue_oversight_pct": 20,
+    "continue_rapidly_pct": 12,
+    "not_sure_pct": 25
+  },
+  {
+    "section": "education",
+    "group": "High",
+    "stop_permanently_pct": 10,
+    "pause_until_safe_pct": 14,
+    "continue_oversight_pct": 26,
+    "continue_rapidly_pct": 32,
+    "not_sure_pct": 18
+  },
+  {
+    "section": "education",
+    "group": "Medium",
+    "stop_permanently_pct": 18,
+    "pause_until_safe_pct": 19,
+    "continue_oversight_pct": 24,
+    "continue_rapidly_pct": 16,
+    "not_sure_pct": 23
+  },
+  {
+    "section": "education",
+    "group": "Low",
+    "stop_permanently_pct": 39,
+    "pause_until_safe_pct": 15,
+    "continue_oversight_pct": 11,
+    "continue_rapidly_pct": 9,
+    "not_sure_pct": 26
+  },
+  {
+    "section": "income",
+    "group": "Above average",
+    "stop_permanently_pct": 18,
+    "pause_until_safe_pct": 14,
+    "continue_oversight_pct": 18,
+    "continue_rapidly_pct": 31,
+    "not_sure_pct": 19
+  },
+  {
+    "section": "income",
+    "group": "Average",
+    "stop_permanently_pct": 20,
+    "pause_until_safe_pct": 17,
+    "continue_oversight_pct": 23,
+    "continue_rapidly_pct": 16,
+    "not_sure_pct": 24
+  },
+  {
+    "section": "income",
+    "group": "Below average",
+    "stop_permanently_pct": 27,
+    "pause_until_safe_pct": 17,
+    "continue_oversight_pct": 19,
+    "continue_rapidly_pct": 12,
+    "not_sure_pct": 25
+  },
+  {
+    "section": "employment",
+    "group": "Not working by choice",
+    "stop_permanently_pct": 14,
+    "pause_until_safe_pct": 18,
+    "continue_oversight_pct": 23,
+    "continue_rapidly_pct": 21,
+    "not_sure_pct": 24
+  },
+  {
+    "section": "employment",
+    "group": "Unemployed",
+    "stop_permanently_pct": 17,
+    "pause_until_safe_pct": 15,
+    "continue_oversight_pct": 19,
+    "continue_rapidly_pct": 26,
+    "not_sure_pct": 23
+  },
+  {
+    "section": "employment",
+    "group": "Self-employed",
+    "stop_permanently_pct": 22,
+    "pause_until_safe_pct": 15,
+    "continue_oversight_pct": 19,
+    "continue_rapidly_pct": 21,
+    "not_sure_pct": 23
+  },
+  {
+    "section": "employment",
+    "group": "Part-time",
+    "stop_permanently_pct": 35,
+    "pause_until_safe_pct": 16,
+    "continue_oversight_pct": 16,
+    "continue_rapidly_pct": 12,
+    "not_sure_pct": 21
+  },
+  {
+    "section": "employment",
+    "group": "Full-time",
+    "stop_permanently_pct": 27,
+    "pause_until_safe_pct": 16,
+    "continue_oversight_pct": 24,
+    "continue_rapidly_pct": 11,
+    "not_sure_pct": 22
+  },
+  {
+    "section": "location",
+    "group": "Large city",
+    "stop_permanently_pct": 21,
+    "pause_until_safe_pct": 15,
+    "continue_oversight_pct": 24,
+    "continue_rapidly_pct": 18,
+    "not_sure_pct": 22
+  },
+  {
+    "section": "location",
+    "group": "Suburban/town",
+    "stop_permanently_pct": 23,
+    "pause_until_safe_pct": 17,
+    "continue_oversight_pct": 21,
+    "continue_rapidly_pct": 17,
+    "not_sure_pct": 22
+  },
+  {
+    "section": "location",
+    "group": "Rural",
+    "stop_permanently_pct": 24,
+    "pause_until_safe_pct": 17,
+    "continue_oversight_pct": 16,
+    "continue_rapidly_pct": 18,
+    "not_sure_pct": 25
+  },
+  {
+    "section": "uk_us",
+    "group": "United Kingdom",
+    "stop_permanently_pct": 23,
+    "pause_until_safe_pct": 20,
+    "continue_oversight_pct": 20,
+    "continue_rapidly_pct": 11,
+    "not_sure_pct": 26
+  },
+  {
+    "section": "uk_us",
+    "group": "United States",
+    "stop_permanently_pct": 22,
+    "pause_until_safe_pct": 17,
+    "continue_oversight_pct": 19,
+    "continue_rapidly_pct": 13,
+    "not_sure_pct": 29
+  },
+  {
+    "section": "uk_us_gender",
+    "group": "UK Female",
+    "stop_permanently_pct": 24,
+    "pause_until_safe_pct": 23,
+    "continue_oversight_pct": 17,
+    "continue_rapidly_pct": 7,
+    "not_sure_pct": 29
+  },
+  {
+    "section": "uk_us_gender",
+    "group": "US Female",
+    "stop_permanently_pct": 27,
+    "pause_until_safe_pct": 20,
+    "continue_oversight_pct": 17,
+    "continue_rapidly_pct": 7,
+    "not_sure_pct": 29
+  },
+  {
+    "section": "uk_us_gender",
+    "group": "UK Male",
+    "stop_permanently_pct": 21,
+    "pause_until_safe_pct": 17,
+    "continue_oversight_pct": 22,
+    "continue_rapidly_pct": 14,
+    "not_sure_pct": 26
+  },
+  {
+    "section": "uk_us_gender",
+    "group": "US Male",
+    "stop_permanently_pct": 18,
+    "pause_until_safe_pct": 15,
+    "continue_oversight_pct": 21,
+    "continue_rapidly_pct": 19,
+    "not_sure_pct": 27
+  }
+]
