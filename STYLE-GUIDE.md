@@ -78,7 +78,6 @@ Accent labels:      "Inter", system-ui, sans-serif (weight 600, uppercase, track
 | h3 (card)         | Inter               | `20px`                        | 700    | `0`          |
 | Body              | Inter               | `16px` / `17px`               | 400    | `0`          |
 | Lede              | Inter               | `18px` / `19px`               | 400    | `0`          |
-| Eyebrow           | Inter               | `13px`                        | 600    | `0.12em`     |
 | Small / caption   | Inter               | `14px`                        | 500    | `0.01em`     |
 
 ### Line Heights
