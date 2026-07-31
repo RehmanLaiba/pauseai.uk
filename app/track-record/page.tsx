@@ -612,7 +612,7 @@ export default function TrackRecordPage() {
                         rel="noreferrer"
                       >
                         open letter
-                      </a>{" "}
+                      </a>
                       , and other MPs requested further meetings and briefings.
                     </p>
                   </div>
