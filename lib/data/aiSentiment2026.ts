@@ -159,5 +159,5 @@ export const SURVEY_META = {
   countries: 104,
   fieldwork: "19 Mar to 21 Apr 2026",
   publisher: "Nira Data",
-  reportUrl: "/reports/ai-sentiment-2026.pdf",
+  reportUrl: "https://www.niradata.com/ai-sentiment",
 };

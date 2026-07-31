@@ -144,7 +144,7 @@ export default function GlobalAiSentiment2026Page() {
             </div>
             <p className="gas-source-note">
               <a href={SURVEY_META.reportUrl} target="_blank" rel="noreferrer">
-                Read the full report (PDF)
+                Read the full report
               </a>
               .
             </p>
@@ -202,7 +202,7 @@ export default function GlobalAiSentiment2026Page() {
             </p>
             <p>
               <a href={SURVEY_META.reportUrl} target="_blank" rel="noreferrer">
-                Download the full PDF report
+                View the full report
               </a>{" "}
               for the executive summary, questionnaire and full regional
               analysis.
