@@ -8,9 +8,6 @@
   padding: 64px 0 24px;
   background: var(--bg);
 }
-.campaigns-hero .eyebrow {
-  margin: 0 0 12px;
-}
 .campaigns-hero h1 {
   font-family: var(--font-display), "Lato", system-ui, sans-serif;
   font-size: clamp(38px, 5vw, 60px);

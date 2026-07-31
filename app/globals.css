@@ -286,11 +286,6 @@ section[id] {
   border-bottom: 1px solid var(--border);
 }
 
-.next-event .eyebrow {
-  margin-bottom: 16px;
-  text-align: center;
-}
-
 .next-event .section-heading {
   font-size: clamp(28px, 4vw, 44px);
   line-height: 1.15;
@@ -566,15 +561,6 @@ section[id] {
   max-width: 560px;
   font-size: 18px;
   line-height: 1.55;
-}
-
-.eyebrow {
-  font-family: "Inter", system-ui, sans-serif;
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.12em;
-  color: var(--accent);
-  font-size: 13px;
 }
 
 .actions {
