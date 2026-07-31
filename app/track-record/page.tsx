@@ -602,7 +602,7 @@ export default function TrackRecordPage() {
                       Narayan MP (Minister for Artificial Intelligence),
                       Anneliese Dodds and Siân Berry signing PauseAI UK's{" "}
                       <a
-                        href="https://pauseai.info/dear-sir-demis-2025"
+                        href="https://pauseai.uk/campaigns"
                         className="inline-link"
                         target="_blank"
                         rel="noreferrer"
