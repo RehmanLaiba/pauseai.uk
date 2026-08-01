@@ -13,12 +13,12 @@ export const metadata: Metadata = {
     description:
       "PauseAI UK's written submission to the House of Commons Business and Trade Committee inquiry into Artificial Intelligence, business and the future of the workforce.",
     images: [{ url: "/images/open-graph/open-graph-1200-630.jpg", width: 1200, height: 630 }],
-    url: "https://pauseai.uk/ai-business-and-future-of-workforce-evidence-submission/",
+    url: "https://pauseai.uk/future-of-workforce-inquiry/",
   },
   twitter: {
     images: ["/images/open-graph/open-graph-1600-840.jpg"],
   },
-  alternates: { canonical: "/ai-business-and-future-of-workforce-evidence-submission" },
+  alternates: { canonical: "/future-of-workforce-inquiry" },
 };
 
 export default function AIWorkforceEvidencePage() {
@@ -40,23 +40,22 @@ export default function AIWorkforceEvidencePage() {
             <h2 className="foreword-title">About this inquiry</h2>
             <div className="foreword-body">
               <p>
-                In March 2026, the House of Commons Business and Trade Committee, chaired by Rt Hon Liam Byrne MP,
-                launched an inquiry into <em>Artificial Intelligence, business and the future of the workforce</em>.
-                The Committee called for written evidence from businesses, trade unions, academics, civil society
-                organisations, and the public, with submissions due by 3 April 2026.
+                In March 2026, the House of Commons Business and Trade Committee opened an inquiry into{" "}
+                <em>Artificial Intelligence, business and the future of the workforce</em>. The Committee called for
+                written evidence submissions from businesses, trade unions, academics, civil society organisations,
+                and the public.
               </p>
               <p>
-                The inquiry was established to understand the opportunities and costs that AI presents for UK businesses
-                and workers, and to make recommendations on Government priorities. Its scope included AI adoption across
-                sectors and regions, the infrastructure required to support it, the impact on employment, productivity,
-                and job quality, skills and retraining needs, and the adequacy of the existing regulatory framework.
+                PauseAI UK volunteers worked collaboratively to research and write a detailed submission which
+                outlines our views about the likely impact that AI will have on the job market and the future of
+                employment.
               </p>
               <p>
-                PauseAI UK submitted written evidence arguing that the Committee must plan for scenarios far more
-                disruptive than AI as a mere productivity tool, specifically scenarios in which autonomous AI
-                agents can perform most or all economically valuable tasks, rendering human labour non-competitive. We
-                urged the Committee to consider that no intervention short of an international pause in frontier AI
-                development will be sufficient to prevent catastrophic economic and social destabilisation.
+                We argue that the Committee should plan for scenarios far more disruptive than AI as a mere chatbot
+                assistant. They should prepare for scenarios in which autonomous AI agents can perform the vast
+                majority of economically valuable work, making many people unemployable through no fault of their
+                own. We argue that only an international pause in frontier AI development will be sufficient to
+                prevent catastrophic economic and social destabilisation.
               </p>
               <p>
                 The full text of our submission is reproduced below, as originally submitted.
@@ -72,8 +71,6 @@ export default function AIWorkforceEvidencePage() {
               <table className="ev-meta-table">
                 <tbody>
                   <tr><th>Date</th><td>3 April 2026</td></tr>
-                  <tr><th>Organisation</th><td>PauseAI UK</td></tr>
-                  <tr><th>Submitted by</th><td>Joseph Miller, UK Director</td></tr>
                 </tbody>
               </table>
             </div>
