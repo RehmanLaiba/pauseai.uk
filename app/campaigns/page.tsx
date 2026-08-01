@@ -24,7 +24,6 @@ export default function CampaignsPage() {
       <main className="campaigns">
         <section className="campaigns-hero">
           <div className="container">
-            <p className="eyebrow">Frontier AI Legislation Campaign</p>
             <h1>Regulate AI developers now</h1>
             <p className="lede">We&rsquo;re calling on the UK government to introduce legislation to protect British people from frontier AI risks: from cyber attacks on national infrastructure to bioweapons.</p>
             <p className="hero-cta-row">

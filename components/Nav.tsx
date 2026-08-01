@@ -149,7 +149,18 @@ export default function Nav({ chapterName, chapterLogoSrc }: NavProps) {
               <a href="/west-of-england/" role="menuitem">West of England</a>
             </div>
           </div>
-          <a href="/campaigns/">Campaigns</a>
+          <div className="nav-item has-dropdown">
+            <a href="/campaigns/" className="dropdown-trigger" aria-haspopup="true" aria-expanded="false">
+              Campaigns
+              <svg className="caret" viewBox="0 0 12 8" aria-hidden="true" focusable={false}>
+                <path d="M1 1.5l5 5 5-5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
+              </svg>
+            </a>
+            <div className="dropdown" role="menu">
+              <a href="/campaigns/" role="menuitem">Frontier AI Legislation</a>
+              <a href="/future-of-workforce-inquiry/" role="menuitem">Future of the Workforce Inquiry</a>
+            </div>
+          </div>
           <a href={`${navPrefix}#stories`}>Stories</a>
           <a href={`${navPrefix}#people`}>People</a>
           <a href={site.shopUrl} target="_blank" rel="noreferrer">Shop</a>
