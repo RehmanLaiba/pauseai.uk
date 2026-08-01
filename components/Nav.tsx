@@ -130,6 +130,7 @@ export default function Nav({ chapterName, chapterLogoSrc }: NavProps) {
               <a href="/track-record/" role="menuitem">Track record</a>
               <a href="/theory-of-change/" role="menuitem">Theory of change</a>
               <a href="/governance/" role="menuitem">Governance</a>
+              <a href="/global-ai-sentiment-2026/" role="menuitem">Global AI sentiment 2026</a>
             </div>
           </div>
           <div className="nav-item has-dropdown">

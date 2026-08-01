@@ -1,0 +1,32 @@
+section,group,stop_permanently_pct,pause_until_safe_pct,continue_oversight_pct,continue_rapidly_pct,not_sure_pct
+global_topline,Global average,22,16,21,17,24
+region_average,Europe,20,18,24,14,24
+region_average,Americas,22,16,20,17,25
+region_average,MENA,22,16,22,19,21
+region_average,Asia-Pacific,22,16,21,18,23
+region_average,Sub-Saharan Africa,27,15,16,19,23
+age,18-35,28,15,18,19,20
+age,36-55,20,17,23,18,22
+age,56+,21,17,20,17,25
+gender,Male,19,14,22,23,22
+gender,Female,25,18,20,12,25
+education,High,10,14,26,32,18
+education,Medium,18,19,24,16,23
+education,Low,39,15,11,9,26
+income,Above average,18,14,18,31,19
+income,Average,20,17,23,16,24
+income,Below average,27,17,19,12,25
+employment,Not working by choice,14,18,23,21,24
+employment,Unemployed,17,15,19,26,23
+employment,Self-employed,22,15,19,21,23
+employment,Part-time,35,16,16,12,21
+employment,Full-time,27,16,24,11,22
+location,Large city,21,15,24,18,22
+location,Suburban/town,23,17,21,17,22
+location,Rural,24,17,16,18,25
+uk_us,United Kingdom,23,20,20,11,26
+uk_us,United States,22,17,19,13,29
+uk_us_gender,UK Female,24,23,17,7,29
+uk_us_gender,US Female,27,20,17,7,29
+uk_us_gender,UK Male,21,17,22,14,26
+uk_us_gender,US Male,18,15,21,19,27
