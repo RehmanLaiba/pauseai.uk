@@ -137,14 +137,16 @@
   margin: 0 0 18px;
 }
 
-.governance .gov-section p a {
+.governance .gov-section p a,
+.governance .gov-section li a {
   color: var(--accent);
   text-decoration: underline;
   text-decoration-thickness: 1px;
   text-underline-offset: 3px;
   transition: color 0.15s ease;
 }
-.governance .gov-section p a:hover {
+.governance .gov-section p a:hover,
+.governance .gov-section li a:hover {
   color: var(--pause-orange);
 }
 

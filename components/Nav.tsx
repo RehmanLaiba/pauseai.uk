@@ -119,16 +119,18 @@ export default function Nav({ chapterName, chapterLogoSrc }: NavProps) {
         </button>
         <nav>
           <div className="nav-item has-dropdown">
-            <a href="/track-record/" className="dropdown-trigger" aria-haspopup="true" aria-expanded="false">
+            <a href="/what-is-pauseai-uk/" className="dropdown-trigger" aria-haspopup="true" aria-expanded="false">
               About
               <svg className="caret" viewBox="0 0 12 8" aria-hidden="true" focusable={false}>
                 <path d="M1 1.5l5 5 5-5" fill="none" stroke="currentColor" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
               </svg>
             </a>
             <div className="dropdown" role="menu">
+              <a href="/what-is-pauseai-uk/" role="menuitem">What is PauseAI UK?</a>
               <a href="/track-record/" role="menuitem">Track record</a>
               <a href="/theory-of-change/" role="menuitem">Theory of change</a>
               <a href="/governance/" role="menuitem">Governance</a>
+              <a href="/global-ai-sentiment-2026/" role="menuitem">Global AI sentiment 2026</a>
             </div>
           </div>
           <div className="nav-item has-dropdown">
