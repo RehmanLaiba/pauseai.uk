@@ -44,7 +44,7 @@ export default function WhatIsPauseAIUKPage() {
               </p>
 
               <p>
-                PauseAI is focused on the risks of superhuman AI. This focus is the thing that is unique about PauseAI
+                PauseAI is focused on the risks of <strong>superhuman AI</strong>. This focus is the thing that is unique about PauseAI
                 UK and distinguishes us from other movements in the UK.
               </p>
 
