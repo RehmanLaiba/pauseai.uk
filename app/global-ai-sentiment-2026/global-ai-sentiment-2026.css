@@ -14,7 +14,6 @@
   font-size: 18px;
   line-height: 1.55;
   color: var(--text-secondary);
-  max-width: 640px;
   margin: 16px auto 0;
 }
 
@@ -25,7 +24,7 @@
 
 .gas-stats-inner {
   display: grid;
-  grid-template-columns: repeat(4, 1fr);
+  grid-template-columns: repeat(3, 1fr);
   gap: 24px;
   padding: 40px 0;
 }
@@ -291,6 +290,185 @@
 
 .gas-howto p:last-child {
   margin-bottom: 0;
+}
+
+/* ---- Hover tooltips (data-tooltip attribute) ---- */
+
+[data-tooltip] {
+  position: relative;
+  cursor: help;
+}
+
+[data-tooltip]::after {
+  content: attr(data-tooltip);
+  position: absolute;
+  bottom: calc(100% + 6px);
+  left: 50%;
+  transform: translateX(-50%);
+  width: 200px;
+  background: var(--text);
+  color: #fff;
+  padding: 6px 10px;
+  border-radius: 6px;
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 12px;
+  font-weight: 400;
+  line-height: 1.35;
+  white-space: normal;
+  pointer-events: none;
+  z-index: 10;
+  opacity: 0;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.2);
+  transition: opacity 0.15s;
+  text-align: left;
+}
+
+[data-tooltip]:hover::after {
+  opacity: 1;
+}
+
+.gas-term[data-tooltip] {
+  border-bottom: 1px dotted currentColor;
+}
+
+/* net opinion sits at the right edge — align tooltip to right so it doesn't clip */
+.gas-bar-net[data-tooltip]::after,
+.gas-vbar-net-value[data-tooltip]::after {
+  left: auto;
+  right: 0;
+  transform: none;
+}
+
+/* ---- Global average header (title + n/moe) ---- */
+
+.gas-global-header {
+  display: flex;
+  align-items: baseline;
+  gap: 10px;
+  margin-bottom: 12px;
+}
+
+.gas-global-title {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+}
+
+.gas-global-meta {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 11px;
+  color: var(--muted);
+}
+
+/* ---- Global average vertical bar + right-side legend ---- */
+
+.gas-global-display {
+  display: flex;
+  gap: 32px;
+  align-items: flex-start;
+  margin-bottom: 24px;
+}
+
+.gas-vbar-wrap {
+  display: flex;
+  flex-direction: column;
+  width: 80px;
+  height: 300px;
+  border-radius: 8px;
+  overflow: hidden;
+  flex-shrink: 0;
+}
+
+.gas-vbar-segment {
+  min-height: 2px;
+}
+
+.gas-vbar-right {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  flex: 1;
+  min-width: 0;
+}
+
+.gas-vbar-legend {
+  position: relative;
+  height: 300px;
+}
+
+.gas-vbar-legend-item {
+  position: absolute;
+  left: 0;
+  right: 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transform: translateY(-50%);
+}
+
+.gas-vbar-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  flex-shrink: 0;
+}
+
+.gas-vbar-label {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 14px;
+  color: var(--text);
+  flex: 1;
+}
+
+.gas-vbar-pct {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  color: var(--muted);
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+.gas-vbar-net-row {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-top: 10px;
+  margin-top: 2px;
+  border-top: 1px solid var(--border);
+}
+
+.gas-vbar-net-label {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  flex: 1;
+}
+
+.gas-vbar-net-value {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 14px;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  flex-shrink: 0;
+}
+
+@media (max-width: 600px) {
+  .gas-global-display {
+    flex-direction: row;
+    gap: 20px;
+    align-items: flex-start;
+  }
+  .gas-vbar-wrap {
+    width: 60px;
+    height: 260px;
+    flex-shrink: 0;
+  }
+  .gas-vbar-legend {
+    height: 260px;
+  }
 }
 
 .gas-source-note {

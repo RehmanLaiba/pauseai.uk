@@ -98,7 +98,7 @@ export default function DivergingBar({ label, row, meta, rank, showNotSure = tru
           </div>
         )}
       </div>
-      <div id={netId} className={`gas-bar-net ${net >= 0 ? "gas-bar-net-pos" : "gas-bar-net-neg"}`}>
+      <div id={netId} className={`gas-bar-net ${net >= 0 ? "gas-bar-net-pos" : "gas-bar-net-neg"}`} data-tooltip="Net opinion: Rapid-development support minus combined opposition (stop + pause + oversight)">
         {net > 0 ? "+" : ""}
         {net}
       </div>

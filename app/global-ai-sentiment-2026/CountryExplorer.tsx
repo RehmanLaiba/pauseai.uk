@@ -76,7 +76,7 @@ export default function CountryExplorer() {
       <div className="gas-bar-list">
         {rows.length === 0 && <p className="gas-empty">No countries match that search.</p>}
         {rows.map((row, i) => (
-          <DivergingBar key={row.country} label={row.country} row={row} meta={`n=${row.n.toLocaleString()} · ±${row.moe_pp}pp`} rank={sort === "az" ? undefined : i + 1} showNotSure={showNotSure} />
+          <DivergingBar key={row.country} label={row.country} row={row} meta={<><span className="gas-term" data-tooltip="Number of people surveyed">n={row.n.toLocaleString()}</span>{" · "}<span className="gas-term" data-tooltip="Margin of error at 95% confidence, in percentage points">±{row.moe_pp}pp</span></>} rank={sort === "az" ? undefined : i + 1} showNotSure={showNotSure} />
         ))}
       </div>
     </div>

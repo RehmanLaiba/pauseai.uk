@@ -7,12 +7,11 @@ import {
   QUESTION_TEXT,
   RESPONSE_OPTIONS,
   SURVEY_META,
+  netOpinion,
 } from "@/lib/data/aiSentiment2026";
 import WorldMap from "./WorldMap";
 import CountryExplorer from "./CountryExplorer";
 import DemographicsExplorer from "./DemographicsExplorer";
-import DivergingBar from "./DivergingBar";
-import { AnnotatedBarHeader, AnnotatedBarFooter } from "./AnnotatedBar";
 import "../track-record/track-record.css";
 import "./global-ai-sentiment-2026.css";
 
@@ -41,6 +40,18 @@ export const metadata: Metadata = {
   alternates: { canonical: "/global-ai-sentiment-2026" },
 };
 
+function buildLegendItems() {
+  let cumPct = 0;
+  return RESPONSE_OPTIONS.map((option) => {
+    const value = GLOBAL_AVERAGE[option.key];
+    const centerPct = cumPct + value / 2;
+    cumPct += value;
+    return { option, value, centerPct };
+  });
+}
+
+const LEGEND_ITEMS = buildLegendItems();
+
 export default function GlobalAiSentiment2026Page() {
   return (
     <>
@@ -66,10 +77,6 @@ export default function GlobalAiSentiment2026Page() {
               <span className="gas-stat-label">Countries surveyed</span>
             </div>
             <div className="gas-stat">
-              <span className="gas-stat-value">{SURVEY_META.fieldwork}</span>
-              <span className="gas-stat-label">Fieldwork window</span>
-            </div>
-            <div className="gas-stat">
               <span className="gas-stat-value">60%</span>
               <span className="gas-stat-label">
                 Want development slowed, paused or stopped
@@ -85,62 +92,52 @@ export default function GlobalAiSentiment2026Page() {
             <p className="gas-key-stat">
               Six in ten people globally want AI development slowed in some form. Fewer than one in five want it developed &ldquo;as quickly as possible&rdquo;.
             </p>
-            <div id="gas-demo-wrap" className="gas-demo-wrap">
-              <div className="gas-bar-list gas-global-bar">
-                <AnnotatedBarHeader row={GLOBAL_AVERAGE} />
-                <DivergingBar
-                  label="Global average"
-                  row={GLOBAL_AVERAGE}
-                  netId="gas-demo-net"
-                  meta={
-                    <>
-                      <span id="gas-demo-n">n={GLOBAL_N.toLocaleString()}</span>{" "}
-                      · <span id="gas-demo-moe">&plusmn;{GLOBAL_MOE_PP}pp</span>{" "}
-                      (approx.)
-                    </>
-                  }
-                />
-              </div>
-              <AnnotatedBarFooter wrapId="gas-demo-wrap" />
+            <div className="gas-global-header">
+              <span className="gas-global-title">Global average</span>
+              <span className="gas-global-meta">
+                <span className="gas-term" data-tooltip="Number of people surveyed">n={GLOBAL_N.toLocaleString()}</span>
+                {" · "}
+                <span className="gas-term" data-tooltip="Margin of error at 95% confidence, in percentage points">&plusmn;{GLOBAL_MOE_PP}pp</span>
+                {" (approx.)"}
+              </span>
             </div>
-            <ul className="gas-legend-key gas-legend-key-mobile">
-              {RESPONSE_OPTIONS.map((option) => (
-                <li key={option.key}>
-                  <span
-                    className="gas-legend-dot"
-                    style={{ background: option.light }}
+            <div className="gas-global-display">
+              <div className="gas-vbar-wrap" role="img" aria-label={`Global average: ${RESPONSE_OPTIONS.map((o) => `${o.shortLabel} ${GLOBAL_AVERAGE[o.key]}%`).join(", ")}`}>
+                {RESPONSE_OPTIONS.map((option) => (
+                  <div
+                    key={option.key}
+                    className="gas-vbar-segment"
+                    style={{ flex: GLOBAL_AVERAGE[option.key], background: option.light }}
                   />
-                  {option.label}
-                </li>
-              ))}
-            </ul>
-            <div className="gas-howto">
-              <h3>How to read these bars</h3>
-              <p>
-                Each bar is a single country or group, split into the five
-                response options above. The segments add up to 100% of
-                respondents. Wider segments mean more people picked that option.
-                Hover or tap a segment for the exact figure.
-              </p>
-              <p>
-                The number to the right is the <strong>net opinion</strong>: the
-                share who want development to continue as quickly as possible,
-                minus the share who want it stopped, paused, or placed under
-                strict oversight. A negative score (shown in red) means
-                opposition to rapid development outweighs support for it. A
-                positive score (shown in blue) means the opposite. It is a
-                summary of the whole bar, not a sixth category.
-              </p>
-              <p>
-                <strong>n</strong> is the number of people surveyed for that
-                row. <strong>&plusmn;pp</strong> is the margin of error, in
-                percentage points, at 95% confidence: how far the true figure
-                could plausibly sit above or below what&rsquo;s shown, just from
-                sampling a subset of the population rather than everyone.
-                Smaller samples (a small country, a narrow demographic slice)
-                have a wider margin of error and so should be read with more
-                caution.
-              </p>
+                ))}
+              </div>
+              <div className="gas-vbar-right">
+                <div className="gas-vbar-legend">
+                  {LEGEND_ITEMS.map(({ option, value, centerPct }) => (
+                    <div
+                      key={option.key}
+                      className="gas-vbar-legend-item"
+                      style={{ top: `${centerPct}%` }}
+                    >
+                      <span className="gas-vbar-dot" style={{ background: option.light }} />
+                      <span className="gas-vbar-label">{option.label}</span>
+                      <span className="gas-vbar-pct">{value}%</span>
+                    </div>
+                  ))}
+                </div>
+                <div className="gas-vbar-net-row">
+                  <span className="gas-vbar-net-label">Net opinion</span>
+                  <span
+                    className={`gas-vbar-net-value ${
+                      netOpinion(GLOBAL_AVERAGE) >= 0 ? "gas-bar-net-pos" : "gas-bar-net-neg"
+                    }`}
+                    data-tooltip="Net opinion: Rapid-development support minus combined opposition (stop + pause + oversight)"
+                  >
+                    {netOpinion(GLOBAL_AVERAGE) > 0 ? "+" : ""}
+                    {netOpinion(GLOBAL_AVERAGE)}
+                  </span>
+                </div>
+              </div>
             </div>
             <p className="gas-source-note">
               <a href={SURVEY_META.reportUrl} target="_blank" rel="noreferrer">
@@ -155,9 +152,7 @@ export default function GlobalAiSentiment2026Page() {
           <div className="container">
             <h2>Explore the map</h2>
             <p className="gas-section-intro">
-              Hover any country to see its full breakdown. Switch the metric to
-              see who wants development stopped, paused, overseen, or
-              accelerated.
+              Hover any country to see its full breakdown.
             </p>
             <WorldMap />
           </div>
@@ -168,9 +163,6 @@ export default function GlobalAiSentiment2026Page() {
             <h2>All 104 countries</h2>
             <p className="gas-section-intro">
               Filter by region, sort by opinion, or search for a country.
-              &ldquo;Net opinion&rdquo; is the share who want development to
-              continue as quickly as possible, minus the share who want it
-              stopped, paused or placed under strict oversight.
             </p>
             <CountryExplorer />
           </div>
