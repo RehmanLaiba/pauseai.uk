@@ -15,21 +15,32 @@ export default function Nav({ chapterName, chapterLogoSrc }: NavProps) {
   const navPrefix = isHomepage ? "" : "/";
 
   useEffect(() => {
+    const header = document.querySelector(".site-header") as HTMLElement | null;
     const burger = document.querySelector(".burger") as HTMLButtonElement | null;
     const nav = document.querySelector("nav") as HTMLElement | null;
-    if (!burger || !nav) return;
+    if (!burger || !nav || !header) return;
+
+    const syncHeaderHeight = () => {
+      document.documentElement.style.setProperty("--site-header-h", `${header.offsetHeight}px`);
+    };
+    syncHeaderHeight();
+    const resizeObserver = new ResizeObserver(syncHeaderHeight);
+    resizeObserver.observe(header);
+
+    const setOpen = (open: boolean) => {
+      burger.setAttribute("aria-expanded", String(open));
+      nav.classList.toggle("open", open);
+      document.body.classList.toggle("mobile-nav-open", open);
+    };
 
     const handleBurgerClick = () => {
-      const open = burger.getAttribute("aria-expanded") === "true";
-      burger.setAttribute("aria-expanded", String(!open));
-      nav.classList.toggle("open", !open);
+      setOpen(burger.getAttribute("aria-expanded") !== "true");
     };
 
     const handleNavLinkClick = (e: Event) => {
       const link = e.currentTarget as HTMLAnchorElement;
       if (link.classList.contains("dropdown-trigger")) return;
-      burger.setAttribute("aria-expanded", "false");
-      nav.classList.remove("open");
+      setOpen(false);
     };
 
     burger.addEventListener("click", handleBurgerClick);
@@ -80,6 +91,8 @@ export default function Nav({ chapterName, chapterLogoSrc }: NavProps) {
       });
       triggers.forEach((t) => t.removeEventListener("click", handleTriggerClick));
       document.removeEventListener("click", handleDocClick);
+      resizeObserver.disconnect();
+      document.body.classList.remove("mobile-nav-open");
     };
   }, []);
 

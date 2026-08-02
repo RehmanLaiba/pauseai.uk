@@ -1567,19 +1567,27 @@ section[id] {
 
   nav {
     display: none;
-    position: absolute;
-    top: 100%;
+    position: fixed;
+    top: var(--site-header-h, 64px);
     left: 0;
     right: 0;
-    background: rgba(28, 28, 30, 0.98);
+    bottom: 0;
+    background: #1c1c1e;
     flex-direction: column;
     padding: 8px 0 16px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     align-items: stretch;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
   }
 
   nav.open {
     display: flex;
+  }
+
+  body.mobile-nav-open {
+    overflow: hidden;
   }
 
   nav > a,
