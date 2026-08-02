@@ -90,53 +90,77 @@ export default function GlobalAiSentiment2026Page() {
             <h2>The question asked</h2>
             <blockquote className="gas-question">{QUESTION_TEXT}</blockquote>
             <p className="gas-key-stat">
-              Six in ten people globally want AI development slowed in some form. Fewer than one in five want it developed &ldquo;as quickly as possible&rdquo;.
+              Six in ten people globally want AI development slowed in some
+              form. Fewer than one in five want it developed &ldquo;as quickly
+              as possible&rdquo;.
             </p>
             <div className="gas-global-header">
               <span className="gas-global-title">Global average</span>
               <span className="gas-global-meta">
-                <span className="gas-term" data-tooltip="Number of people surveyed">n={GLOBAL_N.toLocaleString()}</span>
+                <span
+                  className="gas-term"
+                  data-tooltip="Number of people surveyed"
+                >
+                  n={GLOBAL_N.toLocaleString()}
+                </span>
                 {" · "}
-                <span className="gas-term" data-tooltip="Margin of error at 95% confidence, in percentage points">&plusmn;{GLOBAL_MOE_PP}pp</span>
+                <span
+                  className="gas-term"
+                  data-tooltip="Margin of error at 95% confidence, in percentage points"
+                >
+                  &plusmn;{GLOBAL_MOE_PP}pp
+                </span>
                 {" (approx.)"}
               </span>
             </div>
             <div className="gas-global-display">
-              <div className="gas-vbar-wrap" role="img" aria-label={`Global average: ${RESPONSE_OPTIONS.map((o) => `${o.shortLabel} ${GLOBAL_AVERAGE[o.key]}%`).join(", ")}`}>
-                {RESPONSE_OPTIONS.map((option) => (
-                  <div
-                    key={option.key}
-                    className="gas-vbar-segment"
-                    style={{ flex: GLOBAL_AVERAGE[option.key], background: option.light }}
-                  />
-                ))}
+              <div className="gas-vbar-col">
+                <div
+                  className="gas-vbar-wrap"
+                  role="img"
+                  aria-label={`Global average: ${RESPONSE_OPTIONS.map((o) => `${o.shortLabel} ${GLOBAL_AVERAGE[o.key]}%`).join(", ")}`}
+                >
+                  {LEGEND_ITEMS.map(({ option, value }) => (
+                    <div
+                      key={option.key}
+                      className="gas-vbar-segment"
+                      style={{ flex: value, background: option.light }}
+                    >
+                      {value >= 7 && (
+                        <span className="gas-vbar-segment-value">{value}%</span>
+                      )}
+                    </div>
+                  ))}
+                </div>
+                <span
+                  className={`gas-vbar-net-value ${
+                    netOpinion(GLOBAL_AVERAGE) >= 0
+                      ? "gas-bar-net-pos"
+                      : "gas-bar-net-neg"
+                  }`}
+                  // data-tooltip="Net opinion: Rapid-development support minus combined opposition (stop + pause + oversight)"
+                >
+                  {netOpinion(GLOBAL_AVERAGE) > 0 ? "+" : ""}
+                  {netOpinion(GLOBAL_AVERAGE)}
+                </span>
               </div>
               <div className="gas-vbar-right">
                 <div className="gas-vbar-legend">
-                  {LEGEND_ITEMS.map(({ option, value, centerPct }) => (
+                  {LEGEND_ITEMS.map(({ option, centerPct }) => (
                     <div
                       key={option.key}
                       className="gas-vbar-legend-item"
                       style={{ top: `${centerPct}%` }}
                     >
-                      <span className="gas-vbar-dot" style={{ background: option.light }} />
+                      <span
+                        className="gas-vbar-dot"
+                        style={{ background: option.light }}
+                      />
                       <span className="gas-vbar-label">{option.label}</span>
-                      <span className="gas-vbar-pct">{value}%</span>
                     </div>
                   ))}
                 </div>
-                <div className="gas-vbar-net-row">
-                  <span className="gas-vbar-net-label">Net opinion</span>
-                  <span
-                    className={`gas-vbar-net-value ${
-                      netOpinion(GLOBAL_AVERAGE) >= 0 ? "gas-bar-net-pos" : "gas-bar-net-neg"
-                    }`}
-                    data-tooltip="Net opinion: Rapid-development support minus combined opposition (stop + pause + oversight)"
-                  >
-                    {netOpinion(GLOBAL_AVERAGE) > 0 ? "+" : ""}
-                    {netOpinion(GLOBAL_AVERAGE)}
-                  </span>
-                </div>
+                <span className="gas-vbar-net-label"><strong>Net opinion</strong>: Rapid-development support minus combined opposition (stop + pause + oversight)</span>
               </div>
             </div>
             <p className="gas-source-note">

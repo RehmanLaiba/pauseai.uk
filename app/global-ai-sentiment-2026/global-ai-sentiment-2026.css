@@ -370,6 +370,14 @@
   margin-bottom: 24px;
 }
 
+.gas-vbar-col {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 12px;
+  flex-shrink: 0;
+}
+
 .gas-vbar-wrap {
   display: flex;
   flex-direction: column;
@@ -377,11 +385,21 @@
   height: 300px;
   border-radius: 8px;
   overflow: hidden;
-  flex-shrink: 0;
 }
 
 .gas-vbar-segment {
+  display: flex;
+  align-items: center;
+  justify-content: center;
   min-height: 2px;
+}
+
+.gas-vbar-segment-value {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 
 .gas-vbar-right {
@@ -435,14 +453,13 @@
   align-items: center;
   gap: 10px;
   padding-top: 10px;
-  margin-top: 2px;
   border-top: 1px solid var(--border);
 }
 
 .gas-vbar-net-label {
   font-family: "Inter", system-ui, sans-serif;
   font-size: 14px;
-  font-weight: 600;
+  font-weight: 400;
   color: var(--text);
   flex: 1;
 }
@@ -464,7 +481,6 @@
   .gas-vbar-wrap {
     width: 60px;
     height: 260px;
-    flex-shrink: 0;
   }
   .gas-vbar-legend {
     height: 260px;
