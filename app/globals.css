@@ -1346,6 +1346,15 @@ section[id] {
   margin-top: 32px;
 }
 
+.story-teaser-cta {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 16px;
+  margin-top: 40px;
+  text-align: center;
+}
+
 .story-card {
   background: var(--surface);
   border: 1px solid var(--border);
@@ -1382,12 +1391,22 @@ section[id] {
   flex-shrink: 0;
 }
 
+.story-avatar-initials {
+  user-select: none;
+}
+
 .story-name {
   font-family: "Inter", system-ui, sans-serif;
   font-weight: 700;
   font-size: 20px;
   margin: 0;
   color: var(--text);
+}
+
+.story-meta {
+  margin: 2px 0 0;
+  font-size: 14px;
+  color: var(--text-secondary);
 }
 
 .story-body p {

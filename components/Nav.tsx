@@ -161,7 +161,7 @@ export default function Nav({ chapterName, chapterLogoSrc }: NavProps) {
               <a href="/future-of-workforce-inquiry/" role="menuitem">Future of the Workforce Inquiry</a>
             </div>
           </div>
-          <a href={`${navPrefix}#stories`}>Stories</a>
+          <a href="/stories/">Stories</a>
           <a href={`${navPrefix}#people`}>People</a>
           <a href={site.shopUrl} target="_blank" rel="noreferrer">Shop</a>
           <a href={`${navPrefix}#join`} className="pill">Join</a>

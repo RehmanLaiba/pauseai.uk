@@ -1,24 +1,16 @@
 import type { Metadata } from "next";
 import type { CSSProperties } from "react";
 import OnboardingFormEmbed from "./OnboardingFormEmbed";
-
-function parseCssStyle(css: string): CSSProperties {
-  const result: Record<string, string> = {};
-  css.split(";").filter(Boolean).forEach((decl) => {
-    const colonIdx = decl.indexOf(":");
-    if (colonIdx === -1) return;
-    const key = decl.slice(0, colonIdx).trim().replace(/-([a-z])/g, (_, c: string) => c.toUpperCase());
-    result[key] = decl.slice(colonIdx + 1).trim();
-  });
-  return result as CSSProperties;
-}
 import Nav from "@/components/Nav";
 import EventList from "@/components/EventList";
+import StoryCard from "@/components/StoryCard";
 import { getEvents } from "@/lib/data/events";
 import { newsRow1, newsRow2, newsMobileRow1, newsMobileRow2, newsMobileRow3, type NewsItem } from "@/lib/data/news";
 import { stories } from "@/lib/data/stories";
 import { people } from "@/lib/data/people";
 import { site } from "@/lib/data/site";
+
+const featuredStories = stories.filter((story) => story.featured);
 
 export const metadata: Metadata = {
   title: "PauseAI UK",
@@ -296,25 +288,17 @@ export default async function HomePage() {
           <div className="container">
             <div className="section-header">
               <h2>Personal stories</h2>
-              <p className="section-lede">Each of us found PauseAI for our own reasons. Here are a few.</p>
+              <p className="section-lede">
+                Each of us found PauseAI for our own reasons. Here are a few, from {stories.length} volunteers and members across our chapters.
+              </p>
             </div>
             <div className="story-grid">
-              {stories.map((story) => (
-                <article key={story.name} className="story-card">
-                  <header className="story-card-header">
-                    <div
-                      className="story-avatar"
-                      style={{ backgroundImage: `url("${story.imageSrc}")`, ...parseCssStyle(story.imageStyle) }}
-                    ></div>
-                    <h3 className="story-name">{story.name}</h3>
-                  </header>
-                  <div className="story-body">
-                    {story.paragraphs.map((para, j) => (
-                      <p key={j} dangerouslySetInnerHTML={{ __html: para }} />
-                    ))}
-                  </div>
-                </article>
+              {featuredStories.map((story) => (
+                <StoryCard key={story.name} story={story} />
               ))}
+            </div>
+            <div className="story-teaser-cta">
+              <a className="btn primary large" href="/stories/">Read all {stories.length} stories →</a>
               <p className="section-lede">
                 <i>Tag us on social media with your extinction risk realisation if you want to be spotlighted!</i>
               </p>

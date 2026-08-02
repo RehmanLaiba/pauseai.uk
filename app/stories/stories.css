@@ -1,0 +1,15 @@
+/* ========================================================================
+   STORIES PAGE
+   Loaded after globals.css and track-record.css. Reuses the .tr-hero
+   pattern from track-record and the .story-grid / .story-card / .btn
+   patterns from globals.css; only the section padding is page-specific.
+   ======================================================================== */
+
+.stories-page .stories-page-grid {
+  padding: 8px 0 88px;
+  background: var(--surface);
+}
+
+.stories-page .story-grid {
+  margin-top: 0;
+}
