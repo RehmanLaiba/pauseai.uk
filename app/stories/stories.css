@@ -1,15 +1,29 @@
 /* ========================================================================
    STORIES PAGE
    Loaded after globals.css and track-record.css. Reuses the .tr-hero
-   pattern from track-record and the .story-grid / .story-card / .btn
-   patterns from globals.css; only the section padding is page-specific.
+   pattern from track-record and the .story-card / .btn patterns from
+   globals.css; only the section padding and grid layout are page-specific.
    ======================================================================== */
 
 .stories-page .stories-page-grid {
-  padding: 8px 0 88px;
+  padding: 48px 0 88px;
   background: var(--surface);
 }
 
 .stories-page .story-grid {
+  display: block;
+  column-count: 1;
+  column-gap: 24px;
   margin-top: 0;
+}
+
+.stories-page .story-card {
+  break-inside: avoid;
+  margin-bottom: 24px;
+}
+
+@media (min-width: 900px) {
+  .stories-page .story-grid {
+    column-count: 2;
+  }
 }

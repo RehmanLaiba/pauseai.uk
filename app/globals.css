@@ -1339,11 +1339,58 @@ section[id] {
   border-bottom: 1px solid var(--accent-light);
 }
 
-.story-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(440px, 100%), 1fr));
-  gap: 24px;
+.story-carousel {
+  position: relative;
   margin-top: 32px;
+}
+
+.story-carousel-track {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+  gap: 24px;
+  padding: 4px 4px 12px;
+}
+
+.story-carousel-track .story-card {
+  flex: 0 0 min(440px, 85vw);
+  scroll-snap-align: start;
+}
+
+.story-carousel-btn {
+  display: none;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 1px 3px var(--shadow);
+  align-items: center;
+  justify-content: center;
+}
+
+.story-carousel-btn-prev {
+  left: -22px;
+}
+
+.story-carousel-btn-next {
+  right: -22px;
+}
+
+@media (min-width: 900px) {
+  .story-carousel-btn {
+    display: flex;
+  }
 }
 
 .story-teaser-cta {
@@ -1418,6 +1465,43 @@ section[id] {
 
 .story-body p:last-child {
   margin-bottom: 0;
+}
+
+.story-body ul {
+  color: var(--text-secondary);
+  margin: 0 0 14px;
+  padding-left: 20px;
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.story-body ul:last-child {
+  margin-bottom: 0;
+}
+
+.story-body li {
+  margin-bottom: 6px;
+}
+
+.story-body li:last-child {
+  margin-bottom: 0;
+}
+
+.story-body {
+  flex: 1;
+}
+
+.story-read-more {
+  align-self: flex-start;
+  font-family: "Inter", system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--accent-strong);
+  text-decoration: none;
+}
+
+.story-read-more:hover {
+  text-decoration: underline;
 }
 
 /* ── Footer ────────────────────────────────────── */
@@ -1712,10 +1796,6 @@ section[id] {
   }
 
   .chapter-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .story-grid {
     grid-template-columns: 1fr;
   }
 

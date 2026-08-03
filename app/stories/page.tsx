@@ -30,7 +30,7 @@ export default function StoriesPage() {
           <div className="container tr-hero-inner">
             <h1 className="tr-hero-title">Stories</h1>
             <p className="tr-hero-lede">
-              Each of us found PauseAI for our own reasons. Here are {stories.length}, from volunteers and members across our chapters.
+              Each of us found PauseAI for our own reasons. Read stories from our volunteers and members across our chapters.
             </p>
           </div>
         </section>
@@ -38,14 +38,11 @@ export default function StoriesPage() {
         <section className="stories-page-grid">
           <div className="container">
             <div className="story-grid">
-              {stories.map((story) => (
-                <StoryCard key={story.name} story={story} />
+              {stories.map((story, i) => (
+                <StoryCard key={`${story.name}-${i}`} story={story} index={i} />
               ))}
             </div>
             <div className="story-teaser-cta">
-              <p className="section-lede">
-                <i>Tag us on social media with your extinction risk realisation if you want to be spotlighted!</i>
-              </p>
               <a className="btn primary large" href={`${site.whatsappUrl}`} target="_blank" rel="noreferrer">
                 Join the community
               </a>

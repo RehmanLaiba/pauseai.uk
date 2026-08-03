@@ -3,14 +3,12 @@ import type { CSSProperties } from "react";
 import OnboardingFormEmbed from "./OnboardingFormEmbed";
 import Nav from "@/components/Nav";
 import EventList from "@/components/EventList";
-import StoryCard from "@/components/StoryCard";
+import StoriesCarousel from "@/components/StoriesCarousel";
 import { getEvents } from "@/lib/data/events";
 import { newsRow1, newsRow2, newsMobileRow1, newsMobileRow2, newsMobileRow3, type NewsItem } from "@/lib/data/news";
 import { stories } from "@/lib/data/stories";
 import { people } from "@/lib/data/people";
 import { site } from "@/lib/data/site";
-
-const featuredStories = stories.filter((story) => story.featured);
 
 export const metadata: Metadata = {
   title: "PauseAI UK",
@@ -289,19 +287,12 @@ export default async function HomePage() {
             <div className="section-header">
               <h2>Personal stories</h2>
               <p className="section-lede">
-                Each of us found PauseAI for our own reasons. Here are a few, from {stories.length} volunteers and members across our chapters.
+                Stories from volunteers about their journey to joining PauseAI.
               </p>
             </div>
-            <div className="story-grid">
-              {featuredStories.map((story) => (
-                <StoryCard key={story.name} story={story} />
-              ))}
-            </div>
+            <StoriesCarousel stories={stories} />
             <div className="story-teaser-cta">
               <a className="btn primary large" href="/stories/">Read all {stories.length} stories →</a>
-              <p className="section-lede">
-                <i>Tag us on social media with your extinction risk realisation if you want to be spotlighted!</i>
-              </p>
             </div>
           </div>
         </section>
