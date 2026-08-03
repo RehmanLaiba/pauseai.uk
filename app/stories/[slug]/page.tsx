@@ -86,7 +86,7 @@ export default async function StoryDetailPage({ params }: { params: Promise<{ sl
             <div className="section-header">
               <h2>Share your story</h2>
               <p className="section-lede">
-                Why did you get involved, or what are your own concerns about AI? Tell us in your own words,we may feature it on this page.
+                Why did you get involved, or what are your own concerns about AI? Tell us in your own words, we may feature it on the website.
               </p>
             </div>
             <StoryShareForm />
