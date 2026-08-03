@@ -293,6 +293,7 @@ export default async function HomePage() {
             <StoriesCarousel stories={stories} />
             <div className="story-teaser-cta">
               <a className="btn primary large" href="/stories/">Read all {stories.length} stories →</a>
+              <a className="btn ghost large" href="/stories/#share-your-story">Share your story →</a>
             </div>
           </div>
         </section>

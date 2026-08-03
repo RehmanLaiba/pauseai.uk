@@ -27,3 +27,34 @@
     column-count: 2;
   }
 }
+
+.stories-page .stories-page-share {
+  padding: 0 0 88px;
+  background: var(--surface);
+}
+
+.stories-page .story-share-form {
+  max-width: 720px;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* ─── Individual story page ─── */
+
+.story-detail-page .story-back-link {
+  display: inline-block;
+  margin-bottom: 16px;
+  font-family: "Inter", system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--accent-strong);
+  text-decoration: none;
+}
+
+.story-detail-page .story-back-link:hover {
+  text-decoration: underline;
+}
+
+.story-detail-page .story-detail-grid {
+  max-width: 720px;
+}
