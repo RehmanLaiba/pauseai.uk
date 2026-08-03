@@ -21,6 +21,15 @@ export function initials(name: string): string {
     .toUpperCase();
 }
 
+// Content for the avatar circle when there's no photo: initials, or the
+// PauseAI pause symbol for anonymous submissions (no initials to show).
+export function avatarFallback(name: string): ReactNode {
+  if (!name.trim()) {
+    return <img src="/images/logos/Pause-Symbol.svg" alt="" className="story-avatar-pause-icon" />;
+  }
+  return initials(name);
+}
+
 const BULLET_PREFIX = /^-\s+/;
 
 export function isBulletLine(text: string): boolean {

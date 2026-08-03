@@ -61,8 +61,18 @@
   gap: 24px;
 }
 
+.story-detail-page .story-detail-title-wrap {
+  flex: 1;
+  min-width: 0;
+}
+
 .story-detail-page .story-detail-heading .tr-hero-title {
   margin: 0;
+}
+
+.story-detail-page .story-detail-share-btn {
+  width: 44px;
+  height: 44px;
 }
 
 .story-detail-page .story-detail-avatar {

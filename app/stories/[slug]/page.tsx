@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
+import CopyLinkButton from "@/components/CopyLinkButton";
 import Nav from "@/components/Nav";
 import StoryShareForm from "@/components/StoryShareForm";
 import { stories, storySlug } from "@/lib/data/stories";
 import { site } from "@/lib/data/site";
-import { initials, parseCssStyle, renderBody } from "@/lib/storyRender";
+import { avatarFallback, parseCssStyle, renderBody } from "@/lib/storyRender";
 import "../../track-record/track-record.css";
 import "../stories.css";
 
@@ -74,10 +75,13 @@ export default async function StoryDetailPage({ params }: { params: Promise<{ sl
                 ></div>
               ) : (
                 <div className="story-detail-avatar story-avatar-initials" aria-hidden="true">
-                  {initials(story.name)}
+                  {avatarFallback(story.name)}
                 </div>
               )}
-              <h1 className="tr-hero-title">{story.name || "Anonymous submission"}</h1>
+              <div className="story-detail-title-wrap">
+                <h1 className="tr-hero-title">{story.name || "Anonymous submission"}</h1>
+              </div>
+              <CopyLinkButton slug={slug} className="story-detail-share-btn" size={20} />
             </div>
           </div>
         </section>

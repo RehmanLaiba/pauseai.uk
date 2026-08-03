@@ -1421,6 +1421,33 @@ section[id] {
   gap: 16px;
 }
 
+.story-name-wrap {
+  flex: 1;
+  min-width: 0;
+}
+
+.story-share-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.story-share-btn:hover {
+  background: var(--accent-light);
+  color: var(--accent-strong);
+  border-color: var(--accent-light);
+}
+
 .story-avatar {
   width: 64px;
   height: 64px;
@@ -1442,6 +1469,12 @@ section[id] {
 
 .story-avatar-initials {
   user-select: none;
+}
+
+.story-avatar-pause-icon {
+  width: 45%;
+  height: 45%;
+  object-fit: contain;
 }
 
 .story-name {

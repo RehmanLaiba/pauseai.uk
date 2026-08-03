@@ -2,9 +2,10 @@
 
 import Link from "next/link";
 import { useLayoutEffect, useRef, useState } from "react";
+import CopyLinkButton from "@/components/CopyLinkButton";
 import type { Story } from "@/lib/data/stories";
 import { storySlug } from "@/lib/data/stories";
-import { bulletText, initials, isBulletLine, parseCssStyle, renderBody } from "@/lib/storyRender";
+import { avatarFallback, bulletText, isBulletLine, parseCssStyle, renderBody } from "@/lib/storyRender";
 
 // Server-rendered/pre-hydration fallback, so there's no giant flash of text
 // before the client can measure. The real truncation point is computed in
@@ -154,14 +155,15 @@ export default function StoryCard({
           ></div>
         ) : (
           <div className="story-avatar story-avatar-initials" aria-hidden="true">
-            {initials(story.name)}
+            {avatarFallback(story.name)}
           </div>
         )}
-        <div>
+        <div className="story-name-wrap">
           <h3 className="story-name">
             <Link href={`/stories/${slug}`}>{story.name || <em>Anonymous submission</em>}</Link>
           </h3>
         </div>
+        <CopyLinkButton slug={slug} />
       </header>
       {truncate ? (
         <div className="story-body" ref={useJsClamp ? bodyRef : undefined}>
