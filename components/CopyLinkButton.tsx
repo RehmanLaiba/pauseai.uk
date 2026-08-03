@@ -6,10 +6,14 @@ export default function CopyLinkButton({
   slug,
   className,
   size = 16,
+  label,
 }: {
   slug: string;
   className?: string;
   size?: number;
+  // When set, renders as a labelled button (icon + text) instead of the
+  // default icon-only circle.
+  label?: string;
 }) {
   const [copied, setCopied] = useState(false);
 
@@ -27,7 +31,7 @@ export default function CopyLinkButton({
   return (
     <button
       type="button"
-      className={["story-share-btn", className].filter(Boolean).join(" ")}
+      className={[label ? "btn ghost story-share-cta" : "story-share-btn", className].filter(Boolean).join(" ")}
       onClick={handleCopy}
       aria-label={copied ? "Link copied" : "Copy link to this story"}
       title={copied ? "Link copied" : "Copy link to this story"}
@@ -42,6 +46,7 @@ export default function CopyLinkButton({
           <path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" />
         </svg>
       )}
+      {label && <span>{copied ? "Copied!" : label}</span>}
     </button>
   );
 }

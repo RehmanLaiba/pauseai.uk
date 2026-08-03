@@ -1448,6 +1448,10 @@ section[id] {
   border-color: var(--accent-light);
 }
 
+.story-share-cta {
+  gap: 8px;
+}
+
 .story-avatar {
   width: 64px;
   height: 64px;

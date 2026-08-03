@@ -81,7 +81,7 @@ export default async function StoryDetailPage({ params }: { params: Promise<{ sl
               <div className="story-detail-title-wrap">
                 <h1 className="tr-hero-title">{story.name || "Anonymous submission"}</h1>
               </div>
-              <CopyLinkButton slug={slug} className="story-detail-share-btn" size={20} />
+              <CopyLinkButton slug={slug} className="story-detail-share-btn" size={18} label="Share this story" />
             </div>
           </div>
         </section>
@@ -89,6 +89,9 @@ export default async function StoryDetailPage({ params }: { params: Promise<{ sl
         <section className="stories-page-grid">
           <div className="container story-detail-grid">
             <div className="story-body">{renderBody(story.paragraphs, true)}</div>
+            <div className="story-teaser-cta">
+              <CopyLinkButton slug={slug} label="Share this story" />
+            </div>
           </div>
         </section>
 
