@@ -1701,7 +1701,13 @@ section[id] {
 
 /* ── Responsive ────────────────────────────────── */
 
-@media (max-width: 720px) {
+/* Nav switches to the burger/mobile menu earlier (1024px) than the rest of
+   the site's mobile breakpoint (720px): the full desktop nav (logo + About/
+   Chapters/Campaigns/Stories/People/Shop/Join/Donate) needs ~950px+ to fit
+   without crowding, so anything narrower than that but still above 720px
+   (common for tablets, split-screen windows, smaller laptops) was squeezing
+   the nav items into the logo. */
+@media (max-width: 1024px) {
   .burger {
     display: flex;
   }
@@ -1808,7 +1814,9 @@ section[id] {
   .dropdown a:last-child {
     border-bottom: none;
   }
+}
 
+@media (max-width: 720px) {
   .callout-inner {
     flex-direction: column;
     align-items: flex-start;
