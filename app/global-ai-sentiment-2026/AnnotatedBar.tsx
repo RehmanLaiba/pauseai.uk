@@ -114,23 +114,19 @@ const FOOTER_PAIR_TARGETS = [
   { id: "gas-demo-moe", key: "moe", label: "±pp", desc: "Margin of error at 95% confidence." },
 ] as const;
 
-const FOOTER_NET_TARGET = { id: "gas-demo-net", key: "net", label: "Net opinion", desc: "Rapid-development support minus combined caution (stop + pause + oversight)." } as const;
-
 const FOOTER_BOX_WIDTH = 118;
 const FOOTER_BOX_GAP = 14;
-const FOOTER_NET_BOX_WIDTH = 190;
 const FOOTER_BOX_TOP = 46;
 
-type FooterKey = "n" | "moe" | "net";
+type FooterKey = "n" | "moe";
 type FooterPlaced = { key: FooterKey; boxX: number; boxWidth: number; targetX: number; label: string; desc: string };
 
-// A second explainer row below the bar: separate callouts for n, the
-// margin of error, and the net-opinion score, each pointing up at the
-// exact element it describes with a curved arrow. Target positions are
-// measured from the real DOM (the label text they point at doesn't sit at
-// fixed offsets). n and ±pp are decluttered as their own pair, centred on
-// their combined midpoint, so both arrows curve inward symmetrically
-// rather than one of them getting pushed out to accommodate net opinion.
+// A second explainer row below the bar: separate callouts for n and the
+// margin of error, each pointing up at the exact element it describes
+// with a curved arrow. Target positions are measured from the real DOM
+// (the label text they point at doesn't sit at fixed offsets). The pair
+// is decluttered and centred on its combined midpoint, so both arrows
+// curve inward symmetrically.
 export function AnnotatedBarFooter({ wrapId }: { wrapId: string }) {
   const [placed, setPlaced] = useState<FooterPlaced[] | null>(null);
 
@@ -154,14 +150,10 @@ export function AnnotatedBarFooter({ wrapId }: { wrapId: string }) {
       const pairCenter = pairTargets.length ? (Math.min(...pairTargets.map((p) => p.targetX)) + Math.max(...pairTargets.map((p) => p.targetX))) / 2 : 0;
       const pairPlaced = declutter(pairTargets, FOOTER_BOX_WIDTH, FOOTER_BOX_GAP, pairCenter);
 
-      const netX = targetX(FOOTER_NET_TARGET.id);
-      const next: FooterPlaced[] = [
-        ...pairPlaced.map((p) => {
-          const meta = FOOTER_PAIR_TARGETS.find((t) => t.key === p.key)!;
-          return { key: p.key, boxX: p.boxX, boxWidth: FOOTER_BOX_WIDTH, targetX: p.targetX, label: meta.label, desc: meta.desc };
-        }),
-        ...(netX === null ? [] : [{ key: "net" as const, boxX: netX, boxWidth: FOOTER_NET_BOX_WIDTH, targetX: netX, label: FOOTER_NET_TARGET.label, desc: FOOTER_NET_TARGET.desc }]),
-      ];
+      const next: FooterPlaced[] = pairPlaced.map((p) => {
+        const meta = FOOTER_PAIR_TARGETS.find((t) => t.key === p.key)!;
+        return { key: p.key, boxX: p.boxX, boxWidth: FOOTER_BOX_WIDTH, targetX: p.targetX, label: meta.label, desc: meta.desc };
+      });
       setPlaced(next);
     }
     measure();

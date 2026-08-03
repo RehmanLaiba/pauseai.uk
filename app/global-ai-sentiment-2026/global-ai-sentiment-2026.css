@@ -198,7 +198,7 @@
   color: var(--text-secondary);
 }
 
-/* Below-bar callouts (n, moe, net opinion): the curved connector runs from
+/* Below-bar callouts (n, moe): the curved connector runs from
    the bar down to the box, with the arrowhead pointing back up at it.
    Positions are set inline in px, measured from the real DOM elements they
    annotate (see AnnotatedBarFooter), so this wrap spans the full width of
@@ -216,8 +216,7 @@
 }
 
 /* top must match FOOTER_BOX_TOP in AnnotatedBar.tsx, which the connector
-   curves are drawn to. Width is set inline per-box (net opinion is wider
-   than n/±pp, so its text wraps to fewer lines and stays shorter). */
+   curves are drawn to. Width is set inline per-box. */
 .gas-annotated-callout-below {
   position: absolute;
   top: 46px;
@@ -331,14 +330,6 @@
   border-bottom: 1px dotted currentColor;
 }
 
-/* net opinion sits at the right edge — align tooltip to right so it doesn't clip */
-.gas-bar-net[data-tooltip]::after,
-.gas-vbar-net-value[data-tooltip]::after {
-  left: auto;
-  right: 0;
-  transform: none;
-}
-
 /* ---- Global average header (title + n/moe) ---- */
 
 .gas-global-header {
@@ -448,30 +439,6 @@
   flex-shrink: 0;
 }
 
-.gas-vbar-net-row {
-  display: flex;
-  align-items: center;
-  gap: 10px;
-  padding-top: 10px;
-  border-top: 1px solid var(--border);
-}
-
-.gas-vbar-net-label {
-  font-family: "Inter", system-ui, sans-serif;
-  font-size: 14px;
-  font-weight: 400;
-  color: var(--text);
-  flex: 1;
-}
-
-.gas-vbar-net-value {
-  font-family: "Inter", system-ui, sans-serif;
-  font-size: 14px;
-  font-weight: 700;
-  font-variant-numeric: tabular-nums;
-  flex-shrink: 0;
-}
-
 @media (max-width: 600px) {
   .gas-global-display {
     flex-direction: row;
@@ -502,7 +469,7 @@
 
 .gas-bar-list {
   display: grid;
-  grid-template-columns: minmax(220px, auto) 1fr 56px;
+  grid-template-columns: minmax(220px, auto) 1fr;
   align-items: center;
   row-gap: 10px;
   column-gap: 16px;
@@ -612,22 +579,6 @@
   text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
 }
 
-.gas-bar-net {
-  font-family: "Inter", system-ui, sans-serif;
-  font-size: 13px;
-  font-weight: 700;
-  text-align: right;
-  font-variant-numeric: tabular-nums;
-}
-
-.gas-bar-net-neg {
-  color: #a8322f;
-}
-
-.gas-bar-net-pos {
-  color: #1c5cab;
-}
-
 @media (max-width: 720px) {
   .gas-bar-list {
     grid-template-columns: 1fr;
@@ -646,11 +597,6 @@
     order: 1;
     flex: 1 1 auto;
     min-width: 0;
-  }
-  .gas-bar-net {
-    order: 2;
-    flex: 0 0 auto;
-    text-align: right;
   }
   .gas-bar-track-wrap {
     order: 3;
@@ -680,11 +626,6 @@
     order: 1;
     flex: 1 1 auto;
     min-width: 0;
-  }
-  .gas-global-bar .gas-bar-net {
-    order: 2;
-    flex: 0 0 auto;
-    text-align: right;
   }
   .gas-global-bar .gas-bar-track-wrap {
     order: 3;

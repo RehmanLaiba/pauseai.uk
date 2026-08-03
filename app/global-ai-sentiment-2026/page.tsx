@@ -7,7 +7,6 @@ import {
   QUESTION_TEXT,
   RESPONSE_OPTIONS,
   SURVEY_META,
-  netOpinion,
 } from "@/lib/data/aiSentiment2026";
 import WorldMap from "./WorldMap";
 import CountryExplorer from "./CountryExplorer";
@@ -132,17 +131,6 @@ export default function GlobalAiSentiment2026Page() {
                     </div>
                   ))}
                 </div>
-                <span
-                  className={`gas-vbar-net-value ${
-                    netOpinion(GLOBAL_AVERAGE) >= 0
-                      ? "gas-bar-net-pos"
-                      : "gas-bar-net-neg"
-                  }`}
-                  // data-tooltip="Net opinion: Rapid-development support minus combined opposition (stop + pause + oversight)"
-                >
-                  {netOpinion(GLOBAL_AVERAGE) > 0 ? "+" : ""}
-                  {netOpinion(GLOBAL_AVERAGE)}
-                </span>
               </div>
               <div className="gas-vbar-right">
                 <div className="gas-vbar-legend">
@@ -160,7 +148,6 @@ export default function GlobalAiSentiment2026Page() {
                     </div>
                   ))}
                 </div>
-                <span className="gas-vbar-net-label"><strong>Net opinion</strong>: Rapid-development support minus combined opposition (stop + pause + oversight)</span>
               </div>
             </div>
             <p className="gas-source-note">

@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState, type ReactNode } from "react";
-import { RESPONSE_OPTIONS, netOpinion, type CountryRow, type DemographicRow, type ResponseOption } from "@/lib/data/aiSentiment2026";
+import { RESPONSE_OPTIONS, type CountryRow, type DemographicRow, type ResponseOption } from "@/lib/data/aiSentiment2026";
 
 type Row = CountryRow | DemographicRow;
 
@@ -11,7 +11,6 @@ type DivergingBarProps = {
   meta?: ReactNode;
   rank?: number;
   showNotSure?: boolean;
-  netId?: string;
 };
 
 type SegmentTooltip = {
@@ -27,8 +26,7 @@ type SegmentTooltip = {
 // with the CSS max-width on .gas-bar-tooltip.
 const TOOLTIP_HALF_WIDTH = 85;
 
-export default function DivergingBar({ label, row, meta, rank, showNotSure = true, netId }: DivergingBarProps) {
-  const net = netOpinion(row);
+export default function DivergingBar({ label, row, meta, rank, showNotSure = true }: DivergingBarProps) {
   const options = showNotSure ? RESPONSE_OPTIONS : RESPONSE_OPTIONS.filter((o) => o.key !== "not_sure_pct");
   // When "not sure" is hidden, rescale the remaining segments so they fill
   // the bar (i.e. show opinion share among those with a view).
@@ -97,10 +95,6 @@ export default function DivergingBar({ label, row, meta, rank, showNotSure = tru
             </span>
           </div>
         )}
-      </div>
-      <div id={netId} className={`gas-bar-net ${net >= 0 ? "gas-bar-net-pos" : "gas-bar-net-neg"}`} data-tooltip="Net opinion: Rapid-development support minus combined opposition (stop + pause + oversight)">
-        {net > 0 ? "+" : ""}
-        {net}
       </div>
     </div>
   );
