@@ -2,10 +2,10 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound } from "next/navigation";
 import Nav from "@/components/Nav";
-import StoryCard from "@/components/StoryCard";
 import StoryShareForm from "@/components/StoryShareForm";
 import { stories, storySlug } from "@/lib/data/stories";
 import { site } from "@/lib/data/site";
+import { initials, parseCssStyle, renderBody } from "@/lib/storyRender";
 import "../../track-record/track-record.css";
 import "../stories.css";
 
@@ -55,7 +55,7 @@ export default async function StoryDetailPage({ params }: { params: Promise<{ sl
   const found = findStory(slug);
   if (!found) notFound();
 
-  const { story, index } = found;
+  const { story } = found;
 
   return (
     <>
@@ -66,18 +66,25 @@ export default async function StoryDetailPage({ params }: { params: Promise<{ sl
             <Link className="story-back-link" href="/stories">
               ← Back to all stories
             </Link>
-            <h1 className="tr-hero-title">{story.name || "Anonymous submission"}</h1>
+            <div className="story-detail-heading">
+              {story.imageSrc ? (
+                <div
+                  className="story-detail-avatar"
+                  style={{ backgroundImage: `url("${story.imageSrc}")`, ...parseCssStyle(story.imageStyle ?? "") }}
+                ></div>
+              ) : (
+                <div className="story-detail-avatar story-avatar-initials" aria-hidden="true">
+                  {initials(story.name)}
+                </div>
+              )}
+              <h1 className="tr-hero-title">{story.name || "Anonymous submission"}</h1>
+            </div>
           </div>
         </section>
 
         <section className="stories-page-grid">
           <div className="container story-detail-grid">
-            <StoryCard story={story} index={index} />
-            <div className="story-teaser-cta">
-              <a className="btn primary large" href={`${site.whatsappUrl}`} target="_blank" rel="noreferrer">
-                Join the community
-              </a>
-            </div>
+            <div className="story-body">{renderBody(story.paragraphs, true)}</div>
           </div>
         </section>
 
@@ -86,7 +93,14 @@ export default async function StoryDetailPage({ params }: { params: Promise<{ sl
             <div className="section-header">
               <h2>Share your story</h2>
               <p className="section-lede">
-                Why did you get involved, or what are your own concerns about AI? Tell us in your own words, we may feature it on the website.
+                Why did you get involved, or what are your own concerns about AI?
+              </p>
+              <p className="section-lede">
+                Tell us in your own words, we may feature it on this page. Connect with others who have similar stories in{" "}
+                <a className="inline-link" href={site.whatsappUrl} target="_blank" rel="noreferrer">
+                  our community
+                </a>
+                .
               </p>
             </div>
             <StoryShareForm />

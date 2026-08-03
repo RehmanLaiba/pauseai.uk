@@ -1452,6 +1452,15 @@ section[id] {
   color: var(--text);
 }
 
+.story-name a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.story-name a:hover {
+  text-decoration: underline;
+}
+
 .story-meta {
   margin: 2px 0 0;
   font-size: 14px;

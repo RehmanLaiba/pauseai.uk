@@ -50,11 +50,6 @@ export default function StoriesPage() {
                 />
               ))}
             </div>
-            <div className="story-teaser-cta">
-              <a className="btn primary large" href={`${site.whatsappUrl}`} target="_blank" rel="noreferrer">
-                Join the community
-              </a>
-            </div>
           </div>
         </section>
 
@@ -63,7 +58,14 @@ export default function StoriesPage() {
             <div className="section-header">
               <h2>Share your story</h2>
               <p className="section-lede">
-                Why did you get involved, or what are your own concerns about AI? Tell us in your own words, we may feature it on this page.
+                Why did you get involved, or what are your own concerns about AI?
+              </p>
+              <p className="section-lede">
+                Tell us in your own words, we may feature it on this page. Connect with others who have similar stories in{" "}
+                <a className="inline-link" href={site.whatsappUrl} target="_blank" rel="noreferrer">
+                  our community
+                </a>
+                .
               </p>
             </div>
             <StoryShareForm />

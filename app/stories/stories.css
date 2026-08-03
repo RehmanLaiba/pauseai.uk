@@ -29,8 +29,8 @@
 }
 
 .stories-page .stories-page-share {
-  padding: 0 0 88px;
-  background: var(--surface);
+  padding: 80px 0 88px;
+  background: transparent;
 }
 
 .stories-page .story-share-form {
@@ -43,7 +43,7 @@
 
 .story-detail-page .story-back-link {
   display: inline-block;
-  margin-bottom: 16px;
+  margin-bottom: 24px;
   font-family: "Inter", system-ui, sans-serif;
   font-weight: 600;
   font-size: 15px;
@@ -53,6 +53,44 @@
 
 .story-detail-page .story-back-link:hover {
   text-decoration: underline;
+}
+
+.story-detail-page .story-detail-heading {
+  display: flex;
+  align-items: center;
+  gap: 24px;
+}
+
+.story-detail-page .story-detail-heading .tr-hero-title {
+  margin: 0;
+}
+
+.story-detail-page .story-detail-avatar {
+  width: 120px;
+  height: 120px;
+  border-radius: 50%;
+  flex-shrink: 0;
+  background-color: var(--accent-light);
+  background-size: cover;
+  background-position: center;
+  color: var(--accent-strong);
+  border: 3px solid var(--accent-light);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-family: "Inter", system-ui, sans-serif;
+  font-weight: 700;
+  font-size: 36px;
+  letter-spacing: 0.02em;
+  user-select: none;
+}
+
+@media (max-width: 640px) {
+  .story-detail-page .story-detail-avatar {
+    width: 80px;
+    height: 80px;
+    font-size: 26px;
+  }
 }
 
 .story-detail-page .story-detail-grid {

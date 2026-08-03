@@ -1,30 +1,10 @@
 "use client";
 
-import type { CSSProperties, ReactNode } from "react";
+import Link from "next/link";
 import { useLayoutEffect, useRef, useState } from "react";
 import type { Story } from "@/lib/data/stories";
 import { storySlug } from "@/lib/data/stories";
-
-function parseCssStyle(css: string): CSSProperties {
-  const result: Record<string, string> = {};
-  css.split(";").filter(Boolean).forEach((decl) => {
-    const colonIdx = decl.indexOf(":");
-    if (colonIdx === -1) return;
-    const key = decl.slice(0, colonIdx).trim().replace(/-([a-z])/g, (_, c: string) => c.toUpperCase());
-    result[key] = decl.slice(colonIdx + 1).trim();
-  });
-  return result as CSSProperties;
-}
-
-function initials(name: string): string {
-  return name
-    .split(/\s+/)
-    .filter(Boolean)
-    .map((part) => part[0])
-    .join("")
-    .slice(0, 2)
-    .toUpperCase();
-}
+import { bulletText, initials, isBulletLine, parseCssStyle, renderBody } from "@/lib/storyRender";
 
 // Server-rendered/pre-hydration fallback, so there's no giant flash of text
 // before the client can measure. The real truncation point is computed in
@@ -62,43 +42,6 @@ function excerptParagraphs(paragraphs: string[], maxChars: number): string[] {
     }
   }
   return result;
-}
-
-const BULLET_PREFIX = /^-\s+/;
-
-function isBulletLine(text: string): boolean {
-  return BULLET_PREFIX.test(text.trim());
-}
-
-function bulletText(text: string): string {
-  return text.trim().replace(BULLET_PREFIX, "");
-}
-
-function renderBody(paragraphs: string[], asHtml: boolean): ReactNode[] {
-  const blocks: ReactNode[] = [];
-  let i = 0;
-  while (i < paragraphs.length) {
-    if (isBulletLine(paragraphs[i])) {
-      const items: string[] = [];
-      const start = i;
-      while (i < paragraphs.length && isBulletLine(paragraphs[i])) {
-        items.push(bulletText(paragraphs[i]));
-        i++;
-      }
-      blocks.push(
-        <ul key={`ul-${start}`}>
-          {items.map((item, j) =>
-            asHtml ? <li key={j} dangerouslySetInnerHTML={{ __html: item }} /> : <li key={j}>{item}</li>
-          )}
-        </ul>
-      );
-    } else {
-      const para = paragraphs[i];
-      blocks.push(asHtml ? <p key={i} dangerouslySetInnerHTML={{ __html: para }} /> : <p key={i}>{para}</p>);
-      i++;
-    }
-  }
-  return blocks;
 }
 
 // Builds the same p/ul/li structure as renderBody(), but as real DOM nodes,
@@ -216,7 +159,7 @@ export default function StoryCard({
         )}
         <div>
           <h3 className="story-name">
-            {story.name || <em>Anonymous submission</em>}
+            <Link href={`/stories/${slug}`}>{story.name || <em>Anonymous submission</em>}</Link>
           </h3>
         </div>
       </header>
