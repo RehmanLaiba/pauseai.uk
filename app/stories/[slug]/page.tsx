@@ -81,7 +81,6 @@ export default async function StoryDetailPage({ params }: { params: Promise<{ sl
               <div className="story-detail-title-wrap">
                 <h1 className="tr-hero-title">{story.name || "Anonymous submission"}</h1>
               </div>
-              <CopyLinkButton slug={slug} className="story-detail-share-btn" size={18} label="Share this story" />
             </div>
           </div>
         </section>

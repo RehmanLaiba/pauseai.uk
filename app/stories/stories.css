@@ -71,10 +71,6 @@
   margin: 0;
 }
 
-.story-detail-page .story-detail-share-btn {
-  flex-shrink: 0;
-}
-
 .story-detail-page .story-detail-avatar {
   width: 120px;
   height: 120px;
