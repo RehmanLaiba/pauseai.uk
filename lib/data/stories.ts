@@ -70,16 +70,6 @@ export const stories: Story[] = [
     ],
   },
   {
-    name: "Joe Douglas",
-    featured: false,
-    imageSrc: "/images/people/Joe-Douglas-Stories.jpg",
-    paragraphs: [
-      `I'm a software developer and a father to three young girls.`,
-      `My primary worry is about our current race to build ASI. I believe this carries an unnacceptably high risk of wiping out all life on the planet, and robbing my daughters of their future. It is unconsionable that a small group of people should be able to unilaterally take this risk on our behalf.`,
-      `I also think there's plenty to worry about if even if we don't build ASI. I share the worries expressed by Tristan Harris that the trajectory of our current technologies are moving us towards an inhuman future. The companies that shape the internet demonstrably do not care about creating a world in which we can flourish. I don't blame them, the system of financing that creates these companies and the business models they pursue are sleep walking us towards a world where people are increasingly isolated, anxious, and unhappy. I think we desperately need a movement to reclaim our humanity.`,
-    ],
-  },
-  {
     name: "Simon Paul Jenkins",
     imageSrc: "/images/people/Simon-Paul-Jenkins-Stories.jpg",
     featured: false,
