@@ -78,7 +78,7 @@
   flex-shrink: 0;
   background-color: var(--accent-light);
   background-size: cover;
-  background-position: center;
+  background-position: center top;
   color: var(--accent-strong);
   border: 3px solid var(--accent-light);
   display: flex;
