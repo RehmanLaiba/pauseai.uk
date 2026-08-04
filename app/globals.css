@@ -1339,11 +1339,69 @@ section[id] {
   border-bottom: 1px solid var(--accent-light);
 }
 
-.story-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(440px, 100%), 1fr));
-  gap: 24px;
+.story-carousel {
+  position: relative;
   margin-top: 32px;
+}
+
+.story-carousel-track {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  -webkit-overflow-scrolling: touch;
+  scrollbar-width: thin;
+  scrollbar-color: var(--border-strong) transparent;
+  gap: 24px;
+  padding: 4px 4px 12px;
+}
+
+.story-carousel-track .story-card {
+  flex: 0 0 min(440px, 85vw);
+  scroll-snap-align: start;
+}
+
+.story-carousel-btn {
+  display: none;
+  position: absolute;
+  top: 50%;
+  transform: translateY(-50%);
+  width: 44px;
+  height: 44px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-size: 24px;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 1px 3px var(--shadow);
+  align-items: center;
+  justify-content: center;
+}
+
+.story-carousel-btn-prev {
+  left: -22px;
+}
+
+.story-carousel-btn-next {
+  right: -22px;
+}
+
+@media (min-width: 900px) {
+  .story-carousel-btn {
+    display: flex;
+  }
+}
+
+.story-teaser-cta {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 40px;
+  text-align: center;
 }
 
 .story-card {
@@ -1361,6 +1419,37 @@ section[id] {
   display: flex;
   align-items: center;
   gap: 16px;
+}
+
+.story-name-wrap {
+  flex: 1;
+  min-width: 0;
+}
+
+.story-share-btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 32px;
+  height: 32px;
+  border-radius: 50%;
+  border: 1px solid var(--border);
+  background: transparent;
+  color: var(--text-secondary);
+  cursor: pointer;
+  padding: 0;
+  transition: background 0.15s, color 0.15s, border-color 0.15s;
+}
+
+.story-share-btn:hover {
+  background: var(--accent-light);
+  color: var(--accent-strong);
+  border-color: var(--accent-light);
+}
+
+.story-share-cta {
+  gap: 8px;
 }
 
 .story-avatar {
@@ -1382,12 +1471,37 @@ section[id] {
   flex-shrink: 0;
 }
 
+.story-avatar-initials {
+  user-select: none;
+}
+
+.story-avatar-pause-icon {
+  width: 45%;
+  height: 45%;
+  object-fit: contain;
+}
+
 .story-name {
   font-family: "Inter", system-ui, sans-serif;
   font-weight: 700;
   font-size: 20px;
   margin: 0;
   color: var(--text);
+}
+
+.story-name a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.story-name a:hover {
+  text-decoration: underline;
+}
+
+.story-meta {
+  margin: 2px 0 0;
+  font-size: 14px;
+  color: var(--text-secondary);
 }
 
 .story-body p {
@@ -1399,6 +1513,52 @@ section[id] {
 
 .story-body p:last-child {
   margin-bottom: 0;
+}
+
+.story-body ul {
+  color: var(--text-secondary);
+  margin: 0 0 14px;
+  padding-left: 20px;
+  font-size: 16px;
+  line-height: 1.7;
+}
+
+.story-body ul:last-child {
+  margin-bottom: 0;
+}
+
+.story-body li {
+  margin-bottom: 6px;
+}
+
+.story-body li:last-child {
+  margin-bottom: 0;
+}
+
+.story-body {
+  flex: 1;
+}
+
+.story-body-measure {
+  position: fixed;
+  top: -9999px;
+  left: -9999px;
+  visibility: hidden;
+  pointer-events: none;
+  z-index: -1;
+}
+
+.story-read-more {
+  align-self: flex-start;
+  font-family: "Inter", system-ui, sans-serif;
+  font-weight: 600;
+  font-size: 15px;
+  color: var(--accent-strong);
+  text-decoration: none;
+}
+
+.story-read-more:hover {
+  text-decoration: underline;
 }
 
 /* ── Footer ────────────────────────────────────── */
@@ -1541,26 +1701,40 @@ section[id] {
 
 /* ── Responsive ────────────────────────────────── */
 
-@media (max-width: 720px) {
+/* Nav switches to the burger/mobile menu earlier (1024px) than the rest of
+   the site's mobile breakpoint (720px): the full desktop nav (logo + About/
+   Chapters/Campaigns/Stories/People/Shop/Join/Donate) needs ~950px+ to fit
+   without crowding, so anything narrower than that but still above 720px
+   (common for tablets, split-screen windows, smaller laptops) was squeezing
+   the nav items into the logo. */
+@media (max-width: 1024px) {
   .burger {
     display: flex;
   }
 
   nav {
     display: none;
-    position: absolute;
-    top: 100%;
+    position: fixed;
+    top: var(--site-header-h, 64px);
     left: 0;
     right: 0;
-    background: rgba(28, 28, 30, 0.98);
+    bottom: 0;
+    background: #1c1c1e;
     flex-direction: column;
     padding: 8px 0 16px;
     border-bottom: 1px solid rgba(255, 255, 255, 0.1);
     align-items: stretch;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior: contain;
   }
 
   nav.open {
     display: flex;
+  }
+
+  body.mobile-nav-open {
+    overflow: hidden;
   }
 
   nav > a,
@@ -1640,7 +1814,9 @@ section[id] {
   .dropdown a:last-child {
     border-bottom: none;
   }
+}
 
+@media (max-width: 720px) {
   .callout-inner {
     flex-direction: column;
     align-items: flex-start;
@@ -1685,10 +1861,6 @@ section[id] {
   }
 
   .chapter-grid {
-    grid-template-columns: 1fr;
-  }
-
-  .story-grid {
     grid-template-columns: 1fr;
   }
 
