@@ -9,7 +9,8 @@
     "lighthouse": "bash scripts/lighthouse.sh prod https://pauseai.uk",
     "lighthouse:dev": "bash scripts/lighthouse-dev.sh",
     "lighthouse:branch": "bash scripts/lighthouse.sh branch",
-    "data:ai-sentiment": "node scripts/generate-ai-sentiment-data.mjs"
+    "data:ai-sentiment": "node scripts/generate-ai-sentiment-data.mjs",
+    "data:story-image-detect-faces": "node scripts/detect-face-positions.mjs"
   },
   "dependencies": {
     "d3-geo": "^3.1.1",
@@ -19,6 +20,9 @@
     "topojson-client": "^3.1.0"
   },
   "devDependencies": {
+    "@tensorflow-models/blazeface": "^0.1.0",
+    "@tensorflow/tfjs": "^4.22.0",
+    "@tensorflow/tfjs-backend-cpu": "^4.22.0",
     "@types/d3-geo": "^3.1.0",
     "@types/geojson": "^7946.0.16",
     "@types/node": "^20",
@@ -27,6 +31,7 @@
     "@types/topojson-client": "^3.1.5",
     "eslint": "^9",
     "eslint-config-next": "16.2.6",
+    "sharp": "^0.35.3",
     "typescript": "^5",
     "world-atlas": "^2.0.2"
   }
