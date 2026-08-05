@@ -20,9 +20,13 @@ export default function ScrollInit() {
     });
 
     if (window.location.hash) {
-      const target = document.querySelector(window.location.hash);
-      if (target) {
-        setTimeout(() => target.scrollIntoView({ behavior: "smooth" }), 100);
+      try {
+        const target = document.querySelector(window.location.hash);
+        if (target) {
+          setTimeout(() => target.scrollIntoView({ behavior: "smooth" }), 100);
+        }
+      } catch {
+        // Malformed hash (e.g. a query string appended after it) — not a valid selector.
       }
     }
 
