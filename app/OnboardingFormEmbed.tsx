@@ -60,7 +60,22 @@ export default function OnboardingFormEmbed() {
     <div className="onboarding-embed-wrap">
       {!messageReceived && (
         <div className="onboarding-embed-skeleton" aria-hidden="true">
-          Loading form…
+          <div className="onboarding-embed-skeleton-steps">
+            <span className="onboarding-embed-skeleton-step" />
+            <span className="onboarding-embed-skeleton-rule" />
+            <span className="onboarding-embed-skeleton-step" />
+            <span className="onboarding-embed-skeleton-rule" />
+            <span className="onboarding-embed-skeleton-step" />
+          </div>
+          <div className="onboarding-embed-skeleton-card">
+            {[0, 1, 2, 3].map((i) => (
+              <div className="onboarding-embed-skeleton-field" key={i}>
+                <span className="onboarding-embed-skeleton-label" />
+                <span className="onboarding-embed-skeleton-input" />
+              </div>
+            ))}
+            <span className="onboarding-embed-skeleton-button" />
+          </div>
         </div>
       )}
       <iframe

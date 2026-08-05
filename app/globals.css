@@ -932,24 +932,89 @@ section[id] {
 
 .onboarding-embed-wrap {
   position: relative;
+  max-width: 800px;
+  margin: 0 auto;
 }
 
 .onboarding-embed-skeleton {
   position: absolute;
   inset: 0;
+  background: var(--bg);
+  padding: 12px 4px;
+  overflow: hidden;
+}
+
+.onboarding-embed-skeleton-steps {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: var(--bg);
-  color: var(--text-secondary);
-  font-size: 15px;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.onboarding-embed-skeleton-step {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  background: var(--accent-light);
+  flex-shrink: 0;
+}
+
+.onboarding-embed-skeleton-rule {
+  width: 32px;
+  height: 2px;
+  background: var(--border);
+}
+
+.onboarding-embed-skeleton-card {
+  background: #ffe7cc;
+  border-radius: 24px;
+  padding: 28px 24px;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+
+.onboarding-embed-skeleton-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.onboarding-embed-skeleton-label {
+  width: 100px;
+  height: 12px;
+  border-radius: 4px;
+  background: var(--accent-bg);
+  opacity: 0.7;
+}
+
+.onboarding-embed-skeleton-input {
+  height: 44px;
+  border-radius: 22px;
+  background: var(--accent-bg);
+}
+
+.onboarding-embed-skeleton-button {
+  align-self: center;
+  width: 160px;
+  height: 48px;
+  border-radius: 24px;
+  background: var(--accent);
+  margin-top: 8px;
+}
+
+.onboarding-embed-skeleton-label,
+.onboarding-embed-skeleton-input,
+.onboarding-embed-skeleton-button,
+.onboarding-embed-skeleton-step {
   animation: onboarding-embed-pulse 1.5s ease-in-out infinite;
 }
 
 @keyframes onboarding-embed-pulse {
   0%,
   100% {
-    opacity: 0.6;
+    opacity: 0.5;
   }
   50% {
     opacity: 1;
