@@ -930,6 +930,38 @@ section[id] {
   line-height: 1.6;
 }
 
+.onboarding-embed-wrap {
+  position: relative;
+}
+
+.onboarding-embed-skeleton {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg);
+  color: var(--text-secondary);
+  font-size: 15px;
+  animation: onboarding-embed-pulse 1.5s ease-in-out infinite;
+}
+
+@keyframes onboarding-embed-pulse {
+  0%,
+  100% {
+    opacity: 0.6;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.onboarding-embed-fallback {
+  margin-top: 12px;
+  font-size: 15px;
+  color: var(--text-secondary);
+}
+
 #people .section-lede {
   max-width: none;
 }
