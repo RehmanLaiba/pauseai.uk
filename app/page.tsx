@@ -165,8 +165,8 @@ export default async function HomePage() {
                   We are the civic movement dedicated to averting the risks of superhuman artificial intelligence.
                 </p>
                 <div className="actions hero-actions">
-                  <a className="btn primary" href={site.whatsappUrl} target="_blank" rel="noreferrer">
-                    Join the WhatsApp community
+                  <a className="btn primary" href="#join">
+                    Join PauseAI UK
                   </a>
                   <div className="hero-actions-secondary">
                     <a className="btn ghost" href="#events">Upcoming events ↓</a>
