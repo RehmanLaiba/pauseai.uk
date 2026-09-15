@@ -374,3 +374,45 @@
     padding: 36px 0 64px;
   }
 }
+
+/* ─── Footnotes ─── */
+.blog .blog-body sup {
+  font-size: 0.7em;
+  line-height: 0;
+  vertical-align: super;
+}
+.blog .blog-body sup a {
+  text-decoration: none;
+  font-weight: 600;
+  padding: 0 1px;
+}
+/* Attribution line under a pull quote. */
+.blog .blog-body .blog-quote-source {
+  margin-top: 8px;
+  font-size: 14.5px;
+  color: var(--muted);
+}
+.blog .blog-body .blog-footnotes {
+  margin: 40px 0 0;
+  padding: 18px 0 0 22px;
+  border-top: 1px solid var(--border);
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+.blog .blog-body .blog-footnotes li {
+  padding-left: 4px;
+  margin-bottom: 8px;
+}
+.blog .blog-body .blog-footnotes li::marker {
+  color: var(--muted);
+}
+/* Highlight the note a footnote link jumped to. */
+.blog .blog-body .blog-footnotes li:target {
+  background: var(--surface-2);
+  box-shadow: 0 0 0 6px var(--surface-2);
+  border-radius: 4px;
+}
+.blog .blog-body .blog-footnote-back {
+  text-decoration: none;
+}
