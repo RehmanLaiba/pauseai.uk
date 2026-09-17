@@ -6,6 +6,17 @@ import { site } from "@/lib/data/site";
 import "../track-record/track-record.css";
 import "./press.css";
 
+function formatCoverageDate(date?: string) {
+  return date
+    ? new Date(`${date}T00:00:00Z`).toLocaleDateString("en-GB", {
+        day: "numeric",
+        month: "short",
+        year: "numeric",
+        timeZone: "UTC",
+      })
+    : "—";
+}
+
 export const metadata: Metadata = {
   title: "Press",
   description: "Media contact, boilerplate, brand assets, and press coverage of PauseAI UK.",
@@ -97,25 +108,34 @@ export default function PressPage() {
             <section className="press-section">
               <h2>Press coverage</h2>
               <ul className="press-coverage-list">
-                {allCoverage.map((item) => (
-                  <li key={item.url} className="press-coverage-item">
-                    <a className="press-coverage-link" href={item.url} target="_blank" rel="noreferrer">
-                      <span className="press-coverage-date">
-                        {item.date
-                          ? new Date(`${item.date}T00:00:00Z`).toLocaleDateString("en-GB", {
-                              day: "numeric",
-                              month: "short",
-                              year: "numeric",
-                              timeZone: "UTC",
-                            })
-                          : "—"}
-                      </span>
-                      <span className="press-coverage-outlet">{item.outlet}</span>
-                      <span className="press-coverage-medium">{item.medium}</span>
-                      {item.description && <span className="press-coverage-title">{item.description}</span>}
-                    </a>
-                  </li>
-                ))}
+                {allCoverage.map((item) =>
+                  item.links ? (
+                    <li key={item.links[0].url} className="press-coverage-item">
+                      <div className="press-coverage-link press-coverage-link--static">
+                        <span className="press-coverage-date">{formatCoverageDate(item.date)}</span>
+                        <span className="press-coverage-outlet">{item.outlet}</span>
+                        <span className="press-coverage-platforms">
+                          {item.links.map((link, i) => (
+                            <span key={link.url}>
+                              {i > 0 && ", "}
+                              <a href={link.url} target="_blank" rel="noreferrer">{link.label}</a>
+                            </span>
+                          ))}
+                        </span>
+                        {item.description && <span className="press-coverage-title">{item.description}</span>}
+                      </div>
+                    </li>
+                  ) : (
+                    <li key={item.url} className="press-coverage-item">
+                      <a className="press-coverage-link" href={item.url} target="_blank" rel="noreferrer">
+                        <span className="press-coverage-date">{formatCoverageDate(item.date)}</span>
+                        <span className="press-coverage-outlet">{item.outlet}</span>
+                        <span className="press-coverage-medium">{item.medium}</span>
+                        {item.description && <span className="press-coverage-title">{item.description}</span>}
+                      </a>
+                    </li>
+                  )
+                )}
               </ul>
             </section>
           </div>

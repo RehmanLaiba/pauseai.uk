@@ -4,45 +4,37 @@ export type CoverageItem = {
   outlet: string;
   medium: "Video" | "Photos" | "Article";
   description?: string;
-  url: string;
+  /** Single-link items set this. Multi-platform items (the same clip/story
+      cross-posted) set `links` instead and leave this undefined. */
+  url?: string;
+  /** For a story cross-posted across platforms: one row showing each
+      platform as its own link, e.g. "Instagram, X, YouTube". */
+  links?: { label: string; url: string }[];
   /** Publish date, YYYY-MM-DD. Drives sort order on the /press coverage
       table; undated items sort to the bottom. */
   date?: string;
 };
 
 export const broadcastCoverage: CoverageItem[] = [
-  // {
-  //   outlet: "Channel 4",
-  //   medium: "Video",
-  //   description: "Short: Protesters gathered at Downing Street, urging tougher action and a pause in the development of advanced AI systems.",
-  //   url: "https://www.facebook.com/reel/1522309576272007/",
-  // },
   {
     outlet: "Channel 4",
     medium: "Video",
     description: "PauseAI activists stage emergency protest outside Downing Street",
-    url: "https://www.youtube.com/shorts/2JRtI-dDwgc",
+    links: [
+      { label: "Facebook", url: "https://www.facebook.com/reel/1522309576272007/" },
+      { label: "X", url: "https://x.com/Channel4News/status/2100298598772605015" },
+      { label: "YouTube", url: "https://www.youtube.com/shorts/2JRtI-dDwgc" },
+    ],
     date: "2026-09-16",
   },
-  // {
-  //   outlet: "Channel 4",
-  //   medium: "Video",
-  //   // was: "X post"
-  //   description: "Protesters gathered at Downing Street, urging tougher action and a pause in the development of advanced AI systems. They warned that humanity could lose control of increasingly powerful technology if regulation does not happen soon.",
-  //   url: "https://x.com/Channel4News/status/2100298598772605015",
-  // },
-  // {
-  //   outlet: "ITV",
-  //   medium: "Video",
-  //   // TODO title: description is a generic placeholder, not the real title
-  //   description: "Protesters demand pause on AI development",
-  //   url: "https://www.instagram.com/p/DdWzB4Gxkv_/?l=1&ig_mid=20BE556A-84A8-4926-A5D3-B53F02F6F2AC&utm_source=igweb",
-  // },
   {
     outlet: "ITV",
     medium: "Video",
     description: "Protesters demand pause on AI development",
-    url: "https://www.youtube.com/shorts/TFxdevKHM8s",
+    links: [
+      { label: "Instagram", url: "https://www.instagram.com/p/DdWzB4Gxkv_/" },
+      { label: "YouTube", url: "https://www.youtube.com/shorts/TFxdevKHM8s" },
+    ],
     date: "2026-09-16",
   },
   {
@@ -78,18 +70,14 @@ export const broadcastCoverage: CoverageItem[] = [
     medium: "Photos",
     description: "Pause AI Protest Outside Downing Street",
     url: "https://www.reutersconnect.com/item/pause-ai-protest-outside-downing-street/dGFnOnJldXRlcnMuY29tLDIwMjY6bmV3c21sX01UMVpVTUEwMDBGRzlOVEs",
-    // TODO date: reutersconnect.com rate-limited automated access before a
-    // date could be confirmed. Every other item from this same protest is
-    // 2026-09-16 — worth checking, not assuming.
+    date: "2026-09-16",
   },
   {
     outlet: "Reuters Connect (Nurphoto)",
     medium: "Photos",
     description: "Pause AI Emergency Protest In London",
     url: "https://www.reutersconnect.com/item/pause-ai-emergency-protest-in-london/dGFnOnJldXRlcnMuY29tLDIwMjY6bmV3c21sX01UMU5VUlBITzAwMDhGQTJTVg",
-    // TODO date: reutersconnect.com rate-limited automated access before a
-    // date could be confirmed. Every other item from this same protest is
-    // 2026-09-16 — worth checking, not assuming.
+    date: "2026-09-16",
   },
   {
     outlet: "Boston Globe",
