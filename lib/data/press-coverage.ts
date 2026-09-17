@@ -124,7 +124,7 @@ export const broadcastCoverage: CoverageItem[] = [
 export const allCoverage: CoverageItem[] = [
   ...news.map((item): CoverageItem => ({
     outlet: item.logoAlt,
-    medium: "Article",
+    medium: item.medium ?? "Article",
     description: item.title,
     url: item.url,
     date: item.date,

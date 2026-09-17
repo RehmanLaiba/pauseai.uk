@@ -16,6 +16,9 @@ export type NewsItem = {
   /** Publish date, YYYY-MM-DD. Drives sort order on the /press coverage
       table; undated items sort to the bottom. */
   date?: string;
+  /** Medium shown on the /press coverage table. Defaults to "Article" —
+      set to "Video" for a broadcast/YouTube link. */
+  medium?: "Article" | "Video";
 };
 
 const ALL_NEWS: NewsItem[] = [
@@ -137,6 +140,7 @@ const ALL_NEWS: NewsItem[] = [
     title: "Hundreds of people march for tighter controls on AI",
     url: "https://youtu.be/-0CRojvk1FE?t=146",
     date: "2026-02-28",
+    medium: "Video",
   },
   {
     logoSrc: "/images/media-coverage/The_Independent_Logo.png",
@@ -193,7 +197,7 @@ const ALL_NEWS: NewsItem[] = [
     logoIntrinsicHeight: 158,
     title: "When given a choice, AI opts for self-preservation over human life — and that should terrify us all",
     url: "https://www.dailymail.com/debate/article-16032063/AI-opts-self-preservation-human-life.html",
-    // 5 August 2026
+    date: "2026-08-05",
   },
   {
     logoSrc: "/images/media-coverage/New_Statesman_magazine_logo.svg",
@@ -221,8 +225,10 @@ const ALL_NEWS: NewsItem[] = [
     logoHeight: 46,
     logoIntrinsicWidth: 1000,
     logoIntrinsicHeight: 368,
-    title: "ITV News segment on the AI safety protest outside Downing Street",
+    title: "Science Correspondent breaks down the 'terrifying' risks of superintelligent AI",
     url: "https://www.youtube.com/watch?v=cvMRaa6h8tM&t=486s",
+    date: "2026-09-16",
+    medium: "Video",
   },
 ];
 
