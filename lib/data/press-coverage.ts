@@ -78,12 +78,18 @@ export const broadcastCoverage: CoverageItem[] = [
     medium: "Photos",
     description: "Pause AI Protest Outside Downing Street",
     url: "https://www.reutersconnect.com/item/pause-ai-protest-outside-downing-street/dGFnOnJldXRlcnMuY29tLDIwMjY6bmV3c21sX01UMVpVTUEwMDBGRzlOVEs",
+    // TODO date: reutersconnect.com rate-limited automated access before a
+    // date could be confirmed. Every other item from this same protest is
+    // 2026-09-16 — worth checking, not assuming.
   },
   {
     outlet: "Reuters Connect (Nurphoto)",
     medium: "Photos",
     description: "Pause AI Emergency Protest In London",
     url: "https://www.reutersconnect.com/item/pause-ai-emergency-protest-in-london/dGFnOnJldXRlcnMuY29tLDIwMjY6bmV3c21sX01UMU5VUlBITzAwMDhGQTJTVg",
+    // TODO date: reutersconnect.com rate-limited automated access before a
+    // date could be confirmed. Every other item from this same protest is
+    // 2026-09-16 — worth checking, not assuming.
   },
   {
     outlet: "Boston Globe",
