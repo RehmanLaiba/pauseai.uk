@@ -190,7 +190,6 @@ export default function Nav({ chapterName, chapterLogoSrc, chapterLogoWidth, cha
           </div>
           <Link href="/people/">People</Link>
           <Link href="/blog/">Blog</Link>
-          <Link href="/press/">Press</Link>
           <a href={site.shopUrl} target="_blank" rel="noreferrer">Shop</a>
           <Link href={`${navPrefix}#join`} className="pill">Join</Link>
           <Link href="/donate" className="pill pill-primary">Donate</Link>
