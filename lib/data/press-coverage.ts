@@ -14,6 +14,7 @@ export const broadcastCoverage: CoverageItem[] = [
   {
     outlet: "Channel 4",
     medium: "Video",
+    // TODO title: description is a generic placeholder, not the real title
     description: "Facebook reel (different footage from the news broadcast segment)",
     url: "https://www.facebook.com/reel/1522309576272007/?mibextid=wwXIfr&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2Fr%2F1JywPj1GsN%2F%3Fmibextid%3DwwXIfr&rdid=xoT0pg0hRvcJe2hY",
   },
@@ -34,6 +35,7 @@ export const broadcastCoverage: CoverageItem[] = [
   {
     outlet: "ITV",
     medium: "Video",
+    // TODO title: description is a generic placeholder, not the real title
     description: "Instagram",
     url: "https://www.instagram.com/p/DdWzB4Gxkv_/?l=1&ig_mid=20BE556A-84A8-4926-A5D3-B53F02F6F2AC&utm_source=igweb",
   },
@@ -54,27 +56,32 @@ export const broadcastCoverage: CoverageItem[] = [
   {
     outlet: "Al Arabiya",
     medium: "Video",
+    // TODO title: description is a generic placeholder, not the real title
     description: "Instagram",
     url: "https://www.instagram.com/p/DdWvDuejvh7/",
   },
   {
     outlet: "Imago Images",
     medium: "Photos",
+    // TODO title: no title/caption found yet
     url: "https://www.imago-images.com/st/0867004406",
   },
   {
     outlet: "Reuters Connect (Anadolu Agency)",
     medium: "Photos",
+    // TODO title: no title/caption found yet
     url: "https://www.reutersconnect.com/item/pauseai-activists-stage-emergency-protest-outside-downing-street-in-london/dGFnOnJldXRlcnMuY29tLDIwMjY6bmV3c21sX01UMUFOQURMMDAwTkZPN1hH",
   },
   {
     outlet: "Reuters Connect (Zuma Press)",
     medium: "Photos",
+    // TODO title: no title/caption found yet
     url: "https://www.reutersconnect.com/item/pause-ai-protest-outside-downing-street/dGFnOnJldXRlcnMuY29tLDIwMjY6bmV3c21sX01UMVpVTUEwMDBGRzlOVEs",
   },
   {
     outlet: "Reuters Connect (Nurphoto)",
     medium: "Photos",
+    // TODO title: no title/caption found yet
     url: "https://www.reutersconnect.com/item/pause-ai-emergency-protest-in-london/dGFnOnJldXRlcnMuY29tLDIwMjY6bmV3c21sX01UMU5VUlBITzAwMDhGQTJTVg",
   },
   {
@@ -87,12 +94,14 @@ export const broadcastCoverage: CoverageItem[] = [
   {
     outlet: "Vox",
     medium: "Photos",
+    // TODO title: description is a generic placeholder, not the real title
     description: "Used as the picture for their article",
     url: "https://www.vox.com/podcasts/502875/ai-existential-risk-jacob-coxon-anthropic-dario-amodei",
   },
   {
     outlet: "Manchester Evening News",
     medium: "Photos",
+    // TODO title: description is a generic placeholder, not the real title
     description: "Used as the picture for their article",
     url: "https://www.manchestereveningnews.co.uk/news/uk-news/king-charles-issue-deeply-concerning-34629383",
   },
