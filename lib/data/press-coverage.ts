@@ -381,11 +381,13 @@ const ALL_COVERAGE: CoverageItem[] = [
     date: "2026-09-17",
   },
   {
+    logoHtml: '<span class="news-logo-text news-logo-text--ibtimes">International Business Times<span class="uk">UK</span></span>',
     outlet: "International Business Times",
     medium: "Article",
     title: "'10% Chance of Extinction': AI Protesters Take Scientists' Warning to Downing Street",
     url: "https://www.ibtimes.co.uk/london-protesters-demand-tougher-advanced-ai-controls-1820296",
     date: "2026-09-17",
+    inCarousel: true,
   },
 ];
 

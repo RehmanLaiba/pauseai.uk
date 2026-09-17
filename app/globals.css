@@ -1506,6 +1506,11 @@ section[id] {
   white-space: nowrap;
 }
 
+.news-logo-text--ibtimes {
+  font-size: calc(1.1rem * var(--logo-scale, 1));
+  white-space: nowrap;
+}
+
 .news-logo-text--bbc {
   font-size: 1.8rem;
 }
@@ -2192,6 +2197,18 @@ section[id] {
 .news-logo-text--swlondoner .sw {
   color: #2B7BBC;
   font-style: italic;
+}
+
+.news-logo-text--ibtimes {
+  font-family: system-ui, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+}
+
+.news-logo-text--ibtimes .uk {
+  font-size: 0.5em;
+  vertical-align: super;
+  margin-left: 2px;
 }
 
 /* ── Feature card ─────────────────────────────── */
