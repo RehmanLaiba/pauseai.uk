@@ -18,7 +18,6 @@ export const metadata: Metadata = {
   alternates: { canonical: "/west-of-england" },
 };
 
-const WEST_OF_ENGLAND_WHATSAPP = "https://chat.whatsapp.com/CUjVyzLxjcM88mdQOlU0IN";
 const WEST_OF_ENGLAND_LINKTREE = "https://linktr.ee/PauseAI_West_of_England";
 
 export default function WestOfEnglandPage() {
@@ -39,7 +38,7 @@ export default function WestOfEnglandPage() {
                 A new chapter bringing AI safety conversations and action to Bristol and the wider West of England.
               </p>
               <div className="actions">
-                <a className="btn primary" href={WEST_OF_ENGLAND_WHATSAPP} target="_blank" rel="noreferrer">Join the WhatsApp group</a>
+                <a className="btn primary" href={site.whatsappUrl} target="_blank" rel="noreferrer">Join the WhatsApp group</a>
                 <a className="btn ghost" href={WEST_OF_ENGLAND_LINKTREE} target="_blank" rel="noreferrer">All our links</a>
               </div>
             </div>
@@ -89,16 +88,15 @@ export default function WestOfEnglandPage() {
             <div className="section-header">
               <h2>Link up with the chapter</h2>
               <p className="section-lede">
-                Join the local WhatsApp to connect with organisers, or the UK-wide chat for national events and campaigns.
+                Join the UK-wide WhatsApp to connect with organisers and hear about national events and campaigns.
               </p>
             </div>
             <div className="callout-inner">
               <div>
-                <p className="section-lede">Local chat: <a href={WEST_OF_ENGLAND_WHATSAPP} target="_blank" rel="noreferrer">PauseAI West of England WhatsApp</a></p>
-                <p className="section-lede">UK chat: <a href={site.whatsappUrl} target="_blank" rel="noreferrer">PauseAI UK WhatsApp</a></p>
+                <p className="section-lede">WhatsApp: <a href={site.whatsappUrl} target="_blank" rel="noreferrer">PauseAI UK WhatsApp</a></p>
                 <p className="section-lede">All our links: <a href={WEST_OF_ENGLAND_LINKTREE} target="_blank" rel="noreferrer">linktr.ee/PauseAI_West_of_England</a></p>
               </div>
-              <a className="btn primary large" href={WEST_OF_ENGLAND_WHATSAPP} target="_blank" rel="noreferrer">Join the WhatsApp group</a>
+              <a className="btn primary large" href={site.whatsappUrl} target="_blank" rel="noreferrer">Join the WhatsApp group</a>
             </div>
           </div>
         </section>
