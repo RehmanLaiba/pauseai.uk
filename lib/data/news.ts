@@ -36,6 +36,7 @@ const ALL_NEWS: NewsItem[] = [
     logoIntrinsicHeight: 25,
     title: "Movements against AI are growing — inside the groups trying to stop it",
     url: "https://www.wired.it/article/movimenti-contro-intelligenza-artificiale-mappa-nomi-pauseai-stopai-controlai/",
+    date: "2026-05-30",
   },
   {
     logoSrc: "/images/media-coverage/Cosmopolitan_logo.svg",
@@ -45,6 +46,7 @@ const ALL_NEWS: NewsItem[] = [
     logoIntrinsicHeight: 106,
     title: "Gen Z is losing faith in AI — and protest movements are growing",
     url: "https://www.cosmopolitan.com/it/lifecoach/news-attualita/a71455730/gen-z-paura-intelligenza-artificiale-ansia/",
+    date: "2026-06-02",
   },
   {
     logoSrc: "/images/media-coverage/Gizmodo_logo.svg",
@@ -64,6 +66,7 @@ const ALL_NEWS: NewsItem[] = [
     logoIntrinsicHeight: 67,
     title: "AI Giants Go on Charm Offensive to Avert Public Backlash",
     url: "https://www.wsj.com/tech/ai/ai-companies-public-relations-ae312d79",
+    date: "2026-04-07",
   },
   {
     logoSrc: "/images/media-coverage/Business_Insider_Logo.svg",
@@ -73,6 +76,7 @@ const ALL_NEWS: NewsItem[] = [
     logoIntrinsicHeight: 32,
     title: "Protesters accuse Google DeepMind of breaking AI safety promises",
     url: "https://www.businessinsider.com/protesters-accuse-google-deepmind-breaking-promises-ai-safety-2025-6",
+    date: "2025-06-30",
   },
   {
     logoSrc: "/images/media-coverage/Time_Magazine_logo.svg",
@@ -112,6 +116,7 @@ const ALL_NEWS: NewsItem[] = [
     logoIntrinsicHeight: 97,
     title: "UK arts must not be sacrificed for speculative AI gains, peers say",
     url: "https://www.theguardian.com/technology/2026/mar/06/uk-arts-must-not-be-sacrificed-for-speculative-ai-gains-peers-say",
+    date: "2026-03-06",
   },
   {
     logoSrc: "/images/media-coverage/the-observer-logo.svg",
@@ -119,8 +124,9 @@ const ALL_NEWS: NewsItem[] = [
     logoHeight: 30,
     logoIntrinsicWidth: 980,
     logoIntrinsicHeight: 157,
-    title: "Endgame: Can we live with Artificial General Intelligence?",
+    title: "Endgame: Can we live with Artificial General Intelligence? - The People vs AI",
     url: "https://lnk.to/5cnSAU",
+    date: "2026-06-10",
   },
   {
     logoSrc: "/images/media-coverage/BBC_Logo_2021.svg",
@@ -130,6 +136,7 @@ const ALL_NEWS: NewsItem[] = [
     logoIntrinsicHeight: 160,
     title: "Hundreds of people march for tighter controls on AI",
     url: "https://youtu.be/-0CRojvk1FE?t=146",
+    date: "2026-02-28",
   },
   {
     logoSrc: "/images/media-coverage/The_Independent_Logo.png",
@@ -139,6 +146,7 @@ const ALL_NEWS: NewsItem[] = [
     logoIntrinsicHeight: 38,
     title: "Pro-human AI declaration gains diverse support amid calls for stronger safety measures",
     url: "https://www.independent.co.uk/tech/ai-safety-declaration-steve-bannon-b2932570.html",
+    date: "2026-03-05",
   },
   {
     logoSrc: "/images/media-coverage/Futurism_Logo.svg",
