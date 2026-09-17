@@ -13,6 +13,9 @@ export type NewsItem = {
   logoIntrinsicHeight?: number;
   title: string;
   url: string;
+  /** Publish date, YYYY-MM-DD. Drives sort order on the /press coverage
+      table; undated items sort to the bottom. */
+  date?: string;
 };
 
 const ALL_NEWS: NewsItem[] = [
@@ -51,6 +54,7 @@ const ALL_NEWS: NewsItem[] = [
     logoIntrinsicHeight: 36,
     title: "The OpenAI–Anthropic Cold War Comes to Illinois",
     url: "https://gizmodo.com/the-openai-anthropic-cold-war-comes-to-illinois-2000746324",
+    date: "2026-04-14",
   },
   {
     logoSrc: "/images/media-coverage/wall-street-journal-logo.png",
@@ -78,6 +82,7 @@ const ALL_NEWS: NewsItem[] = [
     logoIntrinsicHeight: 92,
     title: "60 U.K. lawmakers accuse Google of breaking AI safety pledge",
     url: "https://time.com/7313320/google-deepmind-gemini-ai-safety-pledge/",
+    date: "2025-08-29",
   },
   {
     logoSrc: "/images/media-coverage/Fortune_magazine_logo.svg",
@@ -87,6 +92,7 @@ const ALL_NEWS: NewsItem[] = [
     logoIntrinsicHeight: 21,
     title: "Lawmakers press Google DeepMind over delayed safety report",
     url: "https://fortune.com/2025/08/29/british-lawmakers-accuse-google-deepmind-of-breach-of-trust-over-delayed-gemini-2-5-pro-safety-report/",
+    date: "2025-08-29",
   },
   {
     logoSrc: "/images/media-coverage/MIT_Technology_Review_modern_logo.svg",
@@ -96,6 +102,7 @@ const ALL_NEWS: NewsItem[] = [
     logoIntrinsicHeight: 92,
     title: "I checked out one of the biggest anti-AI protests yet",
     url: "https://www.technologyreview.com/2026/03/02/1133814/i-checked-out-londons-biggest-ever-anti-ai-protest/",
+    date: "2026-03-02",
   },
   {
     logoSrc: "/images/media-coverage/The_Guardian_Logo.svg",
@@ -141,6 +148,7 @@ const ALL_NEWS: NewsItem[] = [
     logoIntrinsicHeight: 93,
     title: "The rage at OpenAI has grown so immense that there are entire protests against it",
     url: "https://futurism.com/artificial-intelligence/rage-openai-protests",
+    date: "2026-03-05",
   },
   {
     logoSrc: "/images/media-coverage/Real_Media_Logo.png",
@@ -150,12 +158,14 @@ const ALL_NEWS: NewsItem[] = [
     logoIntrinsicHeight: 83,
     title: "Pull the plug — Pause AI: a timely call for urgent regulation",
     url: "https://realmedia.press/pull-the-plug",
+    date: "2026-03-06",
   },
   {
     logoHtml: '<span class="news-logo-text news-logo-text--swlondoner"><span class="sw">SW</span>Londoner</span>',
     logoAlt: "SW Londoner",
     title: "Pressing pause on AI: London activists to march in largest AI safety protest yet",
     url: "https://www.swlondoner.co.uk/news/27022026-pressing-pause-on-ai-london-activists-to-march-in-largest-ai-safety-protest-yet",
+    date: "2026-02-27",
   },
   {
     logoSrc: "/images/media-coverage/Politis_Logo.png",
@@ -165,6 +175,7 @@ const ALL_NEWS: NewsItem[] = [
     logoIntrinsicHeight: 58,
     title: "L'image : à Londres, une marche contre l'IA",
     url: "https://www.politis.fr/articles/2026/03/limage-a-londres-une-marche-contre-lia/",
+    date: "2026-03-03",
   },
   {
     logoSrc: "/images/media-coverage/Daily_Mail_masthead.svg",
@@ -183,6 +194,7 @@ const ALL_NEWS: NewsItem[] = [
     logoIntrinsicHeight: 80,
     title: "The anti-AI revolt is here",
     url: "https://www.newstatesman.com/politics/society/2026/08/the-anti-ai-revolt-is-here",
+    date: "2026-08-19",
   },
 ];
 

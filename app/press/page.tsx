@@ -1,18 +1,17 @@
 import type { Metadata } from "next";
 import Image from "next/image";
 import Nav from "@/components/Nav";
-import { news } from "@/lib/data/news";
-import { broadcastCoverage } from "@/lib/data/press-coverage";
+import { allCoverage } from "@/lib/data/press-coverage";
 import { site } from "@/lib/data/site";
 import "../track-record/track-record.css";
 import "./press.css";
 
 export const metadata: Metadata = {
   title: "Press",
-  description: "Media contact, boilerplate, brand assets, and past coverage of PauseAI UK.",
+  description: "Media contact, boilerplate, brand assets, and press coverage of PauseAI UK.",
   openGraph: {
     title: "PauseAI UK | Press",
-    description: "Media contact, boilerplate, brand assets, and past coverage of PauseAI UK.",
+    description: "Media contact, boilerplate, brand assets, and press coverage of PauseAI UK.",
     images: [{ url: "/images/open-graph/open-graph-1200-630.jpg", width: 1200, height: 630 }],
     url: "https://pauseai.uk/press/",
   },
@@ -96,25 +95,21 @@ export default function PressPage() {
             </section>
 
             <section className="press-section">
-              <h2>Past coverage</h2>
+              <h2>Press coverage</h2>
               <ul className="press-coverage-list">
-                {news.map((item) => (
+                {allCoverage.map((item) => (
                   <li key={item.url} className="press-coverage-item">
                     <a className="press-coverage-link" href={item.url} target="_blank" rel="noreferrer">
-                      <span className="press-coverage-outlet">{item.logoAlt}</span>
-                      <span className="press-coverage-title">{item.title}</span>
-                    </a>
-                  </li>
-                ))}
-              </ul>
-            </section>
-
-            <section className="press-section">
-              <h2>Broadcast, photo &amp; wire coverage</h2>
-              <ul className="press-coverage-list">
-                {broadcastCoverage.map((item) => (
-                  <li key={item.url} className="press-coverage-item">
-                    <a className="press-coverage-link" href={item.url} target="_blank" rel="noreferrer">
+                      <span className="press-coverage-date">
+                        {item.date
+                          ? new Date(`${item.date}T00:00:00Z`).toLocaleDateString("en-GB", {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                              timeZone: "UTC",
+                            })
+                          : "—"}
+                      </span>
                       <span className="press-coverage-outlet">{item.outlet}</span>
                       <span className="press-coverage-medium">{item.medium}</span>
                       {item.description && <span className="press-coverage-title">{item.description}</span>}

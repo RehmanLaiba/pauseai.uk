@@ -1,8 +1,13 @@
+import { news } from "./news";
+
 export type CoverageItem = {
   outlet: string;
   medium: "Video" | "Photos" | "Article";
   description?: string;
   url: string;
+  /** Publish date, YYYY-MM-DD. Drives sort order on the /press coverage
+      table; undated items sort to the bottom. */
+  date?: string;
 };
 
 export const broadcastCoverage: CoverageItem[] = [
@@ -11,6 +16,7 @@ export const broadcastCoverage: CoverageItem[] = [
     medium: "Video",
     description: "News segment, 4 minutes — second story on the 7pm news",
     url: "https://www.channel4.com/news/hundreds-of-protesters-rally-against-ai-outside-downing-street",
+    date: "2026-09-16",
   },
   {
     outlet: "Channel 4",
@@ -103,10 +109,33 @@ export const broadcastCoverage: CoverageItem[] = [
     medium: "Photos",
     description: "Used as the picture for their article",
     url: "https://www.dailysabah.com/business/tech/from-hallucinations-to-wiping-out-humanity-how-ai-path-advanced",
+    date: "2026-09-17",
   },
   {
     outlet: "International Business Times",
     medium: "Article",
     url: "https://www.ibtimes.co.uk/london-protesters-demand-tougher-advanced-ai-controls-1820296",
+    date: "2026-09-17",
   },
 ];
+
+// Merges the homepage's text-press marquee data with the broadcast/photo/
+// wire list above into one dated table for the /press page. Undated items
+// (most links are blocked to automated date lookups — Facebook/Instagram/
+// YouTube/X SPA shells, paywalls, wire-agency sites) sort after every
+// dated item, in their original list order.
+export const allCoverage: CoverageItem[] = [
+  ...news.map((item): CoverageItem => ({
+    outlet: item.logoAlt,
+    medium: "Article",
+    description: item.title,
+    url: item.url,
+    date: item.date,
+  })),
+  ...broadcastCoverage,
+].sort((a, b) => {
+  if (a.date && b.date) return b.date.localeCompare(a.date);
+  if (a.date) return -1;
+  if (b.date) return 1;
+  return 0;
+});

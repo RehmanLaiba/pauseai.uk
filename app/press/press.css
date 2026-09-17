@@ -149,6 +149,14 @@
   text-decoration: none !important;
 }
 
+.press .press-coverage-date {
+  flex-shrink: 0;
+  width: 90px;
+  font-size: 13.5px;
+  font-variant-numeric: tabular-nums;
+  color: var(--muted);
+}
+
 .press .press-coverage-outlet {
   flex-shrink: 0;
   width: 170px;
@@ -190,6 +198,7 @@
     align-items: flex-start;
     gap: 4px;
   }
+  .press .press-coverage-date,
   .press .press-coverage-outlet,
   .press .press-coverage-medium {
     width: auto;
