@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Nav from "@/components/Nav";
 import { news } from "@/lib/data/news";
+import { broadcastCoverage } from "@/lib/data/press-coverage";
 import { site } from "@/lib/data/site";
 import "../track-record/track-record.css";
 import "./press.css";
@@ -102,6 +103,21 @@ export default function PressPage() {
                     <a className="press-coverage-link" href={item.url} target="_blank" rel="noreferrer">
                       <span className="press-coverage-outlet">{item.logoAlt}</span>
                       <span className="press-coverage-title">{item.title}</span>
+                    </a>
+                  </li>
+                ))}
+              </ul>
+            </section>
+
+            <section className="press-section">
+              <h2>Broadcast, photo &amp; wire coverage</h2>
+              <ul className="press-coverage-list">
+                {broadcastCoverage.map((item) => (
+                  <li key={item.url} className="press-coverage-item">
+                    <a className="press-coverage-link" href={item.url} target="_blank" rel="noreferrer">
+                      <span className="press-coverage-outlet">{item.outlet}</span>
+                      <span className="press-coverage-medium">{item.medium}</span>
+                      {item.description && <span className="press-coverage-title">{item.description}</span>}
                     </a>
                   </li>
                 ))}
