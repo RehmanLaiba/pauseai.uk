@@ -11,104 +11,104 @@ export type CoverageItem = {
 };
 
 export const broadcastCoverage: CoverageItem[] = [
+  // {
+  //   outlet: "Channel 4",
+  //   medium: "Video",
+  //   description: "Short: Protesters gathered at Downing Street, urging tougher action and a pause in the development of advanced AI systems.",
+  //   url: "https://www.facebook.com/reel/1522309576272007/",
+  // },
   {
     outlet: "Channel 4",
     medium: "Video",
-    // TODO title: description is a generic placeholder, not the real title
-    description: "Facebook reel (different footage from the news broadcast segment)",
-    url: "https://www.facebook.com/reel/1522309576272007/?mibextid=wwXIfr&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2Fr%2F1JywPj1GsN%2F%3Fmibextid%3DwwXIfr&rdid=xoT0pg0hRvcJe2hY",
-  },
-  {
-    outlet: "Channel 4",
-    medium: "Video",
-    // was: "YouTube Short (same footage as the Facebook reel)"
     description: "PauseAI activists stage emergency protest outside Downing Street",
     url: "https://www.youtube.com/shorts/2JRtI-dDwgc",
+    date: "2026-09-16",
   },
-  {
-    outlet: "Channel 4",
-    medium: "Video",
-    // was: "X post"
-    description: "Protesters gathered at Downing Street, urging tougher action and a pause in the development of advanced AI systems. They warned that humanity could lose control of increasingly powerful technology if regulation does not happen soon.",
-    url: "https://x.com/Channel4News/status/2100298598772605015",
-  },
+  // {
+  //   outlet: "Channel 4",
+  //   medium: "Video",
+  //   // was: "X post"
+  //   description: "Protesters gathered at Downing Street, urging tougher action and a pause in the development of advanced AI systems. They warned that humanity could lose control of increasingly powerful technology if regulation does not happen soon.",
+  //   url: "https://x.com/Channel4News/status/2100298598772605015",
+  // },
+  // {
+  //   outlet: "ITV",
+  //   medium: "Video",
+  //   // TODO title: description is a generic placeholder, not the real title
+  //   description: "Protesters demand pause on AI development",
+  //   url: "https://www.instagram.com/p/DdWzB4Gxkv_/?l=1&ig_mid=20BE556A-84A8-4926-A5D3-B53F02F6F2AC&utm_source=igweb",
+  // },
   {
     outlet: "ITV",
     medium: "Video",
-    // TODO title: description is a generic placeholder, not the real title
-    description: "Instagram",
-    url: "https://www.instagram.com/p/DdWzB4Gxkv_/?l=1&ig_mid=20BE556A-84A8-4926-A5D3-B53F02F6F2AC&utm_source=igweb",
-  },
-  {
-    outlet: "ITV",
-    medium: "Video",
-    // was: "YouTube Short (same footage as the Instagram post)"
     description: "Protesters demand pause on AI development",
     url: "https://www.youtube.com/shorts/TFxdevKHM8s",
+    date: "2026-09-16",
   },
   {
     outlet: "ITV",
     medium: "Video",
-    // was: "YouTube Short, minute 1:30–1:35 (different footage)"
     description: "Why is AI safety back in the spotlight",
     url: "https://www.youtube.com/shorts/rkgvZRnoytA",
+    date: "2026-09-16",
   },
   {
     outlet: "Al Arabiya",
     medium: "Video",
-    // TODO title: description is a generic placeholder, not the real title
-    description: "Instagram",
+    description: "Activists gather outside Downing Street in London, calling on governments to pause AI development",
     url: "https://www.instagram.com/p/DdWvDuejvh7/",
+    date: "2026-09-16",
   },
   {
     outlet: "Imago Images",
     medium: "Photos",
-    // TODO title: no title/caption found yet
+    description: "Pause AI, urging the government to limit the development of artificial intelligence amid warnings that it could lead to human extinction",
     url: "https://www.imago-images.com/st/0867004406",
+    date: "2026-09-16",
   },
   {
     outlet: "Reuters Connect (Anadolu Agency)",
     medium: "Photos",
-    // TODO title: no title/caption found yet
+    description: "PauseAI activists stage emergency protest outside Downing Street in London",
     url: "https://www.reutersconnect.com/item/pauseai-activists-stage-emergency-protest-outside-downing-street-in-london/dGFnOnJldXRlcnMuY29tLDIwMjY6bmV3c21sX01UMUFOQURMMDAwTkZPN1hH",
+    date: "2026-09-16",
   },
   {
     outlet: "Reuters Connect (Zuma Press)",
     medium: "Photos",
-    // TODO title: no title/caption found yet
+    description: "Pause AI Protest Outside Downing Street",
     url: "https://www.reutersconnect.com/item/pause-ai-protest-outside-downing-street/dGFnOnJldXRlcnMuY29tLDIwMjY6bmV3c21sX01UMVpVTUEwMDBGRzlOVEs",
   },
   {
     outlet: "Reuters Connect (Nurphoto)",
     medium: "Photos",
-    // TODO title: no title/caption found yet
+    description: "Pause AI Emergency Protest In London",
     url: "https://www.reutersconnect.com/item/pause-ai-emergency-protest-in-london/dGFnOnJldXRlcnMuY29tLDIwMjY6bmV3c21sX01UMU5VUlBITzAwMDhGQTJTVg",
   },
   {
     outlet: "Boston Globe",
     medium: "Photos",
-    // was: "Used as the picture for their article"
     description: "AI rivals found rare agreement on safety. Putting it into practice is harder.",
     url: "https://www.bostonglobe.com/2026/09/16/business/ai-slowdown-safety/",
+    date: "2026-09-16",
   },
   {
     outlet: "Vox",
     medium: "Photos",
-    // TODO title: description is a generic placeholder, not the real title
-    description: "Used as the picture for their article",
+    description: "Should we be skeptical about the AI panic?",
     url: "https://www.vox.com/podcasts/502875/ai-existential-risk-jacob-coxon-anthropic-dario-amodei",
+    date: "2026-09-16",
   },
   {
     outlet: "Manchester Evening News",
     medium: "Photos",
-    // TODO title: description is a generic placeholder, not the real title
-    description: "Used as the picture for their article",
+    description: "King Charles to issue 'deeply concerning' message to AI leaders after doomsday warnings",
     url: "https://www.manchestereveningnews.co.uk/news/uk-news/king-charles-issue-deeply-concerning-34629383",
+    date: "2026-09-17",
   },
   {
     outlet: "Daily Sabah",
     medium: "Photos",
-    // was: "Used as the picture for their article"
     description: "From hallucinations to wiping out humanity: How AI's path advanced",
     url: "https://www.dailysabah.com/business/tech/from-hallucinations-to-wiping-out-humanity-how-ai-path-advanced",
     date: "2026-09-17",
