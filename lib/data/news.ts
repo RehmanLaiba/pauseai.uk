@@ -193,6 +193,7 @@ const ALL_NEWS: NewsItem[] = [
     logoIntrinsicHeight: 158,
     title: "When given a choice, AI opts for self-preservation over human life — and that should terrify us all",
     url: "https://www.dailymail.com/debate/article-16032063/AI-opts-self-preservation-human-life.html",
+    // 5 August 2026
   },
   {
     logoSrc: "/images/media-coverage/New_Statesman_magazine_logo.svg",
@@ -203,6 +204,25 @@ const ALL_NEWS: NewsItem[] = [
     title: "The anti-AI revolt is here",
     url: "https://www.newstatesman.com/politics/society/2026/08/the-anti-ai-revolt-is-here",
     date: "2026-08-19",
+  },
+  {
+    logoSrc: "/images/media-coverage/Channel_4_logo.svg",
+    logoAlt: "Channel 4",
+    logoHeight: 56,
+    logoIntrinsicWidth: 178,
+    logoIntrinsicHeight: 240,
+    title: "Hundreds of protesters rally against AI outside Downing Street",
+    url: "https://www.channel4.com/news/hundreds-of-protesters-rally-against-ai-outside-downing-street",
+    date: "2026-09-16",
+  },
+  {
+    logoSrc: "/images/media-coverage/ITV_logo.svg",
+    logoAlt: "ITV",
+    logoHeight: 46,
+    logoIntrinsicWidth: 1000,
+    logoIntrinsicHeight: 368,
+    title: "ITV News segment on the AI safety protest outside Downing Street",
+    url: "https://youtu.be/cvMRaa6h8tM?t=488",
   },
 ];
 

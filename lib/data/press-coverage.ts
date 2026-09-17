@@ -14,13 +14,6 @@ export const broadcastCoverage: CoverageItem[] = [
   {
     outlet: "Channel 4",
     medium: "Video",
-    description: "News segment, 4 minutes — second story on the 7pm news",
-    url: "https://www.channel4.com/news/hundreds-of-protesters-rally-against-ai-outside-downing-street",
-    date: "2026-09-16",
-  },
-  {
-    outlet: "Channel 4",
-    medium: "Video",
     description: "Facebook reel (different footage from the news broadcast segment)",
     url: "https://www.facebook.com/reel/1522309576272007/?mibextid=wwXIfr&share_url=https%3A%2F%2Fwww.facebook.com%2Fshare%2Fr%2F1JywPj1GsN%2F%3Fmibextid%3DwwXIfr&rdid=xoT0pg0hRvcJe2hY",
   },
@@ -35,12 +28,6 @@ export const broadcastCoverage: CoverageItem[] = [
     medium: "Video",
     description: "X post",
     url: "https://x.com/Channel4News/status/2100298598772605015",
-  },
-  {
-    outlet: "ITV",
-    medium: "Video",
-    description: "News segment, minute 8:00–8:20",
-    url: "https://youtu.be/cvMRaa6h8tM?t=488",
   },
   {
     outlet: "ITV",
