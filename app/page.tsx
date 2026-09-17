@@ -207,6 +207,9 @@ export default async function HomePage() {
               {renderNewsRow(newsMobileRow3)}
             </div>
           </div>
+          <div className="container news-marquee-cta">
+            <Link className="inline-link" href="/press/">See our press page →</Link>
+          </div>
         </section>
 
         <section id="chapters" className="section muted">

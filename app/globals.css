@@ -1386,6 +1386,11 @@ section[id] {
           mask-image: linear-gradient(90deg, transparent, #000 64px, #000 calc(100% - 64px), transparent);
 }
 
+.news-marquee-cta {
+  margin-top: 20px;
+  text-align: center;
+}
+
 .news-marquee-row {
   overflow: hidden;
   padding: 14px 0;
