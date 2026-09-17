@@ -20,13 +20,15 @@ export const broadcastCoverage: CoverageItem[] = [
   {
     outlet: "Channel 4",
     medium: "Video",
-    description: "YouTube Short (same footage as the Facebook reel)",
+    // was: "YouTube Short (same footage as the Facebook reel)"
+    description: "PauseAI activists stage emergency protest outside Downing Street",
     url: "https://www.youtube.com/shorts/2JRtI-dDwgc",
   },
   {
     outlet: "Channel 4",
     medium: "Video",
-    description: "X post",
+    // was: "X post"
+    description: "Protesters gathered at Downing Street, urging tougher action and a pause in the development of advanced AI systems. They warned that humanity could lose control of increasingly powerful technology if regulation does not happen soon.",
     url: "https://x.com/Channel4News/status/2100298598772605015",
   },
   {
@@ -38,13 +40,15 @@ export const broadcastCoverage: CoverageItem[] = [
   {
     outlet: "ITV",
     medium: "Video",
-    description: "YouTube Short (same footage as the Instagram post)",
+    // was: "YouTube Short (same footage as the Instagram post)"
+    description: "Protesters demand pause on AI development",
     url: "https://www.youtube.com/shorts/TFxdevKHM8s",
   },
   {
     outlet: "ITV",
     medium: "Video",
-    description: "YouTube Short, minute 1:30–1:35 (different footage)",
+    // was: "YouTube Short, minute 1:30–1:35 (different footage)"
+    description: "Why is AI safety back in the spotlight",
     url: "https://www.youtube.com/shorts/rkgvZRnoytA",
   },
   {
@@ -76,7 +80,8 @@ export const broadcastCoverage: CoverageItem[] = [
   {
     outlet: "Boston Globe",
     medium: "Photos",
-    description: "Used as the picture for their article",
+    // was: "Used as the picture for their article"
+    description: "AI rivals found rare agreement on safety. Putting it into practice is harder.",
     url: "https://www.bostonglobe.com/2026/09/16/business/ai-slowdown-safety/",
   },
   {
@@ -94,13 +99,15 @@ export const broadcastCoverage: CoverageItem[] = [
   {
     outlet: "Daily Sabah",
     medium: "Photos",
-    description: "Used as the picture for their article",
+    // was: "Used as the picture for their article"
+    description: "From hallucinations to wiping out humanity: How AI's path advanced",
     url: "https://www.dailysabah.com/business/tech/from-hallucinations-to-wiping-out-humanity-how-ai-path-advanced",
     date: "2026-09-17",
   },
   {
     outlet: "International Business Times",
     medium: "Article",
+    description: "'10% Chance of Extinction': AI Protesters Take Scientists' Warning to Downing Street",
     url: "https://www.ibtimes.co.uk/london-protesters-demand-tougher-advanced-ai-controls-1820296",
     date: "2026-09-17",
   },
