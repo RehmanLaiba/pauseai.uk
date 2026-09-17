@@ -222,7 +222,7 @@ const ALL_NEWS: NewsItem[] = [
     logoIntrinsicWidth: 1000,
     logoIntrinsicHeight: 368,
     title: "ITV News segment on the AI safety protest outside Downing Street",
-    url: "https://youtu.be/cvMRaa6h8tM?t=488",
+    url: "https://www.youtube.com/watch?v=cvMRaa6h8tM&t=486s",
   },
 ];
 
