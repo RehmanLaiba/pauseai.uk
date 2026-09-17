@@ -230,6 +230,17 @@ const ALL_NEWS: NewsItem[] = [
     date: "2026-09-16",
     medium: "Video",
   },
+  {
+    logoSrc: "/images/media-coverage/Channel_4_logo.svg",
+    logoAlt: "Channel 4",
+    logoHeight: 56,
+    logoIntrinsicWidth: 178,
+    logoIntrinsicHeight: 240,
+    title: "The danger of AI and the global race to control it - explained",
+    url: "https://www.youtube.com/watch?v=rDb5qlSAmvQ&t=249s",
+    date: "2026-09-17",
+    medium: "Video",
+  },
 ];
 
 // Desktop: 2 rows (10 + 10). Mobile (handled in page.tsx): 3 rows so
