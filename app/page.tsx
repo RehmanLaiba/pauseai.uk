@@ -9,7 +9,7 @@ import EventList from "@/components/EventList";
 import PeopleCarousel from "@/components/PeopleCarousel";
 import ChaptersMap from "@/components/ChaptersMap";
 import { getEvents } from "@/lib/data/events";
-import { newsRow1, newsRow2, newsMobileRow1, newsMobileRow2, newsMobileRow3, type NewsItem } from "@/lib/data/news";
+import { newsRow1, newsRow2, newsMobileRow1, newsMobileRow2, newsMobileRow3, type CoverageItem } from "@/lib/data/press-coverage";
 import { people } from "@/lib/data/people";
 import { staff } from "@/lib/data/staff";
 import { site } from "@/lib/data/site";
@@ -29,7 +29,7 @@ export const metadata: Metadata = {
   alternates: { canonical: "/" },
 };
 
-function renderNewsRow(items: NewsItem[], reverse = false) {
+function renderNewsRow(items: CoverageItem[], reverse = false) {
   return (
     <div className={`news-marquee-row${reverse ? " news-marquee-row--reverse" : ""}`}>
       <div className="news-marquee-track">
@@ -47,7 +47,7 @@ function renderNewsRow(items: NewsItem[], reverse = false) {
                 target="_blank"
                 rel="noreferrer"
                 title={item.title}
-                aria-label={`${item.logoAlt}: ${item.title}`}
+                aria-label={`${item.outlet}: ${item.title}`}
                 {...(copyIdx > 0 ? { tabIndex: -1 } : {})}
               >
                 <div className="news-logo-box">
@@ -55,7 +55,7 @@ function renderNewsRow(items: NewsItem[], reverse = false) {
                     <Image
                       className="news-logo"
                       src={item.logoSrc}
-                      alt={item.logoAlt}
+                      alt={item.outlet}
                       width={item.logoIntrinsicWidth ?? 100}
                       height={item.logoIntrinsicHeight ?? 44}
                       loading="lazy"

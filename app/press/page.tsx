@@ -122,7 +122,7 @@ export default function PressPage() {
                             </span>
                           ))}
                         </span>
-                        {item.description && <span className="press-coverage-title">{item.description}</span>}
+                        <span className="press-coverage-title">{item.title}</span>
                       </div>
                     </li>
                   ) : (
@@ -131,7 +131,7 @@ export default function PressPage() {
                         <span className="press-coverage-date">{formatCoverageDate(item.date)}</span>
                         <span className="press-coverage-outlet">{item.outlet}</span>
                         <span className="press-coverage-medium">{item.medium}</span>
-                        {item.description && <span className="press-coverage-title">{item.description}</span>}
+                        <span className="press-coverage-title">{item.title}</span>
                       </a>
                     </li>
                   )
