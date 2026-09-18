@@ -28,6 +28,11 @@ export type CoverageItem = {
       flag. Each outlet should carry at most one `true` so the carousel
       doesn't repeat the same mark. */
   inCarousel?: boolean;
+  /** Outlet's political lean, sourced from AllSides / Ad Fontes / Media
+      Bias Fact Check where a rating exists. Omitted for wire/photo
+      agencies, lifestyle magazines, and small outlets with no bias
+      rating — not a guess, genuinely not applicable or not ratable. */
+  lean?: "Left" | "Lean Left" | "Center" | "Lean Right" | "Right";
 };
 
 const ALL_COVERAGE: CoverageItem[] = [
@@ -41,6 +46,7 @@ const ALL_COVERAGE: CoverageItem[] = [
     url: "https://www.ft.com/content/1b3e3117-b979-4187-b983-c785d230c09b",
     medium: "Article",
     inCarousel: true,
+    lean: "Center",
   },
   {
     logoSrc: "/images/media-coverage/Wired_logo.svg",
@@ -77,6 +83,7 @@ const ALL_COVERAGE: CoverageItem[] = [
     date: "2026-04-14",
     medium: "Article",
     inCarousel: true,
+    lean: "Lean Left",
   },
   {
     logoSrc: "/images/media-coverage/wall-street-journal-logo.png",
@@ -89,6 +96,7 @@ const ALL_COVERAGE: CoverageItem[] = [
     date: "2026-04-07",
     medium: "Article",
     inCarousel: true,
+    lean: "Center",
   },
   {
     logoSrc: "/images/media-coverage/Business_Insider_Logo.svg",
@@ -101,6 +109,7 @@ const ALL_COVERAGE: CoverageItem[] = [
     date: "2025-06-30",
     medium: "Article",
     inCarousel: true,
+    lean: "Lean Left",
   },
   {
     logoSrc: "/images/media-coverage/Time_Magazine_logo.svg",
@@ -113,6 +122,7 @@ const ALL_COVERAGE: CoverageItem[] = [
     date: "2025-08-29",
     medium: "Article",
     inCarousel: true,
+    lean: "Lean Left",
   },
   {
     logoSrc: "/images/media-coverage/Fortune_magazine_logo.svg",
@@ -125,6 +135,7 @@ const ALL_COVERAGE: CoverageItem[] = [
     date: "2025-08-29",
     medium: "Article",
     inCarousel: true,
+    lean: "Center",
   },
   {
     logoSrc: "/images/media-coverage/MIT_Technology_Review_modern_logo.svg",
@@ -137,6 +148,7 @@ const ALL_COVERAGE: CoverageItem[] = [
     date: "2026-03-02",
     medium: "Article",
     inCarousel: true,
+    lean: "Center",
   },
   {
     logoSrc: "/images/media-coverage/The_Guardian_Logo.svg",
@@ -149,6 +161,7 @@ const ALL_COVERAGE: CoverageItem[] = [
     date: "2026-03-06",
     medium: "Article",
     inCarousel: true,
+    lean: "Left",
   },
   {
     logoSrc: "/images/media-coverage/the-observer-logo.svg",
@@ -161,6 +174,7 @@ const ALL_COVERAGE: CoverageItem[] = [
     date: "2026-06-10",
     medium: "Article",
     inCarousel: true,
+    lean: "Left",
   },
   {
     logoSrc: "/images/media-coverage/BBC_Logo_2021.svg",
@@ -173,6 +187,7 @@ const ALL_COVERAGE: CoverageItem[] = [
     date: "2026-02-28",
     medium: "Video",
     inCarousel: true,
+    lean: "Center",
   },
   {
     outlet: "BBC",
@@ -180,6 +195,7 @@ const ALL_COVERAGE: CoverageItem[] = [
     url: "https://www.bbc.co.uk/news/articles/c74edv9887eo",
     date: "2026-09-10",
     medium: "Article",
+    lean: "Center",
   },
   {
     outlet: "BBC",
@@ -187,6 +203,7 @@ const ALL_COVERAGE: CoverageItem[] = [
     url: "https://www.bbc.co.uk/news/articles/c790xvnzgnno",
     date: "2026-09-14",
     medium: "Article",
+    lean: "Center",
   },
   {
     logoSrc: "/images/media-coverage/The_Independent_Logo.png",
@@ -199,6 +216,7 @@ const ALL_COVERAGE: CoverageItem[] = [
     date: "2026-03-05",
     medium: "Article",
     inCarousel: true,
+    lean: "Lean Left",
   },
   {
     logoSrc: "/images/media-coverage/Futurism_Logo.svg",
@@ -241,6 +259,7 @@ const ALL_COVERAGE: CoverageItem[] = [
     url: "https://www.politis.fr/articles/2026/03/limage-a-londres-une-marche-contre-lia/",
     date: "2026-03-03",
     medium: "Article",
+    lean: "Left",
   },
   {
     logoSrc: "/images/media-coverage/Daily_Mail_masthead.svg",
@@ -253,6 +272,7 @@ const ALL_COVERAGE: CoverageItem[] = [
     date: "2026-08-05",
     medium: "Article",
     inCarousel: true,
+    lean: "Right",
   },
   {
     logoSrc: "/images/media-coverage/New_Statesman_magazine_logo.svg",
@@ -265,6 +285,7 @@ const ALL_COVERAGE: CoverageItem[] = [
     date: "2026-08-19",
     medium: "Article",
     inCarousel: true,
+    lean: "Left",
   },
   {
     logoSrc: "/images/media-coverage/Channel_4_logo.svg",
@@ -277,6 +298,7 @@ const ALL_COVERAGE: CoverageItem[] = [
     date: "2026-09-16",
     medium: "Article",
     inCarousel: true,
+    lean: "Center",
   },
   {
     logoSrc: "/images/media-coverage/ITV_logo.svg",
@@ -289,6 +311,7 @@ const ALL_COVERAGE: CoverageItem[] = [
     date: "2026-09-16",
     medium: "Video",
     inCarousel: true,
+    lean: "Center",
   },
   {
     logoSrc: "/images/media-coverage/Channel_4_logo.svg",
@@ -300,6 +323,7 @@ const ALL_COVERAGE: CoverageItem[] = [
     url: "https://www.youtube.com/watch?v=rDb5qlSAmvQ&t=249s",
     date: "2026-09-17",
     medium: "Video",
+    lean: "Center",
     // Channel 4 already has a marquee slot above (its direct protest
     // coverage) — skip a second logo for the same outlet.
   },
@@ -313,6 +337,7 @@ const ALL_COVERAGE: CoverageItem[] = [
       { label: "YouTube", url: "https://www.youtube.com/shorts/2JRtI-dDwgc" },
     ],
     date: "2026-09-16",
+    lean: "Center",
   },
   {
     outlet: "ITV",
@@ -323,6 +348,7 @@ const ALL_COVERAGE: CoverageItem[] = [
       { label: "YouTube", url: "https://www.youtube.com/shorts/TFxdevKHM8s" },
     ],
     date: "2026-09-16",
+    lean: "Center",
   },
   {
     outlet: "ITV",
@@ -330,6 +356,7 @@ const ALL_COVERAGE: CoverageItem[] = [
     title: "Why is AI safety back in the spotlight",
     url: "https://www.youtube.com/shorts/rkgvZRnoytA",
     date: "2026-09-16",
+    lean: "Center",
   },
   {
     outlet: "Al Arabiya",
@@ -337,6 +364,7 @@ const ALL_COVERAGE: CoverageItem[] = [
     title: "Activists gather outside Downing Street in London, calling on governments to pause AI development",
     url: "https://www.instagram.com/p/DdWvDuejvh7/",
     date: "2026-09-16",
+    lean: "Lean Right",
   },
   {
     outlet: "Imago Images",
@@ -372,6 +400,7 @@ const ALL_COVERAGE: CoverageItem[] = [
     title: "AI rivals found rare agreement on safety. Putting it into practice is harder.",
     url: "https://www.bostonglobe.com/2026/09/16/business/ai-slowdown-safety/",
     date: "2026-09-16",
+    lean: "Lean Left",
   },
   {
     logoSrc: "/images/media-coverage/Vox_logo.svg",
@@ -384,6 +413,7 @@ const ALL_COVERAGE: CoverageItem[] = [
     url: "https://www.vox.com/podcasts/502875/ai-existential-risk-jacob-coxon-anthropic-dario-amodei",
     date: "2026-09-16",
     inCarousel: true,
+    lean: "Left",
   },
   {
     outlet: "Manchester Evening News",
@@ -391,6 +421,7 @@ const ALL_COVERAGE: CoverageItem[] = [
     title: "King Charles to issue 'deeply concerning' message to AI leaders after doomsday warnings",
     url: "https://www.manchestereveningnews.co.uk/news/uk-news/king-charles-issue-deeply-concerning-34629383",
     date: "2026-09-17",
+    lean: "Lean Left",
   },
   {
     outlet: "Daily Sabah",
@@ -398,6 +429,7 @@ const ALL_COVERAGE: CoverageItem[] = [
     title: "From hallucinations to wiping out humanity: How AI's path advanced",
     url: "https://www.dailysabah.com/business/tech/from-hallucinations-to-wiping-out-humanity-how-ai-path-advanced",
     date: "2026-09-17",
+    lean: "Right",
   },
   {
     logoHtml: '<span class="news-logo-text news-logo-text--ibtimes">International Business Times<span class="uk">UK</span></span>',
@@ -407,6 +439,7 @@ const ALL_COVERAGE: CoverageItem[] = [
     url: "https://www.ibtimes.co.uk/london-protesters-demand-tougher-advanced-ai-controls-1820296",
     date: "2026-09-17",
     inCarousel: true,
+    lean: "Center",
   },
   {
     logoSrc: "/images/media-coverage/GB_News_logo.png",
@@ -421,6 +454,7 @@ const ALL_COVERAGE: CoverageItem[] = [
     url: "https://www.youtube.com/watch?v=kTc_Q72q7hY",
     date: "2026-07-24",
     inCarousel: true,
+    lean: "Right",
   },
   {
     outlet: "Islington Tribune",
