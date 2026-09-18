@@ -374,11 +374,16 @@ const ALL_COVERAGE: CoverageItem[] = [
     date: "2026-09-16",
   },
   {
+    logoSrc: "/images/media-coverage/Vox_logo.svg",
     outlet: "Vox",
+    logoHeight: 52,
+    logoIntrinsicWidth: 120,
+    logoIntrinsicHeight: 58,
     medium: "Photos",
     title: "Should we be skeptical about the AI panic?",
     url: "https://www.vox.com/podcasts/502875/ai-existential-risk-jacob-coxon-anthropic-dario-amodei",
     date: "2026-09-16",
+    inCarousel: true,
   },
   {
     outlet: "Manchester Evening News",
