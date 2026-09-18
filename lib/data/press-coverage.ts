@@ -78,6 +78,11 @@ const ALL_COVERAGE: CoverageItem[] = [
     logoHeight: 33,
     logoIntrinsicWidth: 186,
     logoIntrinsicHeight: 36,
+    // Article text never names PauseAI — it's about an unrelated Illinois
+    // AI lobbying bill. Hero image is genuinely one of ours though: a
+    // protester holding a "PAUSEAI" sign, credited Justin Tallis/AFP via
+    // Getty — the same photographer credited on confirmed PauseAI UK
+    // photos elsewhere in this file.
     title: "The OpenAI–Anthropic Cold War Comes to Illinois",
     url: "https://gizmodo.com/the-openai-anthropic-cold-war-comes-to-illinois-2000746324",
     date: "2026-04-14",
@@ -156,22 +161,13 @@ const ALL_COVERAGE: CoverageItem[] = [
     logoHeight: 44,
     logoIntrinsicWidth: 295,
     logoIntrinsicHeight: 97,
+    // Article text never names PauseAI — it's about a House of Lords
+    // copyright report. Hero image is genuinely one of ours: protesters
+    // holding "Pull The Plug" and "It's not too late... to regulate"
+    // signs from the same march covered elsewhere in this file.
     title: "UK arts must not be sacrificed for speculative AI gains, peers say",
     url: "https://www.theguardian.com/technology/2026/mar/06/uk-arts-must-not-be-sacrificed-for-speculative-ai-gains-peers-say",
     date: "2026-03-06",
-    medium: "Article",
-    inCarousel: true,
-    lean: "Left",
-  },
-  {
-    logoSrc: "/images/media-coverage/the-observer-logo.svg",
-    outlet: "The Observer",
-    logoHeight: 30,
-    logoIntrinsicWidth: 980,
-    logoIntrinsicHeight: 157,
-    title: "Endgame: Can we live with Artificial General Intelligence? - The People vs AI",
-    url: "https://lnk.to/5cnSAU",
-    date: "2026-06-10",
     medium: "Article",
     inCarousel: true,
     lean: "Left",
@@ -183,6 +179,12 @@ const ALL_COVERAGE: CoverageItem[] = [
     logoIntrinsicWidth: 560,
     logoIntrinsicHeight: 160,
     title: "Hundreds of people march for tighter controls on AI",
+    // This URL is a third-party reupload/compilation channel ("Mark
+    // 1333"), not BBC's own channel — searched BBC's own site and
+    // YouTube's official BBC News channel and couldn't find the original
+    // source. Content looks like a genuine BBC London bulletin segment
+    // (28 Feb 2026), just not a verifiable BBC source link. Swap this for
+    // the real BBC link if it turns up.
     url: "https://youtu.be/-0CRojvk1FE?t=146",
     date: "2026-02-28",
     medium: "Video",
