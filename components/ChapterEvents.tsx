@@ -1,5 +1,5 @@
 import EventList from "@/components/EventList";
-import { chapters } from "@/lib/data/chapters";
+import { chapters, type ChapterName } from "@/lib/data/chapters";
 import { filterEventsForChapter, getEvents } from "@/lib/data/events";
 import { site } from "@/lib/data/site";
 
@@ -14,14 +14,9 @@ import { site } from "@/lib/data/site";
  * An async server component rather than a change to each page's own
  * signature: the pages stay synchronous and each one only adds this tag.
  */
-export default async function ChapterEvents({ chapterName }: { chapterName: string }) {
-  const chapter = chapters.find((c) => c.name === chapterName);
-  if (!chapter) {
-    throw new Error(
-      `ChapterEvents: no chapter named "${chapterName}" in lib/data/chapters.ts`
-    );
-  }
-
+export default async function ChapterEvents({ chapterName }: { chapterName: ChapterName }) {
+  // Non-null: ChapterName only admits names that are in `chapters`.
+  const chapter = chapters.find((c) => c.name === chapterName)!;
   const events = filterEventsForChapter(await getEvents(), chapter.eventMatchers);
 
   return (
@@ -41,8 +36,15 @@ export default async function ChapterEvents({ chapterName }: { chapterName: stri
         <EventList
           events={events}
           lumaUrl={site.social.luma}
-          emptyPrefix={`Nothing is listed in ${chapter.name} just now. See the UK-wide`}
-          emptySuffix="for everything else we have coming up."
+          empty={
+            <>
+              Nothing is listed in {chapter.name} just now. See the UK-wide{" "}
+              <a href={site.social.luma} target="_blank" rel="noreferrer">
+                event calendar
+              </a>{" "}
+              for everything else we have coming up.
+            </>
+          }
         />
       </div>
     </section>

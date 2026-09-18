@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import { useEffect, useState, type ReactNode } from "react";
 import type { LumaEntry } from "@/lib/data/events";
 import { formatEventDate, formatEventTime } from "@/lib/data/events";
 
@@ -78,18 +78,16 @@ function EventCard({ entry, isExtra = false }: { entry: LumaEntry; isExtra?: boo
 export default function EventList({
   events,
   lumaUrl,
-  /**
-   * What to say when there is nothing to list. A chapter page has already
-   * named its city in the heading above, so "see our event calendar" reads as
-   * a non-answer there — it passes something that says the city is quiet.
-   */
-  emptyPrefix = "See our",
-  emptySuffix = "for upcoming events.",
+  empty,
 }: {
   events: LumaEntry[];
   lumaUrl: string;
-  emptyPrefix?: string;
-  emptySuffix?: string;
+  /**
+   * What to say when there is nothing to list. A chapter page has already
+   * named its city in the heading above, so the default reads as a non-answer
+   * there and it passes a line that says the city itself is quiet.
+   */
+  empty?: ReactNode;
 }) {
   const [expanded, setExpanded] = useState(false);
   const hasMore = events.length > 4;
@@ -97,11 +95,15 @@ export default function EventList({
   if (events.length === 0) {
     return (
       <p className="luma-events-empty">
-        {emptyPrefix}{" "}
-        <a href={lumaUrl} target="_blank" rel="noreferrer">
-          event calendar
-        </a>{" "}
-        {emptySuffix}
+        {empty ?? (
+          <>
+            See our{" "}
+            <a href={lumaUrl} target="_blank" rel="noreferrer">
+              event calendar
+            </a>{" "}
+            for upcoming events.
+          </>
+        )}
       </p>
     );
   }
