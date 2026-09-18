@@ -1,7 +1,16 @@
 import type { CSSProperties } from "react";
 
+/** Every chapter with a page, so a page cannot ask for one that does not exist. */
+export type ChapterName =
+  | "Glasgow"
+  | "Manchester"
+  | "West of England"
+  | "Leicester"
+  | "Oxford"
+  | "London";
+
 export type Chapter = {
-  name: string;
+  name: ChapterName;
   href: string;
   blurb: string;
   imageSrc: string;

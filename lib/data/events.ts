@@ -37,35 +37,39 @@ export async function getEvents(): Promise<LumaEntry[]> {
 }
 
 /**
- * Whether a Luma entry belongs to a chapter, matched against the chapter's
- * `eventMatchers` (see lib/data/chapters.ts).
+ * Lower-cased, punctuation-stripped and space-padded, so a matcher can be
+ * tested with plain containment and still only match a whole word: " bath "
+ * is in " bristol bath social " but not in " bathurst meetup ".
+ */
+function normalise(value: string): string {
+  return ` ${value.toLowerCase().replace(/[^a-z0-9]+/g, " ").trim()} `;
+}
+
+/**
+ * The events belonging to a chapter, matched against its `eventMatchers`
+ * (see lib/data/chapters.ts).
  *
  * Luma only fills `geo_address_info.city` for events pinned to a mapped
  * address; plenty of real entries leave it empty and carry the place in the
  * free-text address ("All Across London", "London, Venue TBD") or in the
- * event name ("PauseAI Scotland Meeting"). Matching all three is what stops a
- * chapter page looking empty while its events sit on the calendar.
+ * event name ("PauseAI Scotland Meeting"). Searching all three is what stops
+ * a chapter page looking empty while its events sit on the calendar.
  *
  * `region` is deliberately not searched: it is "England" for most of the
  * calendar and would match every matcher for every chapter.
  */
-export function eventMatchesChapter(entry: LumaEntry, matchers: readonly string[]): boolean {
-  const geo = entry.event.geo_address_info;
-  const haystack = [entry.event.name, geo?.city, geo?.address].filter(Boolean).join(" ").toLowerCase();
-  // Word-bounded so "bath" does not match "Bathurst" and "oxford" does not
-  // match a street name inside another city's address.
-  return matchers.some((m) => new RegExp(`\\b${escapeRegExp(m.toLowerCase())}\\b`).test(haystack));
-}
-
-function escapeRegExp(value: string): string {
-  return value.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
-}
-
 export function filterEventsForChapter(
   entries: LumaEntry[],
   matchers: readonly string[]
 ): LumaEntry[] {
-  return entries.filter((entry) => eventMatchesChapter(entry, matchers));
+  const needles = matchers.map(normalise);
+  return entries.filter((entry) => {
+    const geo = entry.event.geo_address_info;
+    const haystack = normalise(
+      [entry.event.name, geo?.city, geo?.address].filter(Boolean).join(" ")
+    );
+    return needles.some((needle) => haystack.includes(needle));
+  });
 }
 
 // An invalid/unrecognised IANA timezone throws RangeError from

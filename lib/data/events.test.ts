@@ -1,11 +1,8 @@
 import { describe, expect, it } from "vitest";
 import { chapters } from "./chapters";
-import { eventMatchesChapter, filterEventsForChapter, type LumaEntry } from "./events";
+import { filterEventsForChapter, type LumaEntry } from "./events";
 
-function entry(
-  name: string,
-  geo?: { city?: string; address?: string; region?: string }
-): LumaEntry {
+function entry(name: string, geo?: { city?: string; address?: string; region?: string }): LumaEntry {
   return {
     event: {
       url: name.toLowerCase().replace(/\W+/g, "-"),
@@ -17,79 +14,69 @@ function entry(
 }
 
 const matchersFor = (name: string) => chapters.find((c) => c.name === name)!.eventMatchers;
+const names = (entries: LumaEntry[], chapter: string) =>
+  filterEventsForChapter(entries, matchersFor(chapter)).map((e) => e.event.name);
 
-describe("eventMatchesChapter", () => {
-  it("matches on the city Luma fills in for a pinned address", () => {
-    const e = entry("PauseAI London Meet (Central)", { city: "London", region: "England" });
-    expect(eventMatchesChapter(e, matchersFor("London"))).toBe(true);
-    expect(eventMatchesChapter(e, matchersFor("Oxford"))).toBe(false);
-  });
-
-  it("matches on the free-text address when no city is set", () => {
-    // Real entries: "All Across London", "London, Venue TBD".
-    const e = entry("March Against the Machines", { address: "London, Venue TBD" });
-    expect(eventMatchesChapter(e, matchersFor("London"))).toBe(true);
-  });
-
-  it("matches on the event name when there is no location at all", () => {
-    // Online chapter meetings carry no geo_address_info.
-    expect(eventMatchesChapter(entry("PauseAI Scotland Meeting"), matchersFor("Glasgow"))).toBe(true);
-    expect(
-      eventMatchesChapter(entry("Help plan/run PauseAI Oxfordshire's Autumn activities"), matchersFor("Oxford"))
-    ).toBe(true);
-  });
-
-  it("does not match a region that appears on every English event", () => {
-    const e = entry("Some national event", { region: "England", city: "Leeds" });
-    for (const chapter of chapters) {
-      expect(eventMatchesChapter(e, chapter.eventMatchers), chapter.name).toBe(false);
-    }
-  });
-
-  it("is word-bounded, so a place name inside a longer word does not match", () => {
-    expect(eventMatchesChapter(entry("Meetup", { city: "Bathurst" }), matchersFor("West of England"))).toBe(false);
-    expect(eventMatchesChapter(entry("Meetup", { city: "New Oxforden" }), matchersFor("Oxford"))).toBe(false);
-    expect(eventMatchesChapter(entry("Meetup", { city: "Bath" }), matchersFor("West of England"))).toBe(true);
-  });
-
-  it("ignores case", () => {
-    expect(eventMatchesChapter(entry("bristol social!"), matchersFor("West of England"))).toBe(true);
-  });
-});
+// Shapes taken from the live calendar: only some events carry a city, so the
+// other two fields are what keep a chapter page from looking empty.
+const calendar = [
+  entry("PauseAI Holborn & St Pancras Canvasing", { city: "London", region: "England" }),
+  entry("PauseAI Scotland Meeting"),
+  entry("TuesdayPauseday - Weekly Online Call"),
+  entry("Bristol Social!", { city: "Bristol", region: "England" }),
+  entry("Panel Discussion: Who's Responsible?", { city: "Edinburgh", region: "Scotland" }),
+  entry("Tabling and Flyering for the PauseAI Protest", { address: "All Across London" }),
+];
 
 describe("filterEventsForChapter", () => {
-  const calendar = [
-    entry("PauseAI Holborn & St Pancras Canvasing", { city: "London", region: "England" }),
-    entry("PauseAI Scotland Meeting"),
-    entry("TuesdayPauseday - Weekly Online Call"),
-    entry("Bristol Social!", { city: "Bristol", region: "England" }),
-    entry("Panel Discussion: Who's Responsible?", { city: "Edinburgh", region: "Scotland" }),
-    entry("Tabling and Flyering for the PauseAI Protest", { address: "All Across London" }),
-  ];
-
-  it("keeps only the chapter's events, in calendar order", () => {
-    expect(filterEventsForChapter(calendar, matchersFor("London")).map((e) => e.event.name)).toEqual([
-      "PauseAI Holborn & St Pancras Canvasing",
-      "Tabling and Flyering for the PauseAI Protest",
+  it("matches on city, on free-text address, and on the event name", () => {
+    expect(names(calendar, "London")).toEqual([
+      "PauseAI Holborn & St Pancras Canvasing", // city
+      "Tabling and Flyering for the PauseAI Protest", // address only
     ]);
+    expect(names(calendar, "Glasgow")).toContain("PauseAI Scotland Meeting"); // name only
   });
 
-  it("covers the chapter's wider region, not just its host city", () => {
-    expect(filterEventsForChapter(calendar, matchersFor("Glasgow")).map((e) => e.event.name)).toEqual([
+  it("keeps the calendar's own order", () => {
+    expect(names(calendar, "Glasgow")).toEqual([
       "PauseAI Scotland Meeting",
       "Panel Discussion: Who's Responsible?",
     ]);
   });
 
-  it("returns nothing rather than throwing for a chapter with no events", () => {
-    expect(filterEventsForChapter(calendar, matchersFor("Leicester"))).toEqual([]);
+  it("covers the chapter's wider region, not just its host city", () => {
+    expect(names(calendar, "Glasgow")).toContain("Panel Discussion: Who's Responsible?");
+    expect(names(calendar, "West of England")).toEqual(["Bristol Social!"]);
   });
 
-  it("leaves UK-wide online events off chapter pages", () => {
-    const online = calendar.filter((e) => e.event.name.startsWith("TuesdayPauseday"));
+  it("ignores region, which is the same for most of the calendar", () => {
+    const elsewhere = [entry("Some national event", { region: "England", city: "Leeds" })];
     for (const chapter of chapters) {
-      expect(filterEventsForChapter(online, chapter.eventMatchers), chapter.name).toEqual([]);
+      expect(names(elsewhere, chapter.name), chapter.name).toEqual([]);
     }
+  });
+
+  it("matches whole words only", () => {
+    expect(names([entry("Meetup", { city: "Bathurst" })], "West of England")).toEqual([]);
+    expect(names([entry("Meetup", { city: "New Oxforden" })], "Oxford")).toEqual([]);
+    expect(names([entry("Meetup", { city: "Bath" })], "West of England")).toEqual(["Meetup"]);
+  });
+
+  it("ignores case and punctuation", () => {
+    // Apostrophes and possessives are common in real event titles.
+    expect(names([entry("PauseAI Oxfordshire's autumn plans")], "Oxford")).toHaveLength(1);
+    expect(names([entry("bristol social!")], "West of England")).toHaveLength(1);
+  });
+
+  it("leaves UK-wide and online events off chapter pages", () => {
+    const online = [entry("TuesdayPauseday - Weekly Online Call"), entry("PauseAI UK All Hands")];
+    for (const chapter of chapters) {
+      expect(names(online, chapter.name), chapter.name).toEqual([]);
+    }
+  });
+
+  it("returns nothing rather than throwing for a chapter with no events", () => {
+    expect(names(calendar, "Leicester")).toEqual([]);
   });
 });
 
