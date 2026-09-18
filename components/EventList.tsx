@@ -75,18 +75,33 @@ function EventCard({ entry, isExtra = false }: { entry: LumaEntry; isExtra?: boo
   );
 }
 
-export default function EventList({ events, lumaUrl }: { events: LumaEntry[]; lumaUrl: string }) {
+export default function EventList({
+  events,
+  lumaUrl,
+  /**
+   * What to say when there is nothing to list. A chapter page has already
+   * named its city in the heading above, so "see our event calendar" reads as
+   * a non-answer there — it passes something that says the city is quiet.
+   */
+  emptyPrefix = "See our",
+  emptySuffix = "for upcoming events.",
+}: {
+  events: LumaEntry[];
+  lumaUrl: string;
+  emptyPrefix?: string;
+  emptySuffix?: string;
+}) {
   const [expanded, setExpanded] = useState(false);
   const hasMore = events.length > 4;
 
   if (events.length === 0) {
     return (
       <p className="luma-events-empty">
-        See our{" "}
+        {emptyPrefix}{" "}
         <a href={lumaUrl} target="_blank" rel="noreferrer">
           event calendar
         </a>{" "}
-        for upcoming events.
+        {emptySuffix}
       </p>
     );
   }
