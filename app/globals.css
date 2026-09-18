@@ -1386,6 +1386,11 @@ section[id] {
           mask-image: linear-gradient(90deg, transparent, #000 64px, #000 calc(100% - 64px), transparent);
 }
 
+.news-marquee-cta {
+  margin-top: 20px;
+  text-align: center;
+}
+
 .news-marquee-row {
   overflow: hidden;
   padding: 14px 0;
@@ -1498,6 +1503,11 @@ section[id] {
 
 .news-logo-text--swlondoner {
   font-size: calc(2rem * var(--logo-scale, 1));
+  white-space: nowrap;
+}
+
+.news-logo-text--ibtimes {
+  font-size: calc(1.1rem * var(--logo-scale, 1));
   white-space: nowrap;
 }
 
@@ -2187,6 +2197,18 @@ section[id] {
 .news-logo-text--swlondoner .sw {
   color: #2B7BBC;
   font-style: italic;
+}
+
+.news-logo-text--ibtimes {
+  font-family: system-ui, sans-serif;
+  text-transform: uppercase;
+  letter-spacing: 0.01em;
+}
+
+.news-logo-text--ibtimes .uk {
+  font-size: 0.5em;
+  vertical-align: super;
+  margin-left: 2px;
 }
 
 /* ── Feature card ─────────────────────────────── */
