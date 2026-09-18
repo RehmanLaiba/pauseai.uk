@@ -593,9 +593,23 @@ const CAROUSEL_ITEMS = ALL_COVERAGE.filter((item) => item.inCarousel);
 const desktopSplit = Math.ceil(CAROUSEL_ITEMS.length / 2);
 const mobileSplit = Math.ceil(CAROUSEL_ITEMS.length / 3);
 
-export const newsRow1 = CAROUSEL_ITEMS.slice(0, desktopSplit);
-export const newsRow2 = CAROUSEL_ITEMS.slice(desktopSplit);
+// The marquee loops by rendering each row's item list twice side by side
+// and scrolling by exactly -50% — seamless only if one copy is already
+// wider than the viewport. With a curated (short) item list, a half- or
+// third-sized row can be too narrow on wide screens, leaving a gap
+// instead of looping. Repeat a short row's items until the count is
+// safely above what any realistic screen width needs, rather than
+// shrinking the curation to fit.
+function tileToMinLength<T>(items: T[], minLength: number): T[] {
+  if (items.length === 0) return items;
+  const tiled: T[] = [];
+  while (tiled.length < minLength) tiled.push(...items);
+  return tiled;
+}
 
-export const newsMobileRow1 = CAROUSEL_ITEMS.slice(0, mobileSplit);
-export const newsMobileRow2 = CAROUSEL_ITEMS.slice(mobileSplit, mobileSplit * 2);
-export const newsMobileRow3 = CAROUSEL_ITEMS.slice(mobileSplit * 2);
+export const newsRow1 = tileToMinLength(CAROUSEL_ITEMS.slice(0, desktopSplit), 14);
+export const newsRow2 = tileToMinLength(CAROUSEL_ITEMS.slice(desktopSplit), 14);
+
+export const newsMobileRow1 = tileToMinLength(CAROUSEL_ITEMS.slice(0, mobileSplit), 10);
+export const newsMobileRow2 = tileToMinLength(CAROUSEL_ITEMS.slice(mobileSplit, mobileSplit * 2), 10);
+export const newsMobileRow3 = tileToMinLength(CAROUSEL_ITEMS.slice(mobileSplit * 2), 10);
