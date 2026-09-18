@@ -409,13 +409,18 @@ const ALL_COVERAGE: CoverageItem[] = [
     inCarousel: true,
   },
   {
+    logoSrc: "/images/media-coverage/GB_News_logo.png",
     outlet: "GB News",
+    logoHeight: 28,
+    logoIntrinsicWidth: 1240,
+    logoIntrinsicHeight: 164,
     medium: "Video",
     // PauseAI Global CEO Maxime Fournes (not PauseAI UK specifically),
     // debating Maxwell Marlow of the Adam Smith Institute.
     title: "Should we shut down AI? GB News debate",
     url: "https://www.youtube.com/watch?v=kTc_Q72q7hY",
     date: "2026-07-24",
+    inCarousel: true,
   },
   {
     outlet: "Islington Tribune",
