@@ -208,6 +208,21 @@ const ALL_COVERAGE: CoverageItem[] = [
     lean: "Center",
   },
   {
+    logoSrc: "/images/media-coverage/the-observer-logo.svg",
+    outlet: "The Observer",
+    logoHeight: 30,
+    logoIntrinsicWidth: 980,
+    logoIntrinsicHeight: 157,
+    // TODO verify: written episode description has no PauseAI mention,
+    // but this is a 33-min interview — audio may name us and there's no
+    // transcript to check. Confirm by listening before treating as
+    // confirmed UK coverage.
+    title: "Endgame: Can we live with Artificial General Intelligence? - The People vs AI",
+    url: "https://open.spotify.com/episode/3jPBSckJzWIq6Y2agpVSKH",
+    date: "2026-06-10",
+    medium: "Article",
+  },
+  {
     logoSrc: "/images/media-coverage/The_Independent_Logo.png",
     outlet: "The Independent",
     logoHeight: 26,
@@ -226,6 +241,9 @@ const ALL_COVERAGE: CoverageItem[] = [
     logoHeight: 33,
     logoIntrinsicWidth: 489,
     logoIntrinsicHeight: 93,
+    // Article text doesn't name PauseAI by name (covers the SF "QuitGPT"
+    // protest plus a vague "London" mention), but the hero photo is
+    // confirmed to be one of our own UK protests.
     title: "The rage at OpenAI has grown so immense that there are entire protests against it",
     url: "https://futurism.com/artificial-intelligence/rage-openai-protests",
     date: "2026-03-05",
