@@ -12,6 +12,13 @@ export type Chapter = {
   lat: number;
   /** Which side of the map the chapter's card sits on in the desktop layout. */
   side: "left" | "right";
+  /**
+   * Place names that mark a calendar event as this chapter's, matched
+   * word-bounded against the event name, city and free-text address by
+   * eventMatchesChapter in lib/data/events.ts. Add the surrounding county or
+   * region where the chapter organises beyond its host city.
+   */
+  eventMatchers: string[];
 };
 
 // Sides follow geography — north and west on the left, the southern and
@@ -26,6 +33,7 @@ export const chapters: Chapter[] = [
     lng: -4.2518,
     lat: 55.8642,
     side: "left",
+    eventMatchers: ["Glasgow", "Scotland", "Edinburgh"],
   },
   {
     name: "Manchester",
@@ -36,6 +44,7 @@ export const chapters: Chapter[] = [
     lng: -2.2426,
     lat: 53.4808,
     side: "left",
+    eventMatchers: ["Manchester", "Salford"],
   },
   {
     name: "West of England",
@@ -45,6 +54,7 @@ export const chapters: Chapter[] = [
     lng: -2.5879,
     lat: 51.4545,
     side: "left",
+    eventMatchers: ["Bristol", "Bath", "West of England"],
   },
   {
     name: "Leicester",
@@ -54,6 +64,7 @@ export const chapters: Chapter[] = [
     lng: -1.1398,
     lat: 52.6369,
     side: "right",
+    eventMatchers: ["Leicester", "Leicestershire"],
   },
   {
     name: "Oxford",
@@ -63,6 +74,7 @@ export const chapters: Chapter[] = [
     lng: -1.2577,
     lat: 51.752,
     side: "right",
+    eventMatchers: ["Oxford", "Oxfordshire"],
   },
   {
     name: "London",
@@ -72,5 +84,6 @@ export const chapters: Chapter[] = [
     lng: -0.1276,
     lat: 51.5072,
     side: "right",
+    eventMatchers: ["London"],
   },
 ];
