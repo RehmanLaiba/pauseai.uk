@@ -1,3 +1,84 @@
+// ============================================================================
+// How this list gets built and maintained
+// ============================================================================
+//
+// DISCOVERY
+// A new item usually starts as a lead — a name, an outlet, a rough date,
+// or a URL someone found — not a finished, verified entry. Before it's
+// added:
+//
+// - Prefer the outlet's own on-site search over a generic web search.
+//   Several major outlets (confirmed: BBC) block automated crawlers
+//   outright, and generic search's `site:` filtering is unreliable for
+//   others — both return noise or false positives rather than useful
+//   results.
+// - Open the actual page and read it — never trust a search snippet or
+//   headline alone. Snippets have produced false leads this way (e.g. a
+//   promising-looking "hit" for one person turned out to be about someone
+//   else entirely).
+// - When a page is paywalled or JS-blocks automated fetching, retry with
+//   a real logged-in browser session before giving up — it's cracked
+//   pages that a plain fetch couldn't (BBC, Reuters Connect, Instagram,
+//   YouTube's full descriptions, IMAGO). A hard paywall with no visible
+//   text (FT) is a genuine dead end, not a "try harder" case.
+// - Check images, not just body text. Several entries (Gizmodo, The
+//   Guardian) have zero PauseAI mention in their article text but use a
+//   genuine photo of one of our protests as the hero image, confirmed by
+//   matching photographer credit against other confirmed-us photos. Text
+//   search alone misses these.
+//
+// INCLUSION / EXCLUSION
+// An item earns a place here if it has a real, verifiable connection to
+// us — named in the text, or a confirmed photo of one of our protests.
+// Zero connection (neither text nor photo, on inspection) means it
+// doesn't belong here even if it matched on a keyword or headline theme —
+// two entries (Futurism, The Observer's podcast) were removed on this
+// basis. A shared name is not a connection: one outlet (The Spectator)
+// was removed after realizing it cited "PauseAI.com", a different
+// organization — PauseAI Global's real site is pauseai.info.
+//
+// THREE DISTINCT ORGS, NOT TWO — read carefully before adding anything:
+//   - PauseAI UK — us. A national chapter.
+//   - PauseAI Global — the international org UK is a chapter of.
+//     UK and Global are related (chapter and parent); coverage of either
+//     can belong here (see priority note below).
+//   - "PauseAI US" — a SEPARATE, DIFFERENT organization. Despite the
+//     similar name, it is not a Global chapter and not us. Coverage of
+//     PauseAI US does not belong in this file, full stop — treat a "US"
+//     name-match with the same suspicion as the PauseAI.com case above,
+//     not as a sibling chapter to include.
+//
+// UK vs PauseAI Global (the legitimate pair): both are legitimate and
+// both can appear, but they're not the same thing. Coverage of PauseAI
+// UK's own activity, protests, or spokespeople is the priority.
+// Interviews with PauseAI Global's CEO (Maxime Fournes) are kept too,
+// including on UK channels (GB News, TalkTV), but are explicitly lower
+// priority — flagged in comments so they're easy to reconsider or swap
+// out once genuine UK spokesperson coverage on the same outlet turns up.
+//
+// Where a claim couldn't be verified — a date, a title, an attribution —
+// it's marked with a `TODO` comment rather than guessed. Search
+// `TODO` in this file to find everything still open.
+//
+// CAROUSEL CURATION (`inCarousel`)
+// The full table above (rendered on /press) includes everything that
+// passes the inclusion bar, regardless of whether the outlet has a logo
+// asset. The homepage marquee is a curated subset of that: only outlets
+// with a strong, official, recognizable logo, capped at one slot per
+// outlet, and — as of the most recent pass — deliberately balanced
+// across political lean rather than "everyone with a logo is in." Weaker
+// or less mainstream-recognizable logos (regional editions, lifestyle
+// magazines, smaller outlets) were cut from the carousel specifically to
+// keep it reading as instantly recognizable, even though those items stay
+// fully present in the /press table.
+//
+// POLITICAL LEAN (`lean`)
+// Sourced from AllSides, Ad Fontes, and Media Bias/Fact Check where a
+// rating exists for the outlet. Left unset — not guessed — for wire/photo
+// agencies, lifestyle magazines, and small outlets with no real bias
+// rating to draw on.
+// ============================================================================
+
 export type CoverageItem = {
   outlet: string;
   title: string;
