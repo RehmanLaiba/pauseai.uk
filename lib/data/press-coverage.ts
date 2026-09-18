@@ -408,6 +408,22 @@ const ALL_COVERAGE: CoverageItem[] = [
     date: "2026-09-17",
     inCarousel: true,
   },
+  {
+    outlet: "GB News",
+    medium: "Video",
+    // PauseAI Global CEO Maxime Fournes (not PauseAI UK specifically),
+    // debating Maxwell Marlow of the Adam Smith Institute.
+    title: "Should we shut down AI? GB News debate",
+    url: "https://www.youtube.com/watch?v=kTc_Q72q7hY",
+    date: "2026-07-24",
+  },
+  {
+    outlet: "Islington Tribune",
+    medium: "Article",
+    title: "Watch out! The robots are coming",
+    url: "https://www.islingtontribune.co.uk/article/watch-out-the-robots-are-coming",
+    date: "2023-05-26",
+  },
 ];
 
 // Full, dated table for the /press page — newest first, undated items
