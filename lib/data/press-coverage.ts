@@ -58,7 +58,6 @@ const ALL_COVERAGE: CoverageItem[] = [
     url: "https://www.wired.it/article/movimenti-contro-intelligenza-artificiale-mappa-nomi-pauseai-stopai-controlai/",
     date: "2026-05-30",
     medium: "Article",
-    inCarousel: true,
   },
   {
     logoSrc: "/images/media-coverage/Cosmopolitan_logo.svg",
@@ -70,7 +69,6 @@ const ALL_COVERAGE: CoverageItem[] = [
     url: "https://www.cosmopolitan.com/it/lifecoach/news-attualita/a71455730/gen-z-paura-intelligenza-artificiale-ansia/",
     date: "2026-06-02",
     medium: "Article",
-    inCarousel: true,
   },
   {
     logoSrc: "/images/media-coverage/Gizmodo_logo.svg",
@@ -87,7 +85,6 @@ const ALL_COVERAGE: CoverageItem[] = [
     url: "https://gizmodo.com/the-openai-anthropic-cold-war-comes-to-illinois-2000746324",
     date: "2026-04-14",
     medium: "Article",
-    inCarousel: true,
     lean: "Lean Left",
   },
   {
@@ -248,7 +245,6 @@ const ALL_COVERAGE: CoverageItem[] = [
     url: "https://futurism.com/artificial-intelligence/rage-openai-protests",
     date: "2026-03-05",
     medium: "Article",
-    inCarousel: true,
   },
   {
     logoSrc: "/images/media-coverage/Real_Media_Logo.png",
@@ -304,7 +300,6 @@ const ALL_COVERAGE: CoverageItem[] = [
     url: "https://www.newstatesman.com/politics/society/2026/08/the-anti-ai-revolt-is-here",
     date: "2026-08-19",
     medium: "Article",
-    inCarousel: true,
     lean: "Left",
   },
   {
@@ -458,7 +453,6 @@ const ALL_COVERAGE: CoverageItem[] = [
     title: "'10% Chance of Extinction': AI Protesters Take Scientists' Warning to Downing Street",
     url: "https://www.ibtimes.co.uk/london-protesters-demand-tougher-advanced-ai-controls-1820296",
     date: "2026-09-17",
-    inCarousel: true,
     lean: "Center",
   },
   {
@@ -488,19 +482,6 @@ const ALL_COVERAGE: CoverageItem[] = [
     title: "\"It Could Be Human Extinction\" | AI Expert Warns Of Internet Catastrophe In SIX MONTHS",
     url: "https://www.youtube.com/watch?v=CuwQkwhhfdM",
     date: "2026-09-14",
-    inCarousel: true,
-    lean: "Right",
-  },
-  {
-    logoSrc: "/images/media-coverage/The_Spectator_logo.svg",
-    outlet: "The Spectator",
-    logoHeight: 36,
-    logoIntrinsicWidth: 468,
-    logoIntrinsicHeight: 106,
-    medium: "Article",
-    title: "Are we ready for P(doom)?",
-    url: "https://spectator.com/article/are-we-ready-for-pdoom/",
-    date: "2024-03-04",
     inCarousel: true,
     lean: "Right",
   },
