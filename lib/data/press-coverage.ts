@@ -175,6 +175,20 @@ const ALL_COVERAGE: CoverageItem[] = [
     inCarousel: true,
   },
   {
+    outlet: "BBC",
+    title: "Why some experts increasingly fear AI will take over",
+    url: "https://www.bbc.co.uk/news/articles/c74edv9887eo",
+    date: "2026-09-10",
+    medium: "Article",
+  },
+  {
+    outlet: "BBC",
+    title: "Why are there concerns AI could threaten humanity?",
+    url: "https://www.bbc.co.uk/news/articles/c790xvnzgnno",
+    date: "2026-09-14",
+    medium: "Article",
+  },
+  {
     logoSrc: "/images/media-coverage/The_Independent_Logo.png",
     outlet: "The Independent",
     logoHeight: 26,
