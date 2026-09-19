@@ -4,6 +4,15 @@ import type { NextConfig } from "next";
 // adding an embed means updating the policy in the same place.
 const GA = ["https://www.googletagmanager.com", "https://www.google-analytics.com"];
 const GA_COLLECT = [...GA, "https://analytics.google.com", "https://*.analytics.google.com", "https://*.google-analytics.com"];
+// Google Ads conversion / remarketing tags, loaded through the GTM container
+// (see components/CookieConsent.tsx). The container is edited outside this repo,
+// so this is the usual set for Ads tags; tune it from CSP reports.
+const GOOGLE_ADS = [
+  "https://www.googleadservices.com",
+  "https://googleads.g.doubleclick.net",
+  "https://www.google.com",
+  "https://www.google.co.uk",
+];
 
 // Where violation reports are sent. Relative, so reports stay in whatever
 // environment produced them — a deploy preview reports to itself, not to
@@ -25,17 +34,18 @@ const REPORT_ORIGIN = process.env.URL ?? (process.env.NODE_ENV === "production" 
 // so treat nonces as a prerequisite for flipping this to enforcing.
 const contentSecurityPolicy = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline' ${[...GA, "https://tally.so"].join(" ")}`,
+  `script-src 'self' 'unsafe-inline' ${[...GA, "https://www.googleadservices.com", "https://googleads.g.doubleclick.net", "https://tally.so"].join(" ")}`,
   "style-src 'self' 'unsafe-inline'",
   // next/font self-hosts both Lato and Inter at build time, so no font CDN.
   "font-src 'self' data:",
   // blob:/data: cover next/image; images.lumacdn.com is the Luma event covers.
-  `img-src 'self' data: blob: https://images.lumacdn.com ${GA.join(" ")}`,
-  `connect-src 'self' ${GA_COLLECT.join(" ")}`,
+  `img-src 'self' data: blob: https://images.lumacdn.com ${[...GA, ...GOOGLE_ADS].join(" ")}`,
+  `connect-src 'self' ${[...GA_COLLECT, ...GOOGLE_ADS].join(" ")}`,
   // The MP-email and onboarding embeds, the Tally story form, and the
   // Airtable signatories embed that campaigns/page.tsx falls back to when
-  // AIRTABLE_TOKEN is unset (local and preview builds).
-  "frame-src https://pauseai.info https://tally.so https://airtable.com",
+  // AIRTABLE_TOKEN is unset (local and preview builds). GTM's <noscript> iframe
+  // is in app/layout.tsx; td.doubleclick.net is used by Ads tags in the container.
+  "frame-src https://pauseai.info https://tally.so https://airtable.com https://www.googletagmanager.com https://td.doubleclick.net",
   "frame-ancestors 'none'",
   "base-uri 'self'",
   "form-action 'self'",
