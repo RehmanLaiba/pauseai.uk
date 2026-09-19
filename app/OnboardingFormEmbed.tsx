@@ -27,6 +27,14 @@ export default function OnboardingFormEmbed() {
     function handleMessage(event: MessageEvent) {
       if (event.origin !== EMBED_ORIGIN) return;
       const data = event.data;
+      // Fired once per new signup by the embed (no personal data). GTM listens
+      // for this custom event to fire the Google Ads conversion tag.
+      if (data?.event === "onboarding_signup_complete") {
+        const w = window as typeof window & { dataLayer?: unknown[] };
+        w.dataLayer = w.dataLayer || [];
+        w.dataLayer.push({ event: "onboarding_signup_complete" });
+        return;
+      }
       if (typeof data?.height === "number") {
         messageReceivedRef.current = true;
         setMessageReceived(true);

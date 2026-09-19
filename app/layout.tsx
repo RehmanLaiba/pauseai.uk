@@ -81,6 +81,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="en" className={`${lato.variable} ${inter.variable}`} suppressHydrationWarning>
       <body suppressHydrationWarning>
+        {/* Google Tag Manager (noscript) - the JS snippet is loaded by CookieConsent */}
+        <noscript>
+          <iframe
+            src="https://www.googletagmanager.com/ns.html?id=GTM-K7P36Q7F"
+            height="0"
+            width="0"
+            style={{ display: "none", visibility: "hidden" }}
+          />
+        </noscript>
         <JsonLd data={organizationJsonLd} />
         {children}
         <Footer />

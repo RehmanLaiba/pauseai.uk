@@ -17,6 +17,14 @@ export default function CampaignsClient() {
         if (e.origin !== EMBED_ORIGIN) return;
         const data = e.data;
         if (!data || typeof data !== "object") return;
+        // Fired once per MP email sent by the embed (no personal data). GTM
+        // listens for this custom event to fire the Google Ads conversion tag.
+        if (data.event === "mp_email_sent") {
+          const w = window as typeof window & { dataLayer?: unknown[] };
+          w.dataLayer = w.dataLayer || [];
+          w.dataLayer.push({ event: "mp_email_sent" });
+          return;
+        }
         if (data.type !== "pauseai-embed-resize") return;
         if (typeof data.height !== "number" || !isFinite(data.height)) return;
         iframe.style.height = data.height + "px";

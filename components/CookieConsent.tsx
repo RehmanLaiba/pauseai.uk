@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 
 const GA_ID = "G-DLLRWZCYD7";
+const GTM_ID = "GTM-K7P36Q7F";
 const CONSENT_KEY = "pauseai-cookie-consent";
 // GA reads this global before every hit; setting it true stops gtag.js
 // from sending any data, even after the script has loaded.
@@ -10,6 +11,7 @@ const GA_DISABLE_KEY = `ga-disable-${GA_ID}`;
 
 type GAWindow = typeof window & {
   __gaLoaded?: boolean;
+  __gtmLoaded?: boolean;
   dataLayer?: unknown[];
   gtag?: (...args: unknown[]) => void;
 };
@@ -18,7 +20,24 @@ function setGADisabled(disabled: boolean) {
   (window as unknown as Record<string, unknown>)[GA_DISABLE_KEY] = disabled;
 }
 
+// Google Tag Manager (Google Ads). Loaded behind the same consent gate as GA,
+// so a "declined" choice keeps it off. The <noscript> fallback lives in layout.tsx.
+function loadGTM() {
+  const w = window as GAWindow;
+  if (w.__gtmLoaded) return;
+  w.__gtmLoaded = true;
+
+  w.dataLayer = w.dataLayer || [];
+  w.dataLayer.push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
+
+  const s = document.createElement("script");
+  s.async = true;
+  s.src = `https://www.googletagmanager.com/gtm.js?id=${GTM_ID}`;
+  document.head.appendChild(s);
+}
+
 function loadGA() {
+  loadGTM();
   const w = window as GAWindow;
   if (w.__gaLoaded) return;
   w.__gaLoaded = true;
