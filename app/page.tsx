@@ -7,7 +7,7 @@ import HeroMarqueeEffects from "./HeroMarqueeEffects";
 import Nav from "@/components/Nav";
 import EventList from "@/components/EventList";
 import PeopleCarousel from "@/components/PeopleCarousel";
-import ChaptersMap from "@/components/ChaptersMap";
+import LocalGroupsMap from "@/components/LocalGroupsMap";
 import { getEvents } from "@/lib/data/events";
 import { newsRow1, newsRow2, newsMobileRow1, newsMobileRow2, newsMobileRow3, type CoverageItem } from "@/lib/data/press-coverage";
 import { people } from "@/lib/data/people";
@@ -212,17 +212,18 @@ export default async function HomePage() {
           </div>
         </section>
 
-        <section id="chapters" className="section muted">
+        <span id="chapters" className="anchor-alias" aria-hidden="true" />
+        <section id="local-groups" className="section muted">
           <div className="container">
             <div className="section-header">
               <h2>Organising across the UK</h2>
               <p className="section-lede">
-                Find your city and get involved. Each chapter runs its own events, campaigns, and outreach.
+                Find your city and get involved. Each local group runs its own events, campaigns, and outreach.
               </p>
             </div>
-            <ChaptersMap />
-            <div className="start-chapter-cta">
-              <div className="start-chapter-cta-copy">
+            <LocalGroupsMap />
+            <div className="start-local-group-cta">
+              <div className="start-local-group-cta-copy">
                 <h3>Don&apos;t see your city?</h3>
                 <p>Bring PauseAI to your city. We&apos;ll share playbooks, visuals, and support to launch local actions.</p>
               </div>
@@ -232,7 +233,7 @@ export default async function HomePage() {
                 target="_blank"
                 rel="noreferrer"
               >
-                Start a chapter →
+                Start a local group →
               </a>
             </div>
           </div>
@@ -310,7 +311,7 @@ export default async function HomePage() {
                 target="_blank"
                 rel="noreferrer"
               >
-                start a new chapter
+                start a new local group
               </a>.
             </p>
           </div>

@@ -1,10 +1,10 @@
 import type { ReactNode } from "react";
 import EventList from "@/components/EventList";
-import { chapters, type ChapterName } from "@/lib/data/chapters";
-import { filterEventsForChapter, getEvents, type LumaEntry } from "@/lib/data/events";
+import { localGroups, type LocalGroupName } from "@/lib/data/local-groups";
+import { filterEventsForLocalGroup, getEvents, type LumaEntry } from "@/lib/data/events";
 import { site } from "@/lib/data/site";
 
-// Enough to show a chapter is active without turning its page into an
+// Enough to show a local group is active without turning its page into an
 // archive. EventList shows four and puts the rest behind "Show more".
 const PAST_EVENTS_SHOWN = 8;
 
@@ -44,35 +44,35 @@ function EventsSection({
 }
 
 /**
- * The chapter's slice of the UK Luma calendar, rendered with the same cards
+ * The local group's slice of the UK Luma calendar, rendered with the same cards
  * as the homepage.
  *
- * Chapter pages used to say "we meet regularly" with the calendar reachable
+ * Local group pages used to say "we meet regularly" with the calendar reachable
  * only from the footer, so someone who arrived from pauseai.info/communities
  * had no way to see when anything was actually happening — or that the
- * chapter had been meeting all year.
+ * local group had been meeting all year.
  *
  * An async server component rather than a change to each page's own
  * signature: the pages stay synchronous and each one only adds this tag.
  */
-export default async function ChapterEvents({ chapterName }: { chapterName: ChapterName }) {
-  // Non-null: ChapterName only admits names that are in `chapters`.
-  const chapter = chapters.find((c) => c.name === chapterName)!;
+export default async function LocalGroupEvents({ localGroupName }: { localGroupName: LocalGroupName }) {
+  // Non-null: LocalGroupName only admits names that are in `localGroups`.
+  const localGroup = localGroups.find((c) => c.name === localGroupName)!;
 
   const [future, past] = await Promise.all([getEvents("future"), getEvents("past")]);
-  const upcoming = filterEventsForChapter(future, chapter.eventMatchers);
-  const previous = filterEventsForChapter(past, chapter.eventMatchers).slice(0, PAST_EVENTS_SHOWN);
+  const upcoming = filterEventsForLocalGroup(future, localGroup.eventMatchers);
+  const previous = filterEventsForLocalGroup(past, localGroup.eventMatchers).slice(0, PAST_EVENTS_SHOWN);
 
   return (
     <>
       <EventsSection
         id="events"
-        heading={`Upcoming events in ${chapter.name}`}
+        heading={`Upcoming events in ${localGroup.name}`}
         events={upcoming}
         showCalendarLink
         empty={
           <>
-            Nothing is listed in {chapter.name} just now. See the UK-wide{" "}
+            Nothing is listed in {localGroup.name} just now. See the UK-wide{" "}
             <a href={site.social.luma} target="_blank" rel="noreferrer">
               event calendar
             </a>{" "}
@@ -81,10 +81,10 @@ export default async function ChapterEvents({ chapterName }: { chapterName: Chap
         }
       />
 
-      {/* Only when there is something to show: a chapter that has not met yet
+      {/* Only when there is something to show: a local group that has not met yet
           should not open with an empty archive. */}
       {previous.length > 0 && (
-        <EventsSection heading={`Past events in ${chapter.name}`} events={previous} />
+        <EventsSection heading={`Past events in ${localGroup.name}`} events={previous} />
       )}
     </>
   );

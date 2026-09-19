@@ -53,19 +53,19 @@ function normalise(value: string): string {
 }
 
 /**
- * The events belonging to a chapter, matched against its `eventMatchers`
- * (see lib/data/chapters.ts).
+ * The events belonging to a local group, matched against its `eventMatchers`
+ * (see lib/data/local-groups.ts).
  *
  * Luma only fills `geo_address_info.city` for events pinned to a mapped
  * address; plenty of real entries leave it empty and carry the place in the
  * free-text address ("All Across London", "London, Venue TBD") or in the
  * event name ("PauseAI Scotland Meeting"). Searching all three is what stops
- * a chapter page looking empty while its events sit on the calendar.
+ * a local group page looking empty while its events sit on the calendar.
  *
  * `region` is deliberately not searched: it is "England" for most of the
- * calendar and would match every matcher for every chapter.
+ * calendar and would match every matcher for every local group.
  */
-export function filterEventsForChapter(
+export function filterEventsForLocalGroup(
   entries: LumaEntry[],
   matchers: readonly string[]
 ): LumaEntry[] {

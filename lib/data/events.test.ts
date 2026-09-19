@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { chapters } from "./chapters";
-import { filterEventsForChapter, type LumaEntry } from "./events";
+import { localGroups } from "./local-groups";
+import { filterEventsForLocalGroup, type LumaEntry } from "./events";
 
 function entry(name: string, geo?: { city?: string; address?: string; region?: string }): LumaEntry {
   return {
@@ -13,12 +13,12 @@ function entry(name: string, geo?: { city?: string; address?: string; region?: s
   };
 }
 
-const matchersFor = (name: string) => chapters.find((c) => c.name === name)!.eventMatchers;
-const names = (entries: LumaEntry[], chapter: string) =>
-  filterEventsForChapter(entries, matchersFor(chapter)).map((e) => e.event.name);
+const matchersFor = (name: string) => localGroups.find((c) => c.name === name)!.eventMatchers;
+const names = (entries: LumaEntry[], localGroup: string) =>
+  filterEventsForLocalGroup(entries, matchersFor(localGroup)).map((e) => e.event.name);
 
 // Shapes taken from the live calendar: only some events carry a city, so the
-// other two fields are what keep a chapter page from looking empty.
+// other two fields are what keep a local group page from looking empty.
 const calendar = [
   entry("PauseAI Holborn & St Pancras Canvasing", { city: "London", region: "England" }),
   entry("PauseAI Scotland Meeting"),
@@ -28,7 +28,7 @@ const calendar = [
   entry("Tabling and Flyering for the PauseAI Protest", { address: "All Across London" }),
 ];
 
-describe("filterEventsForChapter", () => {
+describe("filterEventsForLocalGroup", () => {
   it("matches on city, on free-text address, and on the event name", () => {
     expect(names(calendar, "London")).toEqual([
       "PauseAI Holborn & St Pancras Canvasing", // city
@@ -44,15 +44,15 @@ describe("filterEventsForChapter", () => {
     ]);
   });
 
-  it("covers the chapter's wider region, not just its host city", () => {
+  it("covers the local group's wider region, not just its host city", () => {
     expect(names(calendar, "Glasgow")).toContain("Panel Discussion: Who's Responsible?");
     expect(names(calendar, "West of England")).toEqual(["Bristol Social!"]);
   });
 
   it("ignores region, which is the same for most of the calendar", () => {
     const elsewhere = [entry("Some national event", { region: "England", city: "Leeds" })];
-    for (const chapter of chapters) {
-      expect(names(elsewhere, chapter.name), chapter.name).toEqual([]);
+    for (const localGroup of localGroups) {
+      expect(names(elsewhere, localGroup.name), localGroup.name).toEqual([]);
     }
   });
 
@@ -68,23 +68,23 @@ describe("filterEventsForChapter", () => {
     expect(names([entry("bristol social!")], "West of England")).toHaveLength(1);
   });
 
-  it("leaves UK-wide and online events off chapter pages", () => {
+  it("leaves UK-wide and online events off local group pages", () => {
     const online = [entry("TuesdayPauseday - Weekly Online Call"), entry("PauseAI UK All Hands")];
-    for (const chapter of chapters) {
-      expect(names(online, chapter.name), chapter.name).toEqual([]);
+    for (const localGroup of localGroups) {
+      expect(names(online, localGroup.name), localGroup.name).toEqual([]);
     }
   });
 
-  it("returns nothing rather than throwing for a chapter with no events", () => {
+  it("returns nothing rather than throwing for a local group with no events", () => {
     expect(names(calendar, "Leicester")).toEqual([]);
   });
 });
 
-describe("chapter event matchers", () => {
-  it("every chapter declares at least one matcher", () => {
-    expect(chapters.length).toBeGreaterThan(0);
-    for (const chapter of chapters) {
-      expect(chapter.eventMatchers.length, chapter.name).toBeGreaterThan(0);
+describe("local group event matchers", () => {
+  it("every local group declares at least one matcher", () => {
+    expect(localGroups.length).toBeGreaterThan(0);
+    for (const localGroup of localGroups) {
+      expect(localGroup.eventMatchers.length, localGroup.name).toBeGreaterThan(0);
     }
   });
 });

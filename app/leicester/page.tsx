@@ -1,19 +1,19 @@
 import type { Metadata } from "next";
 import Link from "next/link";
-import ChapterEvents from "@/components/ChapterEvents";
+import LocalGroupEvents from "@/components/LocalGroupEvents";
 import Nav from "@/components/Nav";
 
 export const metadata: Metadata = {
-  title: "Leicester Chapter",
+  title: "Leicester Group",
   openGraph: {
     title: "PauseAI Leicester",
-    description: "Join the Leicester chapter of PauseAI for meetups, outreach, and AI safety action.",
+    description: "Join the Leicester group of PauseAI for meetups, outreach, and AI safety action.",
     images: [{ url: "/images/open-graph/open-graph-1200-630.jpg", width: 1200, height: 630 }],
     url: "https://pauseai.uk/leicester",
   },
   twitter: {
     title: "PauseAI Leicester",
-    description: "Join the Leicester chapter of PauseAI for meetups, outreach, and AI safety action.",
+    description: "Join the Leicester group of PauseAI for meetups, outreach, and AI safety action.",
     images: ["/images/open-graph/open-graph-1080-1080.jpg"],
   },
   alternates: { canonical: "/leicester" },
@@ -23,10 +23,10 @@ export default function LeicesterPage() {
   return (
     <>
       <Nav
-        chapterName="Leicester"
-        chapterLogoSrc="/images/chapters/leicester/leicester_logoBanner_tp_tp_darkmode.svg"
-        chapterLogoWidth={289}
-        chapterLogoHeight={84}
+        localGroupName="Leicester"
+        localGroupLogoSrc="/images/local-groups/leicester/leicester_logoBanner_tp_tp_darkmode.svg"
+        localGroupLogoWidth={289}
+        localGroupLogoHeight={84}
       />
       <main>
         <section className="hero" style={{ paddingBottom: 48 }}>
@@ -46,7 +46,7 @@ export default function LeicesterPage() {
             <div className="hero-visual">
               <div
                 className="hero-photo"
-                style={{ backgroundImage: "linear-gradient(135deg, rgba(255, 148, 22, 0.35), rgba(0,0,0,0.65)), url('/images/chapters/leicester/london-2025-protest.jpg')" }}
+                style={{ backgroundImage: "linear-gradient(135deg, rgba(255, 148, 22, 0.35), rgba(0,0,0,0.65)), url('/images/local-groups/leicester/london-2025-protest.jpg')" }}
               ></div>
               <div className="hero-badge">Join in on protests!</div>
             </div>
@@ -55,7 +55,7 @@ export default function LeicesterPage() {
 
         <section className="section container">
           <div className="section-header">
-            <h2>Growing the Leicester chapter</h2>
+            <h2>Growing the Leicester group</h2>
             <p className="section-lede">
               Want to help? We&apos;re looking for organisers, hosts, and partners to kickstart regular meetups.
             </p>
@@ -74,7 +74,7 @@ export default function LeicesterPage() {
           </div>
         </section>
 
-        <ChapterEvents chapterName="Leicester" />
+        <LocalGroupEvents localGroupName="Leicester" />
 
         <section className="section muted">
           <div className="container">
@@ -83,14 +83,14 @@ export default function LeicesterPage() {
             </div>
             <div className="activity-grid" style={{ gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))" }}>
               <article className="activity-card">
-                <div className="image-frame" style={{ backgroundImage: "url('/images/chapters/leicester/SirBobBurgessBuilding.jpg')" }}></div>
+                <div className="image-frame" style={{ backgroundImage: "url('/images/local-groups/leicester/SirBobBurgessBuilding.jpg')" }}></div>
                 <div className="card-copy">
                   <h3>PauseAI Leicester Launch</h3>
-                  <p>The launch event for the Leicester chapter, bringing together students and locals to discuss AI safety.</p>
+                  <p>The launch event for the Leicester group, bringing together students and locals to discuss AI safety.</p>
                 </div>
               </article>
               <article className="activity-card">
-                <div className="image-frame" style={{ backgroundImage: "url('/images/chapters/leicester/the-ai-doc-poster.jpg')" }}></div>
+                <div className="image-frame" style={{ backgroundImage: "url('/images/local-groups/leicester/the-ai-doc-poster.jpg')" }}></div>
                 <div className="card-copy">
                   <h3>Film Night: The AI Doc</h3>
                   <p>We watched The AI Doc together in the cosy cinema room with popcorn and discussion.</p>
@@ -103,7 +103,7 @@ export default function LeicesterPage() {
         <section className="section">
           <div className="container">
             <div className="section-header">
-              <h2>Help shape the chapter</h2>
+              <h2>Help shape the group</h2>
               <p className="section-lede">
                 Contact us through the above methods if you can host an event, promote a meetup, or want to collaborate on outreach.
               </p>

@@ -83,7 +83,7 @@ export default function EventList({
   events: LumaEntry[];
   lumaUrl: string;
   /**
-   * What to say when there is nothing to list. A chapter page has already
+   * What to say when there is nothing to list. A local group page has already
    * named its city in the heading above, so the default reads as a non-answer
    * there and it passes a line that says the city itself is quiet.
    */
