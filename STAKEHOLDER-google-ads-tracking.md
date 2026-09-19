@@ -38,6 +38,14 @@ Donations go to Stripe, a different website, so pauseai.uk can't see whether one
 - Code and GTM setup: about half a day once the pauseai.info changes are deployed.
 - Conversions need a few days of live data before Ads bidding can use them.
 
+## Signup form is also tracked by pauseai.info
+
+The onboarding form is embedded from pauseai.info, and that site loads its own Google Tag Manager container (`GTM-MZS328RW`) inside the form. Other sites also embed this form, so it will keep loading whatever a visitor chooses on pauseai.uk. Consequences:
+
+- **Consent:** our cookie banner doesn't cover it. A visitor who declines on pauseai.uk is still tracked inside the form by pauseai.info's container. Our privacy policy currently says nothing about this or about advertising, so someone should decide whether it needs a line (for example: embedded forms from pauseai.info may set their own cookies, and this site's Ads measurement).
+- **Double counting:** if pauseai.info's container also fires a conversion on signup, Ads could count one signup twice. We avoid this by keeping the signup conversion action in one place (our container), and by checking what pauseai.info's container fires. The pauseai.info side can't attribute to a pauseai.uk ad click anyway, since it runs in a third-party frame without our ad-click information.
+- An investigation request has been written for the pauseai.info side to find out what is in that container.
+
 ## Risks
 
 - Conversion numbers will slightly undercount, as visitors who decline cookies aren't tracked. That is the intended behaviour.
