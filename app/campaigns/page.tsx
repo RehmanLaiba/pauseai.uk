@@ -32,7 +32,6 @@ export default function CampaignsPage() {
         <section className="campaigns-hero">
           <div className="container">
             <h1>Regulate AI developers now</h1>
-            <p className="lede">We&rsquo;re calling on the UK government to introduce legislation to protect British people from frontier AI risks: from cyber attacks on national infrastructure to bioweapons.</p>
             <p className="hero-cta-row">
               <a className="btn primary" href="#email-your-mp">Email your MP &rarr;</a>
             </p>
@@ -41,9 +40,10 @@ export default function CampaignsPage() {
 
         <section className="campaigns-context">
           <div className="container">
-            <p>In February of this year, a lone criminal used commercially available AI tools to carry out cyber attacks on nine Mexican government agencies and exfiltrate hundreds of millions of citizen records. The UK&rsquo;s own AI Security Institute has found that today&rsquo;s most advanced models can <em>&ldquo;discover and exploit vulnerabilities autonomously &mdash; tasks that would take human professionals days of work&rdquo;</em>. Britain depends on the same critical infrastructure these tools can now attack.</p>
-            <p>The UK has no specific legal standards for AI. No regulator oversees frontier AI development. And UK law does not reliably hold developers liable for damage or deaths caused by their models, even when the danger is predictable, preventable and uniquely enabled by AI. In short, <strong>UK law neither requires developers to guard against frontier AI risks, nor exposes them to any financial consequence if they fail to do so.</strong></p>
-            <p>Given the pace at which AI capabilities are advancing, this matter cannot wait. We urge the Prime Minister to introduce legislation to guard against the risks of frontier AI systems.</p>
+            <p>AI poses extremely serious risks to our national security.</p>
+            <p>In a series of incidents this summer, a &ldquo;swarm&rdquo; of OpenAI agents created secret messaging channels and hacked into the infrastructure of another AI company, and OpenAI itself, without OpenAI being aware. These attacks would have constituted criminal offences if they had been performed by humans. Yet no one has been held accountable to date.</p>
+            <p>Today, the UK has no specific legal standards for frontier AI safety. No regulator oversees frontier AI development, and UK law does not reliably hold developers liable for damage or deaths caused by their models, even when the danger is predictable, preventable, and uniquely enabled by AI.</p>
+            <p>Given the pace at which AI capabilities are advancing, this matter cannot wait. We urge the Prime Minister to introduce legislation to address the risks of frontier AI development.</p>
           </div>
         </section>
 
