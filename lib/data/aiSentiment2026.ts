@@ -30,34 +30,48 @@ export type ResponseOption = {
 // stacked bar or a legend row): all four opinion colours pass every gate in
 // both light and dark mode. "Not sure" is a deliberate neutral, always
 // paired with a direct % label rather than relying on hue alone.
+//
+// "Pause until safe" is the exact brand hue (--pause-orange, #e57226), the
+// midpoint of a deliberate 3-step warm gradient across the "slow or stop"
+// cluster (see slowOrStopPct): dark red -> brand orange -> bright gold,
+// stepping up in lightness on both sides of the brand color rather than
+// just rotating hue at matching lightness — sRGB can't hold a saturated
+// gold as vivid as a saturated red at the same lightness pause sits at, so
+// a same-lightness gold reads muddy and sits too close to the orange for
+// CVD separation. "Continue rapidly" stays cool blue, opposite the warm
+// cluster, but deliberately desaturated/flat rather than a vivid, inviting
+// sky blue.
 export const RESPONSE_OPTIONS: ResponseOption[] = [
   {
     key: "stop_permanently_pct",
     label: "Stop development permanently",
     shortLabel: "Stop permanently",
-    light: "#e34948",
-    dark: "#e66767",
+    light: "#c1272d",
+    dark: "#e2585a",
   },
   {
     key: "pause_until_safe_pct",
     label: "Pause development until it is proven safe",
     shortLabel: "Pause until safe",
-    light: "#4a3aa7",
-    dark: "#9085e9",
+    light: "#e57226",
+    dark: "#f0955c",
   },
   {
     key: "continue_oversight_pct",
     label: "Continue development with strict oversight",
     shortLabel: "Strict oversight",
-    light: "#eda100",
-    dark: "#c98500",
+    light: "#ccb501",
+    dark: "#e0c400",
   },
   {
     key: "continue_rapidly_pct",
     label: "Continue development as quickly as possible",
     shortLabel: "As quickly as possible",
-    light: "#2a78d6",
-    dark: "#3987e5",
+    // Deliberately flatter/duller than a bright "friendly tech" blue —
+    // desaturated steel tone, right at the chroma floor so it still reads
+    // as a color rather than gray.
+    light: "#1868a0",
+    dark: "#4a8fc4",
   },
   {
     key: "not_sure_pct",
@@ -117,6 +131,23 @@ export function approxMoePp(n: number): number {
 }
 
 export const GLOBAL_MOE_PP = approxMoePp(GLOBAL_N);
+
+// Shared axis scale for the diverging opinion bars (DivergingBar.tsx). Both
+// sides of the axis use the same max so a given percentage-point length
+// means the same thing on the left and right - only the actual furthest
+// bar (across every country and demographic cut, "against" = stop + pause
+// + oversight, "for" = rapid, each plus half of "not sure") should reach
+// the edge, with a little padding so its label isn't flush against it.
+function axisExtent(row: { stop_permanently_pct: number; pause_until_safe_pct: number; continue_oversight_pct: number; continue_rapidly_pct: number; not_sure_pct: number }) {
+  const against = row.stop_permanently_pct + row.pause_until_safe_pct + row.continue_oversight_pct;
+  const forDev = row.continue_rapidly_pct;
+  const half = row.not_sure_pct / 2;
+  return Math.max(against + half, forDev + half);
+}
+
+const MAX_AXIS_EXTENT = Math.max(...COUNTRIES.map(axisExtent), ...DEMOGRAPHICS.map(axisExtent));
+
+export const AXIS_MAX_PCT = Math.ceil(MAX_AXIS_EXTENT);
 
 export const REGIONS = [...new Set(COUNTRIES.map((c) => c.region))].sort();
 

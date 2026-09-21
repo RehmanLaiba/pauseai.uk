@@ -1,11 +1,13 @@
 import type { Metadata } from "next";
+import Image from "next/image";
+import Link from "next/link";
 import Nav from "@/components/Nav";
 import { site } from "@/lib/data/site";
 import "../track-record/track-record.css";
 import "./theory-of-change.css";
 
 export const metadata: Metadata = {
-  title: "PauseAI UK | Theory of Change",
+  title: "Theory of Change",
   description: "How PauseAI UK plans to convert public concern about AI risk into political pressure for a global pause.",
   openGraph: {
     title: "PauseAI UK | Theory of Change",
@@ -16,6 +18,7 @@ export const metadata: Metadata = {
   twitter: {
     images: ["/images/open-graph/open-graph-1600-840.jpg"],
   },
+  alternates: { canonical: "/theory-of-change" },
 };
 
 export default function TheoryOfChangePage() {
@@ -29,15 +32,32 @@ export default function TheoryOfChangePage() {
           </svg>
           <div className="container tr-hero-inner">
             <h1 className="tr-hero-title">Theory of Change</h1>
-            <p className="tr-hero-lede">Creating the political momentum for a pause.</p>
           </div>
         </section>
 
         <section className="foreword">
           <div className="container foreword-inner">
             <div className="foreword-body">
-              <p>Organising large numbers of citizens to boldly advocate for an AI pause will robustly help make the future go better. Public pressure for serious action on AI risks increases the likelihood of useful legislation and might be the only way that humanity avoids extinction.</p>
-              <p>PauseAI UK exists to transform loose public concern into a focused political force in the UK, and to hold that pressure in place long enough to matter. Deep buy-in across the public is necessary to overcome industry lobbying. The work of converting awareness into durable political will is the community organising work that PauseAI UK specialises in.</p>
+              <p>Thousands of people in the UK believe that humanity might soon build dangerous superintelligent AI. And yet many of these people haven&rsquo;t even taken 10 seconds to email their MP about it.</p>
+              <p>Political intervention is currently the most plausible way that humanity can avoid catastrophe and there are many easy ways that anyone can help to improve the chance of useful AI legislation.</p>
+              <ul>
+                <li>You can <a href="/campaigns/#email-your-mp" className="inline-link">email your MP</a> in about 10 seconds and there&rsquo;s a decent chance they will agree to sign a statement supporting frontier AI legislation.</li>
+                <li>You can just <a href="/track-record/#parliamentary-meetings" className="inline-link">go to Parliament</a> and ask to meet with your MP and there&rsquo;s a decent chance they will talk to you about your concerns for up to an hour.</li>
+                <li>
+                  You can just march down the street in protest and newspapers{" "}
+                  <a href="https://www.wsj.com/tech/ai/ai-companies-public-relations-ae312d79" className="inline-link" target="_blank" rel="noreferrer">will</a>{" "}
+                  <a href="https://www.businessinsider.com/protesters-accuse-google-deepmind-breaking-promises-ai-safety-2025-6" className="inline-link" target="_blank" rel="noreferrer">publish</a>{" "}
+                  <a href="https://www.technologyreview.com/2026/03/02/1133814/i-checked-out-londons-biggest-ever-anti-ai-protest/" className="inline-link" target="_blank" rel="noreferrer">photos</a>{" "}
+                  <a href="https://www.the-independent.com/tech/ai-safety-declaration-steve-bannon-b2932570.html" className="inline-link" target="_blank" rel="noreferrer">of</a>{" "}
+                  <a href="https://gizmodo.com/the-openai-anthropic-cold-war-comes-to-illinois-2000746324" className="inline-link" target="_blank" rel="noreferrer">it</a>{" "}
+                  <a href="https://www.theguardian.com/technology/2026/mar/06/uk-arts-must-not-be-sacrificed-for-speculative-ai-gains-peers-say" className="inline-link" target="_blank" rel="noreferrer">across</a>{" "}
+                  <a href="https://www.wired.it/article/movimenti-contro-intelligenza-artificiale-mappa-nomi-pauseai-stopai-controlai/" className="inline-link" target="_blank" rel="noreferrer">the</a>{" "}
+                  <a href="https://futurism.com/artificial-intelligence/rage-openai-protests" className="inline-link" target="_blank" rel="noreferrer">world</a>.
+                </li>
+              </ul>
+              <p>If the thousands of people already concerned about superintelligence were well organised as a political force, they could wield substantial power to influence British AI policy.</p>
+              <p>And every month many more people notice how dangerous our current trajectory is. Awareness is accelerating rapidly as we get closer to catastrophe. PauseAI exists to provide useful structures and organise these people to have the most political impact as efficiently as possible.</p>
+              <p>The window of political possibilities is opening rapidly as AI warning shots start to pile up. With the right execution, we can soon pass useful AI legislation that actually helps to decrease the threat.</p>
             </div>
           </div>
         </section>
@@ -67,7 +87,7 @@ export default function TheoryOfChangePage() {
               <p>In the wake of an AI warning shot, PauseAI UK&rsquo;s volunteers contact every major British newspaper to ensure that journalists mention the idea of a global pause agreement in every major article about the incident. Protests are held outside Downing Street and any event the prime minister attends every day until they initiate negotiations for a global pause agreement.</p>
 
               <h3>Scenario 2: PauseAI as a mass movement</h3>
-              <p>PauseAI protests double in size every 7 months as AI capability itself improves exponentially. New PauseAI chapters are founded in every major UK city and many volunteers regularly put on talks in their local community to explain the risks of AI and recruit more volunteers for the movement.</p>
+              <p>PauseAI protests double in size every 7 months as AI capability itself improves exponentially. New PauseAI local groups are founded in every major UK city and many volunteers regularly put on talks in their local community to explain the risks of AI and recruit more volunteers for the movement.</p>
               <p>At some point a significant, but not existential, AI catastrophe thrusts AI risks into the public consciousness and highlights the imminence of superhuman AI. Millions of British citizens become viscerally aware of the looming threat to their lives. PauseAI UK immediately announces a new protest and volunteers spread the signup page in their networks.</p>
               <p>PauseAI UK organises a march in Westminster with 1 million attendees and dominates headlines in the British press. The prime minister is obliged to respond and commits to opening negotiations for a global pause agreement.</p>
             </section>
@@ -77,7 +97,7 @@ export default function TheoryOfChangePage() {
 
               <h3>Brand and messaging</h3>
               <figure className="toc-figure">
-                <img src="/images/logos/Square-Safety-Before-Superintelligence.jpg" alt="Safety Before Superintelligence — PauseAI campaign image" loading="lazy" />
+                <Image src="/images/logos/Square-Safety-Before-Superintelligence.jpg" alt="Safety Before Superintelligence — PauseAI campaign image" width={1080} height={1080} loading="lazy" />
               </figure>
               <p>PauseAI UK positions itself as a movement focused on the risks of human-level and superhuman AI, rather than the current harms of AI. This allows us to direct our efforts towards the most severe issues, while also letting us scale faster than movements focused on the existing harms of AI. PauseAI&rsquo;s strong SEO and name recognition are crucial assets because we automatically grow when more people become concerned about AI risk. This turns AI companies and the progress of AI itself into our most effective marketing tool.</p>
               <p>A large fraction of our members have never been involved in grassroots advocacy before and we see this as a strength. It makes our protests more interesting to the media and makes the organisation more appealing to the silent majority who are not very politically active &mdash; unless, perhaps, they feel their lives are directly threatened.</p>
@@ -93,8 +113,8 @@ export default function TheoryOfChangePage() {
               <p>The fundamental bet of PauseAI UK is that there can be a very large and influential social movement dedicated to preventing the risks of advanced AI. Within PauseAI we already see evidence in our conversations with new members that a rapidly growing proportion of the population is truly grappling with the unprecedented danger that humanity is facing.</p>
               <p>We model the population as a bell curve with respect to the level of evidence that each person requires to become concerned about superhuman AI. As AI improves, we expect the fraction of the curve that has crossed the threshold of concern to increase accordingly. If capabilities continue to progress exponentially, the number of people worried about the situation will also grow commensurately. However, that concern does not automatically translate into well-coordinated action. Our job is to provide the infrastructure and guidance to turn that energy into impact.</p>
               <p>We do not think that convincing more of the public to be concerned about AI risks is our comparative advantage at the moment. This is both because other organisations are already dedicating significant resources to mass communications and because we think that AI progress itself will be the primary driver of our growth. We benefit from being the largest AI protest organisation and positioning ourselves as focused on the risks of future AI, which naturally funnels people concerned about those risks into our ranks.</p>
-              <p>Instead, we see our role as maximising the utility of whatever level of concern already exists in the population at any given time, so that we can get to a pause as early as possible. This means always organising the biggest protest possible, providing excellent infrastructure, onboarding and support for individual volunteers and local chapter leaders, and planning our campaigns carefully.</p>
-              <p>Since PauseAI UK began, we have seen a (very) roughly exponential growth in the size of our protests, with the number of attendees doubling approximately every 7 months. New members register every day and chapters are popping up across the UK. If we can continue and accelerate this trend, then we expect to make substantial progress towards our goals in a relatively short span of time.</p>
+              <p>Instead, we see our role as maximising the utility of whatever level of concern already exists in the population at any given time, so that we can get to a pause as early as possible. This means always organising the biggest protest possible, providing excellent infrastructure, onboarding and support for individual volunteers and local group leaders, and planning our campaigns carefully.</p>
+              <p>Since PauseAI UK began, we have seen a (very) roughly exponential growth in the size of our protests, with the number of attendees doubling approximately every 7 months. New members register every day and local groups are popping up across the UK. If we can continue and accelerate this trend, then we expect to make substantial progress towards our goals in a relatively short span of time.</p>
             </section>
 
             <section className="toc-section" id="local-groups">
@@ -111,10 +131,9 @@ export default function TheoryOfChangePage() {
 
         <section className="closing">
           <div className="container closing-inner">
-            <p className="closing-sub">Help us build the movement.</p>
             <div className="closing-actions">
               <a className="btn primary" href={site.whatsappUrl} target="_blank" rel="noreferrer">Join the WhatsApp community</a>
-              <a className="btn ghost" href="/#join">More ways to get involved</a>
+              <Link className="btn ghost" href="/#join">More ways to get involved</Link>
             </div>
           </div>
         </section>

@@ -1,9 +1,10 @@
 import type { Metadata } from "next";
+import LocalGroupEvents from "@/components/LocalGroupEvents";
 import Nav from "@/components/Nav";
 import { site } from "@/lib/data/site";
 
 export const metadata: Metadata = {
-  title: "PauseAI UK — Glasgow Chapter",
+  title: "Glasgow Group",
   openGraph: {
     title: "PauseAI Glasgow",
     description: "PauseAI Glasgow hosts events and conversations on AI risk in Scotland.",
@@ -21,7 +22,7 @@ export const metadata: Metadata = {
 export default function GlasgowPage() {
   return (
     <>
-      <Nav chapterName="Glasgow" />
+      <Nav localGroupName="Glasgow" />
       <main>
         <section className="hero" style={{ paddingBottom: 48 }}>
           <div className="container hero-grid">
@@ -38,7 +39,7 @@ export default function GlasgowPage() {
             <div className="hero-visual">
               <div
                 className="hero-photo"
-                style={{ backgroundImage: "linear-gradient(135deg, rgba(255, 148, 22, 0.35), rgba(0,0,0,0.65)), url('/images/chapters/glasgow/GlasgowUniUnion.jpg')" }}
+                style={{ backgroundImage: "linear-gradient(135deg, rgba(255, 148, 22, 0.35), rgba(0,0,0,0.65)), url('/images/local-groups/glasgow/GlasgowUniUnion.jpg')" }}
               ></div>
             </div>
           </div>
@@ -50,7 +51,7 @@ export default function GlasgowPage() {
           </div>
           <div className="activity-grid" style={{ gridTemplateColumns: "1fr" }}>
             <article className="activity-card" style={{ maxWidth: 480 }}>
-              <div className="image-frame" style={{ backgroundImage: "url('/images/chapters/glasgow/GlasgowUniUnion.jpg')" }}></div>
+              <div className="image-frame" style={{ backgroundImage: "url('/images/local-groups/glasgow/GlasgowUniUnion.jpg')" }}></div>
               <div className="card-copy">
                 <h3>AI Risk – A Conversation We All Need to Have</h3>
                 <p>A public discussion unpacking the risks and responsibilities around advanced AI systems, featuring local voices and hands-on conversation.</p>
@@ -60,10 +61,12 @@ export default function GlasgowPage() {
           </div>
         </section>
 
+        <LocalGroupEvents localGroupName="Glasgow" />
+
         <section className="section muted">
           <div className="container">
             <div className="section-header">
-              <h2>Link up with the chapter</h2>
+              <h2>Link up with the group</h2>
               <p className="section-lede">
                 Join the WhatsApp community to connect with local organisers and hear about UK-wide events and campaigns.
               </p>

@@ -3,6 +3,7 @@
 import { useEffect } from "react";
 
 const GA_ID = "G-DLLRWZCYD7";
+const GTM_ID = "GTM-K7P36Q7F";
 const CONSENT_KEY = "pauseai-cookie-consent";
 // GA reads this global before every hit; setting it true stops gtag.js
 // from sending any data, even after the script has loaded.
@@ -10,6 +11,7 @@ const GA_DISABLE_KEY = `ga-disable-${GA_ID}`;
 
 type GAWindow = typeof window & {
   __gaLoaded?: boolean;
+  __gtmLoaded?: boolean;
   dataLayer?: unknown[];
   gtag?: (...args: unknown[]) => void;
 };
@@ -18,7 +20,24 @@ function setGADisabled(disabled: boolean) {
   (window as unknown as Record<string, unknown>)[GA_DISABLE_KEY] = disabled;
 }
 
+// Google Tag Manager (Google Ads). Loaded behind the same consent gate as GA,
+// so a "declined" choice keeps it off. The <noscript> fallback lives in layout.tsx.
+function loadGTM() {
+  const w = window as GAWindow;
+  if (w.__gtmLoaded) return;
+  w.__gtmLoaded = true;
+
+  w.dataLayer = w.dataLayer || [];
+  w.dataLayer.push({ "gtm.start": new Date().getTime(), event: "gtm.js" });
+
+  const s = document.createElement("script");
+  s.async = true;
+  s.src = `https://www.googletagmanager.com/gtm.js?id=${GTM_ID}`;
+  document.head.appendChild(s);
+}
+
 function loadGA() {
+  loadGTM();
   const w = window as GAWindow;
   if (w.__gaLoaded) return;
   w.__gaLoaded = true;
@@ -73,18 +92,37 @@ function buildBanner() {
     "</div>";
   document.body.appendChild(banner);
   banner.querySelector(".js-cookie-accept")!.addEventListener("click", () => {
-    localStorage.setItem(CONSENT_KEY, "accepted");
+    writeConsent("accepted");
     setGADisabled(false);
     loadGA();
     banner.remove();
   });
   banner.querySelector(".js-cookie-decline")!.addEventListener("click", () => {
-    localStorage.setItem(CONSENT_KEY, "declined");
+    writeConsent("declined");
     // Stop any already-running tracking and drop the cookies immediately.
     setGADisabled(true);
     clearGACookies();
     banner.remove();
   });
+}
+
+// localStorage throws in contexts where site data is blocked (e.g. some
+// private-browsing modes, or cookies disabled) — a read/write shouldn't
+// take down the whole consent effect.
+function readConsent(): string | null {
+  try {
+    return localStorage.getItem(CONSENT_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function writeConsent(value: string) {
+  try {
+    localStorage.setItem(CONSENT_KEY, value);
+  } catch {
+    // Best effort — if storage is blocked, the choice just won't persist.
+  }
 }
 
 export default function CookieConsent() {
@@ -94,18 +132,22 @@ export default function CookieConsent() {
     // Analytics loads by default. The banner isn't shown on first visit,
     // but the footer "Cookie settings" link can open it on demand, and a
     // prior "declined" choice is honoured: GA stays disabled and unloaded.
-    if (localStorage.getItem(CONSENT_KEY) === "declined") {
+    if (readConsent() === "declined") {
       setGADisabled(true);
     } else {
       loadGA();
     }
 
-    document.querySelectorAll(".js-cookie-settings").forEach((el) => {
-      el.addEventListener("click", (e) => {
-        e.preventDefault();
-        buildBanner();
-      });
-    });
+    const handleSettingsClick = (e: Event) => {
+      e.preventDefault();
+      buildBanner();
+    };
+    const settingsLinks = document.querySelectorAll(".js-cookie-settings");
+    settingsLinks.forEach((el) => el.addEventListener("click", handleSettingsClick));
+
+    return () => {
+      settingsLinks.forEach((el) => el.removeEventListener("click", handleSettingsClick));
+    };
   }, []);
 
   return null;

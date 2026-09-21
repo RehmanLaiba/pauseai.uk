@@ -1,11 +1,12 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Nav from "@/components/Nav";
 import { board } from "@/lib/data/board";
 import "../track-record/track-record.css";
 import "./governance.css";
 
 export const metadata: Metadata = {
-  title: "PauseAI UK | Governance",
+  title: "Governance",
   description: "The board that oversees PauseAI UK, and the due diligence we carry out before accepting donations.",
   openGraph: {
     title: "PauseAI UK | Governance",
@@ -36,7 +37,7 @@ export default function GovernancePage() {
             <div className="board-grid">
               {board.map((member) => (
                 <article key={member.name} className="board-card">
-                  <img className="board-photo" src={member.imageSrc} alt={member.name} width={320} height={320} />
+                  <Image className="board-photo" src={member.imageSrc} alt={member.name} width={320} height={320} />
                   <h3 className="board-name">{member.name}</h3>
                   <p className="board-role">{member.role}</p>
                   <div className="board-links">
@@ -107,8 +108,8 @@ export default function GovernancePage() {
                   astroturf campaign
                 </a>
                 , so we implement two important policies that help to ensure that we are never acting on behalf of,
-                or influenced by, any interest other than the constituency that we claim to represent (our volunteers
-                and citizens concerned about AI safety).
+                or influenced by, any interest other than the constituency that we claim to represent: our volunteers
+                and citizens concerned about AI safety.
               </p>
 
               <p>The first policy is to ensure that we know the identity of any major donors.</p>
@@ -177,7 +178,7 @@ export default function GovernancePage() {
               <section className="gov-policy">
                 <h3>2. Approval by the board</h3>
                 <ul className="gov-list">
-                  <li>The board will approve donors giving above &pound;10,000 cumulatively in any 12-month period.</li>
+                  <li>The board will approve donors (and major donor advisors) giving (or recommending, in the case of advisors) above &pound;10,000 cumulatively in any 12-month period.</li>
                   <li>
                     The board will have access to all the KYD info above to decide whether to accept or reject the
                     donation.

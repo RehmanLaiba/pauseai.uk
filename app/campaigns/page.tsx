@@ -1,10 +1,16 @@
 import type { Metadata } from "next";
+import Image from "next/image";
 import Nav from "@/components/Nav";
 import CampaignsClient from "./CampaignsClient";
+import SignatoriesList from "./SignatoriesList";
 import "./campaigns.css";
 
+// Fallback for local/preview environments without AIRTABLE_TOKEN set — the
+// original public share link, scoped to the same signatory columns.
+const SIGNATORIES_EMBED = "https://airtable.com/embed/appBInVvIm6opJ1Ob/shrQ4CTHTx5VrLPnp";
+
 export const metadata: Metadata = {
-  title: "PauseAI UK | Campaigns",
+  title: "Campaigns",
   description: "Take action on AI safety. Email your MP, join campaigns, and help build pressure for a global pause.",
   openGraph: {
     title: "PauseAI UK | Campaigns",
@@ -15,6 +21,7 @@ export const metadata: Metadata = {
   twitter: {
     images: ["/images/open-graph/open-graph-1600-840.jpg"],
   },
+  alternates: { canonical: "/campaigns" },
 };
 
 export default function CampaignsPage() {
@@ -25,7 +32,6 @@ export default function CampaignsPage() {
         <section className="campaigns-hero">
           <div className="container">
             <h1>Regulate AI developers now</h1>
-            <p className="lede">We&rsquo;re calling on the UK government to introduce legislation to protect British people from frontier AI risks: from cyber attacks on national infrastructure to bioweapons.</p>
             <p className="hero-cta-row">
               <a className="btn primary" href="#email-your-mp">Email your MP &rarr;</a>
             </p>
@@ -34,9 +40,10 @@ export default function CampaignsPage() {
 
         <section className="campaigns-context">
           <div className="container">
-            <p>In February of this year, a lone criminal used commercially available AI tools to carry out cyber attacks on nine Mexican government agencies and exfiltrate hundreds of millions of citizen records. The UK&rsquo;s own AI Security Institute has found that today&rsquo;s most advanced models can <em>&ldquo;discover and exploit vulnerabilities autonomously &mdash; tasks that would take human professionals days of work&rdquo;</em>. Britain depends on the same critical infrastructure these tools can now attack.</p>
-            <p>The UK has no specific legal standards for AI. No regulator oversees frontier AI development. And UK law does not reliably hold developers liable for damage or deaths caused by their models, even when the danger is predictable, preventable and uniquely enabled by AI. In short, <strong>UK law neither requires developers to guard against frontier AI risks, nor exposes them to any financial consequence if they fail to do so.</strong></p>
-            <p>Given the pace at which AI capabilities are advancing, this matter cannot wait. We urge the Prime Minister to introduce legislation to guard against the risks of frontier AI systems.</p>
+            <p>AI poses extremely serious risks to our national security.</p>
+            <p>In a series of incidents this summer, a &ldquo;swarm&rdquo; of OpenAI agents created secret messaging channels and hacked into the infrastructure of another AI company, and OpenAI itself, without OpenAI being aware. These attacks would have constituted criminal offences if they had been performed by humans. Yet no one has been held accountable to date.</p>
+            <p>Today, the UK has no specific legal standards for frontier AI safety. No regulator oversees frontier AI development, and UK law does not reliably hold developers liable for damage or deaths caused by their models, even when the danger is predictable, preventable, and uniquely enabled by AI.</p>
+            <p>Given the pace at which AI capabilities are advancing, this matter cannot wait. We urge the Prime Minister to introduce legislation to address the risks of frontier AI development.</p>
           </div>
         </section>
 
@@ -45,7 +52,7 @@ export default function CampaignsPage() {
             <h2>Read the case in full</h2>
             <div className="docs-grid">
               <a className="doc-card" href="/pdfs/Frontier-AI-Open-Letter.pdf" target="_blank" rel="noreferrer">
-                <img src="/pdfs/Frontier-AI-Open-Letter.jpg" alt="" loading="lazy" />
+                <Image src="/pdfs/Frontier-AI-Open-Letter.jpg" alt="" width={2550} height={3300} loading="lazy" />
                 <div className="doc-meta">
                   <p className="doc-kind">Open letter &mdash; June 2026</p>
                   <h3>To the Prime Minister</h3>
@@ -53,7 +60,7 @@ export default function CampaignsPage() {
                 </div>
               </a>
               <a className="doc-card" href="/pdfs/Frontier-AI-Risks-Policy-Briefing.pdf" target="_blank" rel="noreferrer">
-                <img src="/pdfs/Frontier-AI-Risks-Policy-Briefing.jpg" alt="" loading="lazy" />
+                <Image src="/pdfs/Frontier-AI-Risks-Policy-Briefing.jpg" alt="" width={2550} height={3300} loading="lazy" />
                 <div className="doc-meta">
                   <p className="doc-kind">Policy briefing &mdash; June 2026</p>
                   <h3>Frontier AI Risks</h3>
@@ -83,10 +90,29 @@ export default function CampaignsPage() {
           </div>
         </section>
 
+        <section id="signatories" className="campaigns-signatories">
+          <div className="container">
+            <h2>Parliamentary signatories</h2>
+            <p className="signatories-embargo">This list of names is currently under a media embargo.</p>
+            {process.env.AIRTABLE_TOKEN ? (
+              <SignatoriesList />
+            ) : (
+              <div className="embed-frame signatories-frame">
+                <iframe
+                  src={SIGNATORIES_EMBED}
+                  title="Parliamentary signatories to the Frontier AI open letter"
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                ></iframe>
+              </div>
+            )}
+          </div>
+        </section>
+
         <section className="campaigns-share">
           <div className="container">
             <button type="button" className="qr-thumb" aria-label="Show QR code larger">
-              <img src="/campaign-page-qr-code.png" alt="QR code linking to this campaign page" width={180} height={180} loading="lazy" />
+              <Image src="/campaign-page-qr-code.png" alt="QR code linking to this campaign page" width={180} height={180} loading="lazy" />
               <span>Scan to share this page</span>
             </button>
           </div>
@@ -95,7 +121,7 @@ export default function CampaignsPage() {
 
       <div className="qr-lightbox" id="qr-lightbox" aria-hidden="true" role="dialog" aria-label="QR code">
         <button className="qr-lightbox-close" type="button" aria-label="Close">&times;</button>
-        <img src="/campaign-page-qr-code.png" alt="QR code linking to this campaign page" />
+        <Image src="/campaign-page-qr-code.png" alt="QR code linking to this campaign page" width={1147} height={1147} />
       </div>
 
       <CampaignsClient />

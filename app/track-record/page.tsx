@@ -7,11 +7,13 @@ import { site } from "@/lib/data/site";
 import "./track-record.css";
 
 export const metadata: Metadata = {
-  title: "PauseAI UK | Track Record",
-  description: "One year of PauseAI UK.",
+  title: "Track Record",
+  description:
+    "One year of PauseAI UK: two conferences, an open letter signed by 60+ politicians, a European Parliament event, and the largest AI protest in the world.",
   openGraph: {
     title: "PauseAI UK | Track Record",
-    description: "One year of PauseAI UK.",
+    description:
+    "One year of PauseAI UK: two conferences, an open letter signed by 60+ politicians, a European Parliament event, and the largest AI protest in the world.",
     images: [
       {
         url: "/images/open-graph/open-graph-1200-630.jpg",
@@ -24,6 +26,7 @@ export const metadata: Metadata = {
   twitter: {
     images: ["/images/open-graph/open-graph-1600-840.jpg"],
   },
+  alternates: { canonical: "/track-record" },
 };
 
 export default function TrackRecordPage() {
@@ -53,7 +56,7 @@ export default function TrackRecordPage() {
         <section className="timeline">
           <div className="container">
             <ol className="timeline-list">
-              <li className="entry">
+              <li className="entry" id="pausecon-london">
                 <aside className="entry-date">
                   <span className="month">June</span>
                   <span className="year">2025</span>
@@ -130,7 +133,7 @@ export default function TrackRecordPage() {
                 </div>
               </li>
 
-              <li className="entry">
+              <li className="entry" id="open-letter-to-demis-hassabis">
                 <aside className="entry-date">
                   <span className="month">August</span>
                   <span className="year">2025</span>
@@ -188,7 +191,7 @@ export default function TrackRecordPage() {
                 </div>
               </li>
 
-              <li className="entry">
+              <li className="entry" id="book-launch-party">
                 <aside className="entry-date">
                   <span className="month">September</span>
                   <span className="year">2025</span>
@@ -222,7 +225,7 @@ export default function TrackRecordPage() {
                 </div>
               </li>
 
-              <li className="entry">
+              <li className="entry" id="documentary-screening-in-parliament">
                 <aside className="entry-date">
                   <span className="month">October</span>
                   <span className="year">2025</span>
@@ -268,7 +271,7 @@ export default function TrackRecordPage() {
                 </div>
               </li>
 
-              <li className="entry">
+              <li className="entry" id="westminster-hall-debate">
                 <aside className="entry-date">
                   <span className="month">December</span>
                   <span className="year">2025</span>
@@ -311,7 +314,7 @@ export default function TrackRecordPage() {
                 </div>
               </li>
 
-              <li className="entry">
+              <li className="entry" id="pausecon-brussels">
                 <aside className="entry-date">
                   <span className="month">February</span>
                   <span className="year">2026</span>
@@ -414,7 +417,7 @@ export default function TrackRecordPage() {
                 </div>
               </li>
 
-              <li className="entry">
+              <li className="entry" id="march-for-ai-safety">
                 <aside className="entry-date">
                   <span className="month">February</span>
                   <span className="year">2026</span>
@@ -520,7 +523,7 @@ export default function TrackRecordPage() {
                 </div>
               </li>
 
-              <li className="entry">
+              <li className="entry id="parliamentary-meetings">
                 <aside className="entry-date">
                   <span className="month">June</span>
                   <span className="year">2026</span>
@@ -593,13 +596,13 @@ export default function TrackRecordPage() {
                     </a>
                     <a
                       className="shot"
-                      href="/images/parliament-june-2026/jeremy-corbyn.jpeg"
+                      href="/images/parliament-june-2026/jeremy-corbyn.jpg"
                     >
                       <Image
                         fill
                         sizes="(max-width: 768px) 100vw, 33vw"
                         style={{ objectFit: "cover" }}
-                        src="/images/parliament-june-2026/jeremy-corbyn.jpeg"
+                        src="/images/parliament-june-2026/jeremy-corbyn.jpg"
                         alt="PauseAI UK Board member David Wood with MP Jeremy Corbyn"
                       />
                     </a>

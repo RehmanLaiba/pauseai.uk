@@ -4,13 +4,13 @@ import "../track-record/track-record.css";
 import "./what-is-pauseai-uk.css";
 
 export const metadata: Metadata = {
-  title: "What is PauseAI UK?",
+  title: { absolute: "What is PauseAI UK?" },
   description:
-    "PauseAI UK is focused on the risks of superhuman AI — and why a narrow focus makes it easier for people with a wide range of beliefs to collaborate.",
+    "We are the civic movement dedicated to averting the risks of superhuman AI.",
   openGraph: {
     title: "What is PauseAI UK?",
     description:
-      "PauseAI UK is focused on the risks of superhuman AI — and why a narrow focus makes it easier for people with a wide range of beliefs to collaborate.",
+      "We are the civic movement dedicated to averting the risks of superhuman AI.",
     images: [{ url: "/images/open-graph/open-graph-1200-630.jpg", width: 1200, height: 630 }],
     url: "https://pauseai.uk/what-is-pauseai-uk/",
   },
@@ -40,11 +40,13 @@ export default function WhatIsPauseAIUKPage() {
               <p>
                 PauseAI is a civic movement, which means that we help citizens organise to take collective actions and make
                 their voice heard. Our volunteers engage with their MPs about AI safety, march in protests, join
-                conferences about AI safety in the European and UK Parliaments and gather signatures for open letters.
+                conferences about AI safety in the European and UK Parliaments and gather signatures for open letters. We
+                are strictly non-violent, and we require all volunteers to adhere to the{" "}
+                <a href="https://pauseai.info/code-of-conduct" target="_blank" rel="noreferrer">PauseAI Code of Conduct</a>.
               </p>
 
               <p>
-                PauseAI is focused on the risks of <strong>superhuman AI</strong>. This focus is the thing that is unique about PauseAI
+                PauseAI is focused on the risk of potential future <strong>superhuman AI</strong>. This focus is the thing that is unique about PauseAI
                 UK and distinguishes us from other movements in the UK.
               </p>
 
@@ -53,7 +55,7 @@ export default function WhatIsPauseAIUKPage() {
                 <li>job loss and concentration of power</li>
                 <li>autonomous weapons</li>
                 <li>surveillance and authoritarianism</li>
-                <li>human addiction, enfeeblement and psychosis</li>
+                <li>addiction, enfeeblement and psychosis</li>
               </ul>
 
               <p>
@@ -87,6 +89,16 @@ export default function WhatIsPauseAIUKPage() {
                   current harms of AI, or the climate, or any other issue.
                 </li>
               </ol>
+
+              {/* Company details required on the website by the Companies Act
+                  (registered name, number, place of registration, registered office). */}
+              <div className="registered-details">
+                <p>
+                  PauseAI UK is operated by <strong>Safe AI Alliance Ltd</strong>, a private company limited by
+                  guarantee registered in England and Wales, company number <strong>17137345</strong>. Registered
+                  office: 128 City Road, London EC1V 2NX, United Kingdom.
+                </p>
+              </div>
             </section>
           </div>
         </article>

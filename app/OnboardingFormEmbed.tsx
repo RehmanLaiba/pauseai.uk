@@ -3,6 +3,9 @@
 import { useEffect, useRef, useState } from "react";
 
 const EMBED_ORIGIN = "https://pauseai.info";
+// referrerPolicy on the iframe (below) lets pauseai.info read the full host URL
+// from document.referrer and self-attribute the signup to this page — no source
+// param needed. See pauseai-website/docs/ONBOARDING_EMBED.md.
 const EMBED_URL = `${EMBED_ORIGIN}/embed/onboarding-form/?country=United+Kingdom&bg=FDF8F3`;
 const DEFAULT_HEIGHT = 871;
 const SETTLE_DELAY_MS = 400;
@@ -24,6 +27,14 @@ export default function OnboardingFormEmbed() {
     function handleMessage(event: MessageEvent) {
       if (event.origin !== EMBED_ORIGIN) return;
       const data = event.data;
+      // Fired once per new signup by the embed (no personal data). GTM listens
+      // for this custom event to fire the Google Ads conversion tag.
+      if (data?.event === "onboarding_signup_complete") {
+        const w = window as typeof window & { dataLayer?: unknown[] };
+        w.dataLayer = w.dataLayer || [];
+        w.dataLayer.push({ event: "onboarding_signup_complete" });
+        return;
+      }
       if (typeof data?.height === "number") {
         messageReceivedRef.current = true;
         setMessageReceived(true);
@@ -81,6 +92,7 @@ export default function OnboardingFormEmbed() {
       <iframe
         ref={iframeRef}
         src={EMBED_URL}
+        referrerPolicy="no-referrer-when-downgrade"
         width="100%"
         height={height}
         frameBorder={0}

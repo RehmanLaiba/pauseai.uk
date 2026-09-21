@@ -1,13 +1,14 @@
 #!/usr/bin/env node
 // Detects the largest face in each photo under public/images/people/ and
-// writes a suggested `background-position` into the matching story's
-// `imageStyle` in lib/data/stories.json (the .story-avatar /
-// .story-detail-avatar square crop). Re-run after adding/replacing a story
+// writes a suggested `background-position` into the matching person's
+// `imageStyle` in lib/data/people.ts (the .person-avatar /
+// .person-detail-avatar square crop). Re-run after adding/replacing a
 // photo. Pass --dry-run to only print suggestions without writing.
 import "@tensorflow/tfjs-backend-cpu";
 import * as tf from "@tensorflow/tfjs";
 import * as blazeface from "@tensorflow-models/blazeface";
 import sharp from "sharp";
+import ts from "typescript";
 import { readdirSync, readFileSync, writeFileSync } from "node:fs";
 import { fileURLToPath } from "node:url";
 import path from "node:path";
@@ -28,14 +29,50 @@ async function decodeImage(filePath) {
 
 const rootDir = path.dirname(path.dirname(fileURLToPath(import.meta.url)));
 const peopleDir = path.join(rootDir, "public/images/people");
-const storiesJsonPath = path.join(rootDir, "lib/data/stories.json");
+const peopleTsPath = path.join(rootDir, "lib/data/people.ts");
+
+// The `people` array is a plain JSON-compatible literal inside people.ts.
+// Rather than pattern-match the surrounding text (fragile to reformatting),
+// parse the file and find the array literal by its actual syntax: the
+// initializer of the exported `people` declaration. JSON.parse it, and
+// splice the updated JSON back into that same span, leaving the type defs
+// and helper functions as-is.
+function findPeopleArrayLiteral(source) {
+  const sourceFile = ts.createSourceFile(peopleTsPath, source, ts.ScriptTarget.Latest, true);
+  for (const statement of sourceFile.statements) {
+    if (!ts.isVariableStatement(statement)) continue;
+    for (const decl of statement.declarationList.declarations) {
+      if (ts.isIdentifier(decl.name) && decl.name.text === "people" && decl.initializer && ts.isArrayLiteralExpression(decl.initializer)) {
+        return { sourceFile, node: decl.initializer };
+      }
+    }
+  }
+  throw new Error(`Could not find the "people" array literal in ${peopleTsPath}`);
+}
+
+function readPeople(source) {
+  const { sourceFile, node } = findPeopleArrayLiteral(source);
+  const arrayText = source.slice(node.getStart(sourceFile), node.getEnd());
+  // It's a .ts file, so an editor's format-on-save happily leaves trailing
+  // commas (valid JS, not valid JSON) before a closing `}` or `]`.
+  const withoutTrailingCommas = arrayText.replace(/,(\s*[}\]])/g, "$1");
+  return JSON.parse(withoutTrailingCommas);
+}
+
+function writePeople(source, persons) {
+  const { sourceFile, node } = findPeopleArrayLiteral(source);
+  const start = node.getStart(sourceFile);
+  const end = node.getEnd();
+  return source.slice(0, start) + JSON.stringify(persons, null, 2) + source.slice(end);
+}
 
 const args = process.argv.slice(2);
 const write = !args.includes("--dry-run");
 const files = args.filter((a) => a !== "--dry-run");
 const targets = files.length > 0 ? files : readdirSync(peopleDir).filter((f) => /\.(jpe?g|png)$/i.test(f));
 
-const stories = write ? JSON.parse(readFileSync(storiesJsonPath, "utf8")) : null;
+const peopleTsSource = write ? readFileSync(peopleTsPath, "utf8") : null;
+const persons = write ? readPeople(peopleTsSource) : null;
 let updated = 0;
 
 const model = await blazeface.load();
@@ -67,20 +104,20 @@ for (const file of targets) {
 
   if (write) {
     const basename = path.basename(filePath);
-    const story = stories.find((s) => s.imageSrc && path.basename(s.imageSrc) === basename);
-    if (!story) {
-      console.log(`${basename}: ${width}x${height}, ${predictions.length} face(s) -> no matching story in stories.json, skipped`);
+    const person = persons.find((s) => s.imageSrc && path.basename(s.imageSrc) === basename);
+    if (!person) {
+      console.log(`${basename}: ${width}x${height}, ${predictions.length} face(s) -> no matching person in people.json, skipped`);
       continue;
     }
-    story.imageStyle = imageStyle;
+    person.imageStyle = imageStyle;
     updated++;
-    console.log(`${basename}: ${width}x${height}, ${predictions.length} face(s) -> updated "${story.name}" imageStyle: "${imageStyle}"`);
+    console.log(`${basename}: ${width}x${height}, ${predictions.length} face(s) -> updated "${person.name}" imageStyle: "${imageStyle}"`);
   } else {
     console.log(`${path.basename(filePath)}: ${width}x${height}, ${predictions.length} face(s) -> imageStyle: "${imageStyle}"`);
   }
 }
 
 if (write && updated > 0) {
-  writeFileSync(storiesJsonPath, JSON.stringify(stories, null, 2) + "\n");
-  console.log(`\nWrote ${updated} update(s) to lib/data/stories.json`);
+  writeFileSync(peopleTsPath, writePeople(peopleTsSource, persons));
+  console.log(`\nWrote ${updated} update(s) to lib/data/people.ts`);
 }

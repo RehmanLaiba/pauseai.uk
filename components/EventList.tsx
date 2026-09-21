@@ -1,22 +1,39 @@
 "use client";
 
-import { useState } from "react";
+import Image from "next/image";
+import { useEffect, useState, type ReactNode } from "react";
 import type { LumaEntry } from "@/lib/data/events";
 import { formatEventDate, formatEventTime } from "@/lib/data/events";
 
 function getDateStr(d: Date, tz: string): string {
-  return d.toLocaleDateString("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" });
+  // An unrecognised IANA timezone throws RangeError here; fall back rather
+  // than crashing the render (see lib/data/events.ts formatEventDate).
+  try {
+    return d.toLocaleDateString("en-CA", { timeZone: tz, year: "numeric", month: "2-digit", day: "2-digit" });
+  } catch {
+    return d.toLocaleDateString("en-CA", { timeZone: "Europe/London", year: "numeric", month: "2-digit", day: "2-digit" });
+  }
 }
 
 function EventCard({ entry, isExtra = false }: { entry: LumaEntry; isExtra?: boolean }) {
   const { event } = entry;
   const tz = event.timezone || "Europe/London";
-  const today = getDateStr(new Date(), "Europe/London");
-  const tomorrow = getDateStr(new Date(Date.now() + 864e5), "Europe/London");
   const eventDay = getDateStr(new Date(event.start_at), tz);
-  let badge: { label: string; cls: string } | null = null;
-  if (eventDay === today) badge = { label: "Happening today", cls: "luma-event-badge--today" };
-  else if (eventDay === tomorrow) badge = { label: "Happening tomorrow", cls: "luma-event-badge--tomorrow" };
+  const [badge, setBadge] = useState<{ label: string; cls: string } | null>(null);
+
+  // Comparing against "now" is inherently non-deterministic between server
+  // render and client hydration, so it's computed post-mount rather than
+  // during render (avoids a hydration mismatch on the day boundary).
+  useEffect(() => {
+    function syncBadge() {
+      const today = getDateStr(new Date(), "Europe/London");
+      const tomorrow = getDateStr(new Date(Date.now() + 864e5), "Europe/London");
+      if (eventDay === today) setBadge({ label: "Happening today", cls: "luma-event-badge--today" });
+      else if (eventDay === tomorrow) setBadge({ label: "Happening tomorrow", cls: "luma-event-badge--tomorrow" });
+      else setBadge(null);
+    }
+    syncBadge();
+  }, [eventDay]);
 
   // Luma distinguishes in-person from online via the presence of
   // geo_address_info. location_type is "offline" for in-person events
@@ -32,11 +49,20 @@ function EventCard({ entry, isExtra = false }: { entry: LumaEntry; isExtra?: boo
       rel="noreferrer"
       className={`luma-event-card${isExtra ? " luma-event-card--extra" : ""}`}
     >
-      {event.cover_url ? (
-        <img className="luma-event-card-img" src={event.cover_url} alt="" loading="lazy" />
-      ) : (
-        <div className="luma-event-card-img luma-event-card-img--placeholder"></div>
-      )}
+      <div className="luma-event-card-img-wrap">
+        {event.cover_url ? (
+          <Image
+            className="luma-event-card-img"
+            src={event.cover_url}
+            alt=""
+            fill
+            sizes="(max-width: 600px) 86vw, (max-width: 900px) 50vw, 25vw"
+            loading="lazy"
+          />
+        ) : (
+          <div className="luma-event-card-img luma-event-card-img--placeholder"></div>
+        )}
+      </div>
       <div className="luma-event-card-body">
         {badge && <span className={`luma-event-badge ${badge.cls}`}>{badge.label}</span>}
         <p className="luma-event-card-date">
@@ -49,18 +75,35 @@ function EventCard({ entry, isExtra = false }: { entry: LumaEntry; isExtra?: boo
   );
 }
 
-export default function EventList({ events, lumaUrl }: { events: LumaEntry[]; lumaUrl: string }) {
+export default function EventList({
+  events,
+  lumaUrl,
+  empty,
+}: {
+  events: LumaEntry[];
+  lumaUrl: string;
+  /**
+   * What to say when there is nothing to list. A local group page has already
+   * named its city in the heading above, so the default reads as a non-answer
+   * there and it passes a line that says the city itself is quiet.
+   */
+  empty?: ReactNode;
+}) {
   const [expanded, setExpanded] = useState(false);
   const hasMore = events.length > 4;
 
   if (events.length === 0) {
     return (
       <p className="luma-events-empty">
-        See our{" "}
-        <a href={lumaUrl} target="_blank" rel="noreferrer">
-          event calendar
-        </a>{" "}
-        for upcoming events.
+        {empty ?? (
+          <>
+            See our{" "}
+            <a href={lumaUrl} target="_blank" rel="noreferrer">
+              event calendar
+            </a>{" "}
+            for upcoming events.
+          </>
+        )}
       </p>
     );
   }

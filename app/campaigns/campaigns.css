@@ -144,6 +144,81 @@
   color: var(--accent);
 }
 
+/* ─── Parliamentary signatories (live from Airtable) ─── */
+.campaigns-signatories {
+  padding: 48px 0 16px;
+}
+.campaigns-signatories h2 {
+  font-family: var(--font-display), "Lato", system-ui, sans-serif;
+  font-size: clamp(26px, 3vw, 34px);
+  font-weight: 700;
+  line-height: 1.1;
+  letter-spacing: -0.02em;
+  margin: 0 0 14px;
+  color: var(--text);
+}
+.signatories-embargo {
+  margin: 0 0 20px;
+}
+.signatories-status {
+  color: var(--text-secondary);
+  font-size: 15px;
+}
+.signatories-group {
+  max-width: 900px;
+}
+.signatories-group + .signatories-group {
+  margin-top: 28px;
+}
+.signatories-group h3 {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 13px;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--muted);
+  margin: 0 0 10px;
+}
+.signatories-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 20px;
+}
+.signatories-item {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+}
+.signatories-name {
+  font-weight: 700;
+  font-size: 17px;
+  color: var(--text);
+}
+.signatories-subtitle {
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+/* Fallback iframe shown when AIRTABLE_TOKEN isn't set. The Airtable share
+   renders its own grid and can't post resize messages, so the height is
+   fixed. */
+.signatories-frame {
+  max-width: 900px;
+}
+.signatories-frame iframe {
+  display: block;
+  width: 100%;
+  height: 520px;
+  border: 0;
+}
+@media (max-width: 720px) {
+  .signatories-frame iframe {
+    height: 460px;
+  }
+}
+
 /* ─── Email tool (iframe) ─── */
 .campaigns-embed {
   padding: 48px 0 80px;

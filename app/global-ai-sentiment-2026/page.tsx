@@ -1,16 +1,10 @@
 import type { Metadata } from "next";
 import Nav from "@/components/Nav";
-import {
-  GLOBAL_AVERAGE,
-  GLOBAL_MOE_PP,
-  GLOBAL_N,
-  QUESTION_TEXT,
-  RESPONSE_OPTIONS,
-  SURVEY_META,
-} from "@/lib/data/aiSentiment2026";
+import { QUESTION_TEXT, SURVEY_META } from "@/lib/data/aiSentiment2026";
 import WorldMap from "./WorldMap";
 import CountryExplorer from "./CountryExplorer";
 import DemographicsExplorer from "./DemographicsExplorer";
+import GlobalAverageBar from "./GlobalAverageBar";
 import "../track-record/track-record.css";
 import "./global-ai-sentiment-2026.css";
 
@@ -19,7 +13,7 @@ const DESCRIPTION =
   "How 377,458 people across 104 countries feel about the development of superintelligent AI: an interactive look at the Nira Data Spring 2026 World Omnibus.";
 
 export const metadata: Metadata = {
-  title: `PauseAI UK | ${TITLE}`,
+  title: TITLE,
   description: DESCRIPTION,
   openGraph: {
     title: `PauseAI UK | ${TITLE}`,
@@ -38,18 +32,6 @@ export const metadata: Metadata = {
   },
   alternates: { canonical: "/global-ai-sentiment-2026" },
 };
-
-function buildLegendItems() {
-  let cumPct = 0;
-  return RESPONSE_OPTIONS.map((option) => {
-    const value = GLOBAL_AVERAGE[option.key];
-    const centerPct = cumPct + value / 2;
-    cumPct += value;
-    return { option, value, centerPct };
-  });
-}
-
-const LEGEND_ITEMS = buildLegendItems();
 
 export default function GlobalAiSentiment2026Page() {
   return (
@@ -93,63 +75,7 @@ export default function GlobalAiSentiment2026Page() {
               form. Fewer than one in five want it developed &ldquo;as quickly
               as possible&rdquo;.
             </p>
-            <div className="gas-global-header">
-              <span className="gas-global-title">Global average</span>
-              <span className="gas-global-meta">
-                <span
-                  className="gas-term"
-                  data-tooltip="Number of people surveyed"
-                >
-                  n={GLOBAL_N.toLocaleString()}
-                </span>
-                {" · "}
-                <span
-                  className="gas-term"
-                  data-tooltip="Margin of error at 95% confidence, in percentage points"
-                >
-                  &plusmn;{GLOBAL_MOE_PP}pp
-                </span>
-                {" (approx.)"}
-              </span>
-            </div>
-            <div className="gas-global-display">
-              <div className="gas-vbar-col">
-                <div
-                  className="gas-vbar-wrap"
-                  role="img"
-                  aria-label={`Global average: ${RESPONSE_OPTIONS.map((o) => `${o.shortLabel} ${GLOBAL_AVERAGE[o.key]}%`).join(", ")}`}
-                >
-                  {LEGEND_ITEMS.map(({ option, value }) => (
-                    <div
-                      key={option.key}
-                      className="gas-vbar-segment"
-                      style={{ flex: value, background: option.light }}
-                    >
-                      {value >= 7 && (
-                        <span className="gas-vbar-segment-value">{value}%</span>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              </div>
-              <div className="gas-vbar-right">
-                <div className="gas-vbar-legend">
-                  {LEGEND_ITEMS.map(({ option, centerPct }) => (
-                    <div
-                      key={option.key}
-                      className="gas-vbar-legend-item"
-                      style={{ top: `${centerPct}%` }}
-                    >
-                      <span
-                        className="gas-vbar-dot"
-                        style={{ background: option.light }}
-                      />
-                      <span className="gas-vbar-label">{option.label}</span>
-                    </div>
-                  ))}
-                </div>
-              </div>
-            </div>
+            <GlobalAverageBar />
             <p className="gas-source-note">
               <a href={SURVEY_META.reportUrl} target="_blank" rel="noreferrer">
                 Read the full report
@@ -163,7 +89,7 @@ export default function GlobalAiSentiment2026Page() {
           <div className="container">
             <h2>Explore the map</h2>
             <p className="gas-section-intro">
-              Hover any country to see its full breakdown.
+              Select a country to see its full breakdown.
             </p>
             <WorldMap />
           </div>
@@ -171,22 +97,15 @@ export default function GlobalAiSentiment2026Page() {
 
         <section className="gas-section">
           <div className="container">
-            <h2>All 104 countries</h2>
-            <p className="gas-section-intro">
-              Filter by region, sort by opinion, or search for a country.
-            </p>
-            <CountryExplorer />
+            <h2>By demographic</h2>
+            <DemographicsExplorer />
           </div>
         </section>
 
         <section className="gas-section gas-section-muted">
           <div className="container">
-            <h2>By demographic</h2>
-            <p className="gas-section-intro">
-              Regional averages and demographic breakdowns from the survey,
-              including a UK/US deep dive.
-            </p>
-            <DemographicsExplorer />
+            <h2>All 104 countries</h2>
+            <CountryExplorer />
           </div>
         </section>
 
