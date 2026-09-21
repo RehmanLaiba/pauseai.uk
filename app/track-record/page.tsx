@@ -523,7 +523,7 @@ export default function TrackRecordPage() {
                 </div>
               </li>
 
-              <li className="entry id="parliamentary-meetings">
+              <li className="entry" id="parliamentary-meetings">
                 <aside className="entry-date">
                   <span className="month">June</span>
                   <span className="year">2026</span>
