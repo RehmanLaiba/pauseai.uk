@@ -53,44 +53,6 @@ export default function TrackRecordPage() {
           </div>
         </section>
 
-        <section className="foreword">
-          <div className="container foreword-inner">
-            <h2 className="foreword-title">One year of PauseAI UK</h2>
-            <div className="foreword-body">
-              <p>
-                About one year ago, I started spending most of my time
-                organising PauseAI UK. Before then PauseAI was only a project I
-                did on the side. At that time our largest protest had seen fewer
-                than 50 attendees, no prominent politicians or scientists were
-                associated with PauseAI, and I largely ran the UK chapter by
-                myself.
-              </p>
-              <p>
-                In the past year PauseAI UK has delivered two conferences,
-                written an open letter signed by over 60 UK politicians,
-                arranged a conference in the European Parliament, and
-                co-organised the largest AI protest in the world. And we now
-                have a very strong team, with Matilda joining as Deputy Director
-                and several highly dedicated volunteers taking on substantial
-                responsibility and launching their own local groups around the
-                UK.
-              </p>
-              <p>
-                I&apos;m proud of our track record and excited about the
-                trajectory we are on. As AI capabilities improve exponentially,
-                the number of people aware of the risks and motivated to take
-                action increases commensurately. I believe we can harness this
-                energy and turn it into real impact that actually improves
-                humanity&apos;s chance of a positive future.
-              </p>
-            </div>
-            <div className="signature">
-              <div className="sig-name">Joseph Miller</div>
-              <div className="sig-role">Director of PauseAI UK</div>
-            </div>
-          </div>
-        </section>
-
         <section className="timeline">
           <div className="container">
             <ol className="timeline-list">
@@ -561,7 +523,7 @@ export default function TrackRecordPage() {
                 </div>
               </li>
 
-              <li className="entry entry-finale" id="parliamentary-meetings">
+              <li className="entry" id="parliamentary-meetings">
                 <aside className="entry-date">
                   <span className="month">June</span>
                   <span className="year">2026</span>
@@ -654,6 +616,212 @@ export default function TrackRecordPage() {
                         style={{ objectFit: "cover" }}
                         src="/images/parliament-june-2026/group-landscape.jpg"
                         alt="PauseAI volunteers gathered on the steps in the House of Commons"
+                      />
+                    </a>
+                  </div>
+                </div>
+              </li>
+
+              <li className="entry" id="pausecon-london-2026">
+                <aside className="entry-date">
+                  <span className="month">September</span>
+                  <span className="year">2026</span>
+                </aside>
+                <div className="entry-body">
+                  <h3 className="entry-title">
+                    PauseCon London and Parliamentary Conference
+                  </h3>
+                  <div className="entry-text">
+                    <p>
+                      We helped PauseAI Global to deliver the next PauseCon in
+                      London, bringing around 100 volunteers together from
+                      around the world and running workshops on social media
+                      management, communicating with news outlets, and strategy,
+                      among other topics. Many new connections were formed and
+                      by the end, people had been invited into high-impact roles
+                      that they would not have otherwise found.
+                    </p>
+                    <p>
+                      To finish off, we held a Parliamentary conference with
+                      audience Q&amp;A on AI policy, featuring:
+                    </p>
+                    <ul className="list">
+                      <li>
+                        <strong>Dame Chi Onwurah</strong>, Chair of the Commons
+                        Science, Innovation and Technology Committee.
+                      </li>
+                      <li>
+                        <strong>Iqbal Mohamed MP</strong>, led the December 2025
+                        Westminster Hall debate on AI safety.
+                      </li>
+                      <li>
+                        <strong>Professor Stuart Russell</strong>, world-renowned
+                        AI scientist.
+                      </li>
+                      <li>
+                        <strong>Lord Tim Clement-Jones</strong>, Co-Chair of the
+                        All-Party Parliamentary Group on Artificial Intelligence.
+                      </li>
+                      <li>
+                        <strong>Lord Lionel Tarassenko</strong>, Crossbench peer
+                        and President of Reuben College, Oxford.
+                      </li>
+                      <li>
+                        <strong>Brando Benifei MEP</strong>, Co-rapporteur and
+                        lead architect of the EU AI Act.
+                      </li>
+                    </ul>
+                    <p>
+                      Topics covered ranged from the fact crimes are being
+                      committed, but governments are unable to hold anyone
+                      accountable because AI companies are not liable for the
+                      crimes of their AIs, to what needs to happen for an
+                      international superintelligence ban to come into play.
+                    </p>
+                  </div>
+                  <div className="gallery gallery-3">
+                    <a
+                      className="shot"
+                      href="/images/pausecon-london-sept-2026/parliament-conference-hall.jpg"
+                    >
+                      <Image
+                        fill
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                        style={{ objectFit: "cover" }}
+                        src="/images/pausecon-london-sept-2026/parliament-conference-hall-thumb.jpg"
+                        alt="Attendees seated for the Parliamentary conference in the Palace of Westminster"
+                      />
+                    </a>
+                    <a
+                      className="shot"
+                      href="/images/pausecon-london-sept-2026/parliament-conference-panel.jpg"
+                    >
+                      <Image
+                        fill
+                        sizes="(max-width: 768px) 100vw, 33vw"
+                        style={{ objectFit: "cover" }}
+                        src="/images/pausecon-london-sept-2026/parliament-conference-panel-thumb.jpg"
+                        alt="Speakers and organisers of the Parliamentary conference gathered at the panel table"
+                      />
+                    </a>
+                    <a
+                      className="shot shot-wide"
+                      href="/images/pausecon-london-sept-2026/pausecon-london-group.jpg"
+                    >
+                      <Image
+                        fill
+                        sizes="(max-width: 768px) 100vw, 66vw"
+                        style={{ objectFit: "cover" }}
+                        src="/images/pausecon-london-sept-2026/pausecon-london-group-thumb.jpg"
+                        alt="PauseCon London attendees gathered for a group photo"
+                      />
+                    </a>
+                  </div>
+                </div>
+              </li>
+
+              <li className="entry entry-finale" id="emergency-protest-downing-street">
+                <aside className="entry-date">
+                  <span className="month">September</span>
+                  <span className="year">2026</span>
+                </aside>
+                <div className="entry-body">
+                  <h3 className="entry-title">
+                    Emergency Protest outside Downing Street
+                  </h3>
+                  <div className="entry-text">
+                    <p>
+                      In response to the media wave following Jacob Coxon
+                      leaving Anthropic over existential safety concerns, our
+                      volunteers organised an emergency protest in four days,
+                      with speakers ranging from AI safety researchers to our
+                      own volunteers. We had around 100 people show up at this
+                      short notice, with coverage from{" "}
+                      <a
+                        href="https://www.youtube.com/shorts/TFxdevKHM8s"
+                        className="inline-link"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        ITV News
+                      </a>
+                      ,{" "}
+                      <a
+                        href="https://www.youtube.com/shorts/2JRtI-dDwgc"
+                        className="inline-link"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Channel 4
+                      </a>
+                      , the{" "}
+                      <a
+                        href="https://www.theguardian.com/technology/2026/sep/18/a-critical-moment-concern-uk-is-not-up-to-speed-in-acting-on-ai-risks"
+                        className="inline-link"
+                        target="_blank"
+                        rel="noreferrer"
+                      >
+                        Guardian
+                      </a>
+                      , and{" "}
+                      <Link href="/#news" className="inline-link">
+                        others
+                      </Link>
+                      .
+                    </p>
+                    <p>
+                      Our main message to Andy Burnham was to convene an
+                      international pause treaty summit, putting the
+                      UK&apos;s G20 presidency to good use.
+                    </p>
+                  </div>
+                  <div className="gallery gallery-4">
+                    <a
+                      className="shot"
+                      href="/images/downing-street-protest-sept-2026/downing-street-group.jpg"
+                    >
+                      <Image
+                        fill
+                        sizes="(max-width: 768px) 100vw, 25vw"
+                        style={{ objectFit: "cover" }}
+                        src="/images/downing-street-protest-sept-2026/downing-street-group-thumb.jpg"
+                        alt="Protesters holding a PauseAI banner, placards and a Wheel of P(doom) in front of the gates of Downing Street"
+                      />
+                    </a>
+                    <a
+                      className="shot"
+                      href="/images/downing-street-protest-sept-2026/downing-street-banner.jpg"
+                    >
+                      <Image
+                        fill
+                        sizes="(max-width: 768px) 100vw, 25vw"
+                        style={{ objectFit: "cover" }}
+                        src="/images/downing-street-protest-sept-2026/downing-street-banner-thumb.jpg"
+                        alt="Protesters holding a PauseAI banner and placards outside Downing Street"
+                      />
+                    </a>
+                    <a
+                      className="shot"
+                      href="/images/downing-street-protest-sept-2026/downing-street-march.jpg"
+                    >
+                      <Image
+                        fill
+                        sizes="(max-width: 768px) 100vw, 25vw"
+                        style={{ objectFit: "cover" }}
+                        src="/images/downing-street-protest-sept-2026/downing-street-march-thumb.jpg"
+                        alt="Volunteers in orange T-shirts chanting and carrying PauseAI signs"
+                      />
+                    </a>
+                    <a
+                      className="shot"
+                      href="/images/downing-street-protest-sept-2026/downing-street-burnham-sign.jpg"
+                    >
+                      <Image
+                        fill
+                        sizes="(max-width: 768px) 100vw, 25vw"
+                        style={{ objectFit: "cover" }}
+                        src="/images/downing-street-protest-sept-2026/downing-street-burnham-sign-thumb.jpg"
+                        alt="A protester holding a sign reading Burnham, block AI oblivion"
                       />
                     </a>
                   </div>
