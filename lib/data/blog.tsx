@@ -59,7 +59,7 @@ export const posts: BlogPost[] = [
     date: "2026-09-22",
     author: ORGANISATION_AUTHOR,
     tldr:
-      "Andy Burnham is calling for a global agreement on AI. After OpenAI's agents escaped containment this summer, an agreement is not enough: the UK should convene a summit to negotiate a treaty pausing frontier AI development.",
+      "Andy Burnham is calling for a global agreement on AI. The UK has a unique opportunity to reclaim the international leadership in AI safety it established with the Bletchley Park summit and the AI Security Institute. This is Burnham’s chance to take the lead on the most important issue of our time.",
     content: (
       <>
         <figure>
@@ -288,10 +288,10 @@ export const posts: BlogPost[] = [
     tldr:
       "Britain can't build frontier AI, but it can use its soft power and diplomatic position to push for an international treaty that pauses the race to superintelligence.",
     cover: {
-      src: "/images/local-groups/london/london-feb-2025-protest.jpg",
-      alt: "PauseAI UK protesters jumping with placards in Parliament Square, the Elizabeth Tower behind them",
-      width: 800,
-      height: 533,
+      src: "/images/blog/AI-Safety-Summit-2023.jpg",
+      alt: "World leaders and tech executives lined up for the family photo at the AI Safety Summit at Bletchley Park, November 2023",
+      width: 1280,
+      height: 720,
     },
     content: (
       <>
@@ -511,7 +511,7 @@ export const posts: BlogPost[] = [
   },
   {
     slug: "you-cant-pause-ai-without-china",
-    title: "You Can’t Pause AI Without China",
+    title: "You Canât Pause AI Without China",
     date: "2026-08-30",
     author: "Lachlan Ewart",
     tldr:
