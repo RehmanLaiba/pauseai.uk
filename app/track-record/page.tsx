@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Image from "next/image";
 import Link from "next/link";
 import Script from "next/script";
+import CopyLinkButton from "@/components/CopyLinkButton";
 import Nav from "@/components/Nav";
 import { site } from "@/lib/data/site";
 import "./track-record.css";
@@ -62,7 +63,10 @@ export default function TrackRecordPage() {
                   <span className="year">2025</span>
                 </aside>
                 <div className="entry-body">
-                  <h3 className="entry-title">PauseCon London</h3>
+                  <div className="entry-heading">
+                    <h3 className="entry-title">PauseCon London</h3>
+                    <CopyLinkButton href="/track-record/#pausecon-london" title="Copy link to this entry" size={14} />
+                  </div>
                   <div className="entry-text">
                     <p>
                       We delivered the first PauseAI conference, PauseCon, on
@@ -139,7 +143,10 @@ export default function TrackRecordPage() {
                   <span className="year">2025</span>
                 </aside>
                 <div className="entry-body">
-                  <h3 className="entry-title">Open Letter to Demis Hassabis</h3>
+                  <div className="entry-heading">
+                    <h3 className="entry-title">Open Letter to Demis Hassabis</h3>
+                    <CopyLinkButton href="/track-record/#open-letter-to-demis-hassabis" title="Copy link to this entry" size={14} />
+                  </div>
                   <div className="entry-text">
                     <p>
                       We published an{" "}
@@ -197,7 +204,10 @@ export default function TrackRecordPage() {
                   <span className="year">2025</span>
                 </aside>
                 <div className="entry-body">
-                  <h3 className="entry-title">Book launch party</h3>
+                  <div className="entry-heading">
+                    <h3 className="entry-title">Book launch party</h3>
+                    <CopyLinkButton href="/track-record/#book-launch-party" title="Copy link to this entry" size={14} />
+                  </div>
                   <div className="entry-text">
                     <p>
                       Throughout the year, we regularly held social events,
@@ -231,9 +241,10 @@ export default function TrackRecordPage() {
                   <span className="year">2025</span>
                 </aside>
                 <div className="entry-body">
-                  <h3 className="entry-title">
-                    Documentary Screening in Parliament
-                  </h3>
+                  <div className="entry-heading">
+                    <h3 className="entry-title">Documentary Screening in Parliament </h3>
+                    <CopyLinkButton href="/track-record/#documentary-screening-in-parliament" title="Copy link to this entry" size={14} />
+                  </div>
                   <div className="entry-text">
                     <p>
                       We held a{" "}
@@ -277,7 +288,10 @@ export default function TrackRecordPage() {
                   <span className="year">2025</span>
                 </aside>
                 <div className="entry-body">
-                  <h3 className="entry-title">Westminster Hall Debate</h3>
+                  <div className="entry-heading">
+                    <h3 className="entry-title">Westminster Hall Debate</h3>
+                    <CopyLinkButton href="/track-record/#westminster-hall-debate" title="Copy link to this entry" size={14} />
+                  </div>
                   <div className="entry-text">
                     <p>
                       We proposed and helped to organise a{" "}
@@ -320,7 +334,10 @@ export default function TrackRecordPage() {
                   <span className="year">2026</span>
                 </aside>
                 <div className="entry-body">
-                  <h3 className="entry-title">PauseCon Brussels</h3>
+                  <div className="entry-heading">
+                    <h3 className="entry-title">PauseCon Brussels</h3>
+                    <CopyLinkButton href="/track-record/#pausecon-brussels" title="Copy link to this entry" size={14} />
+                  </div>
                   <div className="entry-text">
                     <p>
                       We delivered the next PauseCon in Brussels on behalf of
@@ -423,7 +440,10 @@ export default function TrackRecordPage() {
                   <span className="year">2026</span>
                 </aside>
                 <div className="entry-body">
-                  <h3 className="entry-title">March for AI Safety</h3>
+                  <div className="entry-heading">
+                    <h3 className="entry-title">March for AI Safety</h3>
+                    <CopyLinkButton href="/track-record/#march-for-ai-safety" title="Copy link to this entry" size={14} />
+                  </div>
                   <div className="entry-text">
                     <p>
                       We co-organised a march past the offices of OpenAI and Big
@@ -529,7 +549,10 @@ export default function TrackRecordPage() {
                   <span className="year">2026</span>
                 </aside>
                 <div className="entry-body">
-                  <h3 className="entry-title">Parliamentary Meetings</h3>
+                  <div className="entry-heading">
+                    <h3 className="entry-title">Parliamentary Meetings</h3>
+                    <CopyLinkButton href="/track-record/#parliamentary-meetings" title="Copy link to this entry" size={14} />
+                  </div>
                   <div className="entry-text">
                     <p>
                       Volunteers from across the country contacted their Members

@@ -4,11 +4,17 @@ import { useState } from "react";
 
 export default function CopyLinkButton({
   slug,
+  href,
+  title = "Copy link to this story",
   className,
   size = 16,
   label,
 }: {
-  slug: string;
+  // A person slug (links to /people/<slug>) or any site-relative href.
+  slug?: string;
+  href?: string;
+  // Tooltip and accessible name while idle.
+  title?: string;
   className?: string;
   size?: number;
   // When set, renders as a labelled button (icon + text) instead of the
@@ -18,7 +24,7 @@ export default function CopyLinkButton({
   const [copied, setCopied] = useState(false);
 
   async function handleCopy() {
-    const url = `${window.location.origin}/people/${slug}`;
+    const url = `${window.location.origin}${href ?? `/people/${slug}`}`;
     try {
       await navigator.clipboard.writeText(url);
     } catch {
@@ -33,8 +39,8 @@ export default function CopyLinkButton({
       type="button"
       className={[label ? "btn ghost story-share-cta" : "story-share-btn", className].filter(Boolean).join(" ")}
       onClick={handleCopy}
-      aria-label={copied ? "Link copied" : "Copy link to this story"}
-      title={copied ? "Link copied" : "Copy link to this story"}
+      aria-label={copied ? "Link copied" : title}
+      title={copied ? "Link copied" : title}
     >
       {copied ? (
         <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

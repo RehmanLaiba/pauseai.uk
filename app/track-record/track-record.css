@@ -446,3 +446,18 @@
   .lb-prev { left: 50%; margin-left: -52px; }
   .lb-next { right: 50%; margin-right: -52px; }
 }
+
+/* ─── Entry heading with copy-link button ─── */
+.track-record .entry-heading {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  margin: 0 0 20px;
+}
+.track-record .entry-heading .entry-title { margin: 0; }
+/* Reuses .story-share-btn from globals.css (the People page share button),
+   a touch smaller to sit beside the heading. */
+.track-record .entry-heading .story-share-btn {
+  width: 28px;
+  height: 28px;
+}
