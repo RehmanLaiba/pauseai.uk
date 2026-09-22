@@ -74,7 +74,7 @@ export default function GovernancePage() {
 
         <article className="gov-article">
           <div className="container gov-inner">
-            <section className="gov-section">
+            <section className="gov-section" id="donation-policies">
               <h2>Donation policies</h2>
 
               <p>

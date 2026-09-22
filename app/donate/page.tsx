@@ -98,6 +98,17 @@ export default function DonatePage() {
                   Because our work meaningfully engages with policy, donations are not eligible for Gift Aid. Read our{" "}
                   <Link className="inline-link" href="/privacy">privacy policy</Link> to see how we handle your information.
                 </p>
+                <div className="other-ways-cards">
+                  <article className="feature-card">
+                    <h3>Can I donate anonymously?</h3>
+                    <p>
+                      Yes. We never publish a donor&apos;s name without their permission, and we understand there are good reasons to keep your support private. To make sure we are never acting for any outside interest, we ask donors giving over &pound;1,000 for their name, email and country of residence, hold that in confidence, and have our board approve anyone giving more than &pound;10,000 in a year.
+                    </p>
+                    <Link className="inline-link" href="/governance/#donation-policies">
+                      Read our donation policies →
+                    </Link>
+                  </article>
+                </div>
                 <div className="registered-details">
                   <p>
                     <strong>Safe AI Alliance Ltd</strong> is the legal entity operating PauseAI UK. It is a private company limited by guarantee, registered in England and Wales (company number <strong>17137345</strong>), with registered office at 128 City Road, London EC1V 2NX, United Kingdom.
