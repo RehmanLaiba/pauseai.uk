@@ -416,3 +416,21 @@
 .blog .blog-body .blog-footnote-back {
   text-decoration: none;
 }
+
+/* ─── Lists in the post body ─── */
+.blog .blog-body ol,
+.blog .blog-body ul {
+  margin: 0 0 18px;
+  padding-left: 26px;
+}
+.blog .blog-body li {
+  font-size: 17px;
+  line-height: 1.7;
+  color: var(--text);
+  margin-bottom: 8px;
+  padding-left: 4px;
+}
+.blog .blog-body li::marker {
+  color: var(--pause-orange);
+  font-weight: 600;
+}
