@@ -629,8 +629,7 @@ export default function TrackRecordPage() {
                 </aside>
                 <div className="entry-body">
                   <h3 className="entry-title">
-                    PauseCon London and Parliamentary Conference: Confronting AI
-                    Risk
+                    PauseCon London and Parliamentary Conference
                   </h3>
                   <div className="entry-text">
                     <p>
@@ -779,14 +778,14 @@ export default function TrackRecordPage() {
                   <div className="gallery gallery-4">
                     <a
                       className="shot shot-tall"
-                      href="/images/downing-street-protest-sept-2026/downing-street-global-treaty.jpg"
+                      href="/images/downing-street-protest-sept-2026/downing-street-gates-crowd.jpg"
                     >
                       <Image
                         fill
                         sizes="(max-width: 768px) 100vw, 25vw"
                         style={{ objectFit: "cover" }}
-                        src="/images/downing-street-protest-sept-2026/downing-street-global-treaty-thumb.jpg"
-                        alt="Two volunteers holding a Global Treaty PauseAI sign above a large pause symbol"
+                        src="/images/downing-street-protest-sept-2026/downing-street-gates-crowd-thumb.jpg"
+                        alt="Protesters with PauseAI banners and placards outside the gates of Downing Street"
                       />
                     </a>
                     <a
