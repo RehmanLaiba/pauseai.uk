@@ -82,7 +82,15 @@ export const posts: BlogPost[] = [
           >
             calling for a global agreement on AI
           </a>
-          . He needs to take bold action and push for a pause on the development of the most powerful frontier AI
+          . This comes just days after Ed Davey, leader of the Liberal Democrats, called on the government to{" "}
+          <a
+            href="https://www.cityam.com/davey-calls-for-ai-pause-as-burnham-inks-us-uk-tech-deal/"
+            target="_blank"
+            rel="noreferrer"
+          >
+            &ldquo;press pause on super-intelligent AI&rdquo;
+          </a>
+          . Burnham needs to take bold action and push for a pause on the development of the most powerful frontier AI
           systems until AI companies can prove that they can be developed safely.
         </p>
         <p>
