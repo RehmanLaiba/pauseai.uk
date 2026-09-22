@@ -651,9 +651,10 @@ export default function TrackRecordPage() {
                   <span className="year">2026</span>
                 </aside>
                 <div className="entry-body">
-                  <h3 className="entry-title">
-                    PauseCon London and Parliamentary Conference
-                  </h3>
+                  <div className="entry-heading">
+                    <h3 className="entry-title">PauseCon London and Parliamentary Conference </h3>
+                    <CopyLinkButton href="/track-record/#pausecon-london-2026" title="Copy link to this entry" size={14} />
+                  </div>
                   <div className="entry-text">
                     <p>
                       We helped PauseAI Global to deliver the next PauseCon in
@@ -749,9 +750,10 @@ export default function TrackRecordPage() {
                   <span className="year">2026</span>
                 </aside>
                 <div className="entry-body">
-                  <h3 className="entry-title">
-                    Emergency Protest outside Downing Street
-                  </h3>
+                  <div className="entry-heading">
+                    <h3 className="entry-title">Emergency Protest outside Downing Street </h3>
+                    <CopyLinkButton href="/track-record/#emergency-protest-downing-street" title="Copy link to this entry" size={14} />
+                  </div>
                   <div className="entry-text">
                     <p>
                       In response to the media wave following Jacob Coxon
