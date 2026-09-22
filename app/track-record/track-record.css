@@ -261,6 +261,8 @@
   max-width: 760px;
 }
 .gallery-4 .shot-tall { grid-row: span 2; }
+/* Four shots with no tall one: a 2x2 grid instead of 3 + an orphan */
+.gallery-4:not(:has(.shot-tall)) { grid-template-columns: 1fr 1fr; }
 
 .shot {
   position: relative;
