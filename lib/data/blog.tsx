@@ -511,7 +511,7 @@ export const posts: BlogPost[] = [
   },
   {
     slug: "you-cant-pause-ai-without-china",
-    title: "You Canât Pause AI Without China",
+    title: "You Can’t Pause AI Without China",
     date: "2026-08-30",
     author: "Lachlan Ewart",
     tldr:
