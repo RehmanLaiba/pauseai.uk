@@ -636,6 +636,17 @@ export const OUTLETS: Outlet[] = [
         url: "https://www.bostonglobe.com/2026/09/16/business/ai-slowdown-safety/",
         date: "2026-09-16",
       },
+      {
+        // Body text never names us; the photo caption does ("A protest by
+        // civic action group PauseAI UK in London on Sept 16..."), from the
+        // Downing Street protest.
+        // TODO verify date: the URL path reads /2026/09/20/ but the byline
+        // on the page reads September 21.
+        medium: "Photos",
+        title: "As Trump weighs in, AI leaders debate how to slow down without crippling the economy",
+        url: "https://www.bostonglobe.com/2026/09/20/business/ai-threat-slowdown-pause-economy/",
+        date: "2026-09-21",
+      },
     ],
   },
   {
@@ -738,6 +749,44 @@ export const OUTLETS: Outlet[] = [
         title: "Watch out! The robots are coming",
         url: "https://www.islingtontribune.co.uk/article/watch-out-the-robots-are-coming",
         date: "2023-05-26",
+      },
+      {
+        // Quotes Joseph Miller as director of PauseAI UK ahead of the June
+        // 2025 DeepMind protest.
+        medium: "Article",
+        title: "Tech firms urged to put the brakes on AI",
+        url: "https://www.islingtontribune.co.uk/article/tech-firms-urged-to-put-the-brakes-on-ai",
+        date: "2025-06-27",
+      },
+    ],
+  },
+  {
+    // Same publisher as the Islington Tribune, but a separate local title,
+    // so it gets its own entry rather than joining theirs.
+    name: "Westminster Extra",
+    articles: [
+      {
+        // Quotes Joseph Miller on the Parliament Square protest held during
+        // the Paris AI summit week.
+        medium: "Article",
+        title: "Warning\u2026 \u2018governments are racing ahead\u2019 with AI",
+        url: "https://www.westminsterextra.co.uk/article/warning-governments-are-racing-ahead-with-ai",
+        date: "2025-02-14",
+      },
+    ],
+  },
+  {
+    // Sinclair's national desk; the piece runs on its member stations, and
+    // krcrtv.com is the copy we found it on.
+    name: "The National News Desk (KRCR)",
+    articles: [
+      {
+        // Body text never names us; the photo caption does, identifying
+        // PauseAI activists with placards near Downing Street on 16 Sep.
+        medium: "Article",
+        title: "AI concerns beginning to mirror Y2K-era as push for regulation continues",
+        url: "https://krcrtv.com/news/nation-world/ai-concerns-beginning-to-mirror-y2k-era-as-push-for-regulation-continues",
+        date: "2026-09-18",
       },
     ],
   },
