@@ -45,7 +45,9 @@ import CharCount from "./CharCount";
 import Slider from "./Slider";
 
 // Caption is a gallery slide (photo-forward, no logo), so single images offer the other layouts and point to the gallery.
-const SINGLE_TEMPLATES = TEMPLATES.filter((t) => t.id !== "caption");
+// Brush is suspended for now: its code stays in templates.ts so it can come back.
+const HIDDEN_TEMPLATE_IDS = ["caption", "brush"];
+const SINGLE_TEMPLATES = TEMPLATES.filter((t) => !HIDDEN_TEMPLATE_IDS.includes(t.id));
 const RESET_MESSAGE = "Reset to the example text.";
 
 const STORAGE_KEY = "pauseai-collateral-v2";
@@ -83,7 +85,7 @@ export default function CollateralStudio({ onOpenGallery }: { onOpenGallery: () 
   const pinch = useRef<{ dist: number; zoom: number } | null>(null);
 
   const format = getFormat(formatId);
-  // Older saves may still name the Caption layout, which now lives in the gallery.
+  // Older saves may still name a hidden layout (Caption, Brush), so fall back to the default.
   const template = SINGLE_TEMPLATES.find((t) => t.id === templateId) ?? getTemplate(DEFAULT_TEMPLATE_ID);
   const theme = getTheme(themeId);
   // Merge over defaults so fields added after a volunteer's last visit still get a value.
