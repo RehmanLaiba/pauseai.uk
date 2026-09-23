@@ -1,4 +1,6 @@
-export type ThemeId = "orange" | "cream" | "black" | "clear";
+import { contrastOf, hexToRgb, luminance } from "./contrast";
+
+export type ThemeId = "orange" | "cream" | "black";
 
 export interface Theme {
   id: ThemeId;
@@ -15,8 +17,11 @@ export interface Theme {
   accentText: string;
   /** Path of the logo variant that reads well on `bg`. */
   logoSrc: string;
-  /** When true, photos show at full strength always — the "Photo strength" slider and theme tint are skipped. */
-  noPhotoTint?: boolean;
+  /**
+   * Darker small-text colours for when a photo sits behind the text. A tinted photo is darker and busier than the
+   * plain style colour, so colours that pass on `bg` alone can fail over it (measured by the contrast check).
+   */
+  onPhoto?: { muted?: string; accentText?: string };
 }
 
 // The orange in the logo (see public/images/logos). Every orange in the collateral tools comes from here,
@@ -40,6 +45,7 @@ export const THEMES: Theme[] = [
     onAccent: CREAM,
     accentText: INK,
     logoSrc: `${LOGO_DIR}/logo-white-black-white.svg`,
+    onPhoto: { muted: "#221810" },
   },
   {
     id: "cream",
@@ -51,6 +57,8 @@ export const THEMES: Theme[] = [
     onAccent: INK,
     accentText: ORANGE_TEXT,
     logoSrc: `${LOGO_DIR}/logo-color-on-light.svg`,
+    // The dark orange only reads on plain cream, so small text turns to ink over a photo.
+    onPhoto: { muted: "#2E2922", accentText: INK },
   },
   {
     id: "black",
@@ -63,39 +71,21 @@ export const THEMES: Theme[] = [
     accentText: BRAND_ORANGE,
     logoSrc: `${LOGO_DIR}/logo-color-on-dark.svg`,
   },
-  {
-    id: "clear",
-    label: "Clear",
-    bg: "#FFFFFF",
-    text: INK,
-    muted: "#5C544A",
-    accent: BRAND_ORANGE,
-    onAccent: INK,
-    accentText: ORANGE_TEXT,
-    logoSrc: `${LOGO_DIR}/logo-color-on-light.svg`,
-    noPhotoTint: true,
-  },
 ];
 
 export const DEFAULT_THEME_ID: ThemeId = "orange";
 
+/** Styles that were retired, and the style that now looks the same. Clear was Cream with no colour over the photo. */
+const RETIRED_THEMES: Record<string, ThemeId> = { clear: "cream" };
+
 export function getTheme(id: string): Theme {
-  return THEMES.find((t) => t.id === id) ?? THEMES.find((t) => t.id === DEFAULT_THEME_ID)!;
+  const current = RETIRED_THEMES[id] ?? id;
+  return THEMES.find((t) => t.id === current) ?? THEMES.find((t) => t.id === DEFAULT_THEME_ID)!;
 }
 
 export const LOGO_ASPECT = 1124 / 294.7;
 
-function channel(v: number): number {
-  const s = v / 255;
-  return s <= 0.03928 ? s / 12.92 : ((s + 0.055) / 1.055) ** 2.4;
-}
-
-function luminance(hex: string): number {
-  const n = parseInt(hex.replace("#", ""), 16);
-  return 0.2126 * channel((n >> 16) & 255) + 0.7152 * channel((n >> 8) & 255) + 0.0722 * channel(n & 255);
-}
-
+/** WCAG contrast ratio between two "#rrggbb" colours. */
 export function contrastRatio(a: string, b: string): number {
-  const [hi, lo] = [luminance(a), luminance(b)].sort((x, y) => y - x);
-  return (hi + 0.05) / (lo + 0.05);
+  return contrastOf(luminance(hexToRgb(a) ?? [0, 0, 0]), luminance(hexToRgb(b) ?? [0, 0, 0]));
 }

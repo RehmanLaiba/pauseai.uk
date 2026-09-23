@@ -5,7 +5,7 @@ import { tintVisible } from "@/lib/collateral/design";
 import type { CalendarEvent } from "@/lib/collateral/eventText";
 import { canvasToPngBlob, downloadFilesZip, downloadText, exportFilename, pdfBytesForPrint } from "@/lib/collateral/export";
 import { BLEED_MM, FORMAT_GROUPS, FORMATS, formatDimensionLabel, type Format } from "@/lib/collateral/formats";
-import { sameIssues, type LintIssue } from "@/lib/collateral/lint";
+import { sameIssues, splitByScope, type LintIssue } from "@/lib/collateral/lint";
 import { DEFAULT_PACK_FORMAT_IDS, DEFAULT_PHOTO_VIEW, parsePackProject, serializePackProject, type PackProject } from "@/lib/collateral/packProject";
 import type { PhotoView } from "@/lib/collateral/photoTransform";
 import { renderCollateral, type RenderOptions } from "@/lib/collateral/render";
@@ -247,19 +247,31 @@ export default function PackStudio({ events }: { events: CalendarEvent[] }) {
     });
   }
 
-  const needAttention = formats.filter((f) => (issuesById[f.id] ?? []).some((i) => i.level === "warn")).length;
-  const activeIssues = active ? (issuesById[active.id] ?? []) : [];
+  // Problems in the design itself (its text or QR codes) are the same on every format, so they are listed once,
+  // and each format's badge and count only cover what depends on that format.
+  const { design: designIssues, own } = splitByScope(formats.map((f) => issuesById[f.id] ?? []));
+  const ownIssues = Object.fromEntries(formats.map((f, i) => [f.id, own[i]]));
+  const needAttention = formats.filter((f) => ownIssues[f.id].some((i) => i.level === "warn")).length;
+  const activeIssues = active ? (ownIssues[active.id] ?? []) : [];
   const downloadButton = (
     <button type="button" className="btn primary large" onClick={onDownloadPack} disabled={!ready || formats.length === 0}>
       {busy ? "Preparing…" : `Download ${formats.length} ${formats.length === 1 ? "format" : "formats"} (.zip)`}
     </button>
   );
+  const designWarnings = designIssues.filter((i) => i.level === "warn").length;
   const summary =
     formats.length === 0
       ? "Tick at least one format."
-      : needAttention
-        ? `${needAttention} of ${formats.length} formats need a look before you download.`
-        : "Every format passed the checks.";
+      : [
+          designWarnings && `${designWarnings} ${designWarnings === 1 ? "problem affects" : "problems affect"} every format.`,
+          needAttention
+            ? `${needAttention} of ${formats.length} formats need a look of their own.`
+            : designWarnings
+              ? "Otherwise every format passed its checks."
+              : "Every format passed the checks.",
+        ]
+          .filter(Boolean)
+          .join(" ");
   const shown = message ?? assetError;
 
   return (
@@ -273,7 +285,7 @@ export default function PackStudio({ events }: { events: CalendarEvent[] }) {
                 key={f.id}
                 format={f}
                 options={optionsFor(f.id)}
-                issues={issuesById[f.id] ?? []}
+                issues={ownIssues[f.id]}
                 active={f.id === active?.id}
                 onSelect={() => setActiveId(f.id)}
                 onIssues={(found) => onIssues(f.id, found)}
@@ -281,6 +293,7 @@ export default function PackStudio({ events }: { events: CalendarEvent[] }) {
             ))}
           </div>
         )}
+        {designIssues.length > 0 && <Checks issues={designIssues} title="Checks for every format" />}
         <div className="collateral-preview-actions">
           <p className="collateral-hint">{summary}</p>
           {downloadButton}
@@ -337,7 +350,7 @@ export default function PackStudio({ events }: { events: CalendarEvent[] }) {
               {formats.map((f) => (
                 <option key={f.id} value={f.id}>
                   {f.label}
-                  {(issuesById[f.id] ?? []).some((i) => i.level === "warn") ? " (needs a look)" : ""}
+                  {ownIssues[f.id].some((i) => i.level === "warn") ? " (needs a look)" : ""}
                 </option>
               ))}
             </select>
@@ -352,6 +365,7 @@ export default function PackStudio({ events }: { events: CalendarEvent[] }) {
         )}
 
         <section className="collateral-actions">
+          {designIssues.length > 0 && <Checks issues={designIssues} title="Checks for every format" />}
           <p className="collateral-hint collateral-actions-summary">{summary}</p>
           {downloadButton}
           <button type="button" className="btn ghost large" onClick={onReset}>

@@ -1,6 +1,6 @@
 import type { QrSize, TextAlign } from "./design";
 import { renderSize, type Format } from "./formats";
-import { LintCollector, type LintIssue } from "./lint";
+import { LintCollector, lintLinksInText, lintUnreadableUrl, type LintIssue } from "./lint";
 import { FONT_LOADS, type Drawable, type PhotoSettings, type Template, type Values } from "./templates";
 import type { QrCode } from "./qr";
 import type { Theme } from "./themes";
@@ -110,6 +110,10 @@ export function renderCollateral(canvas: HTMLCanvasElement, opts: RenderOptions)
     partnerLogos: opts.partnerLogos,
     lint,
   });
+  if (lint) {
+    lintLinksInText(lint, opts.template.fields, opts.values);
+    lintUnreadableUrl(lint, opts.values);
+  }
   return { width, height, issues: lint ? lint.finish(size.dpi) : [] };
 }
 

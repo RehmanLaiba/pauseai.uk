@@ -5,7 +5,7 @@ const project: Project = {
   formatId: "a5",
   templateId: "event",
   themeId: "cream",
-  values: { event: { headline: "Letter writing night", date: "Thursday 15 October" } },
+  values: { event: { headline: "Letter writing night", date: "2026-10-15", start: "19:00" } },
   qrCodes: [
     { label: "RSVP", url: "luma.com/pauseai.uk" },
     { label: "Join WhatsApp", url: "pauseai.uk/join" },
@@ -98,6 +98,23 @@ describe("parseProject cleans untrusted content", () => {
     const huge = `data:image/png;base64,${"A".repeat(MAX_EMBEDDED_PHOTO_CHARS)}`;
     const result = parseProject(withEdit((o) => (o.photo = { kind: "upload", name: "x", dataUrl: huge })));
     expect(result.ok && result.project.photo).toBeNull();
+  });
+
+  it("drops free-text dates and times from older saves, so the date and time pickers get their defaults", () => {
+    const result = parseProject(withEdit((o) => (o.values = { event: { date: "Thursday 15 October", start: "7pm", end: "", time: "7pm" } })));
+    expect(result.ok && result.project.values.event).toEqual({ end: "" });
+  });
+
+  it("opens a design saved with the retired Clear style as Cream with the lightest tint", () => {
+    const result = parseProject(withEdit((o) => Object.assign(o, { themeId: "clear", tint: "strong" })));
+    expect(result.ok && result.project).toMatchObject({ themeId: "cream", tint: "medium" });
+  });
+
+  it("opens a design saved with the retired None tint on Medium", () => {
+    const result = parseProject(
+      withEdit((o) => Object.assign(o, { tint: "none", photoSettings: { zoom: 1, focalX: 0.5, focalY: 0.5, visible: 1 } })),
+    );
+    expect(result.ok && result.project.tint).toBe("medium");
   });
 
   it("clamps photo settings", () => {

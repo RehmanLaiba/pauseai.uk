@@ -1,4 +1,6 @@
+import { hexToRgb } from "./contrast";
 import type { QrSize, TextAlign } from "./design";
+import { EVENTS_PAGE_URL, exampleEventDate, formatPickedDate, formatPickedTimeRange } from "./eventText";
 import { aspectClass, layoutMarginUnits, type AspectClass } from "./formats";
 import type { LintCollector } from "./lint";
 import { normaliseUrl, QR_GAP_UNITS, qrPlan, qrTarget, usableQrCodes, type QrCode } from "./qr";
@@ -30,7 +32,7 @@ export interface PhotoSettings {
   zoom: number;
   focalX: number;
   focalY: number;
-  /** 0..1, how much of the photo shows through the theme tint. 1 means untinted (see PHOTO_TINTS). */
+  /** 0..1, how much of the photo shows through the theme tint (see PHOTO_TINTS). Gallery slides use 1: untinted. */
   visible: number;
 }
 
@@ -70,7 +72,8 @@ export interface DrawArgs {
 export interface FieldDef {
   key: string;
   label: string;
-  kind: "text" | "textarea" | "toggle";
+  /** "date" and "time" hold what date and time inputs give ("2026-10-28", "18:30") and are formatted when drawn. */
+  kind: "text" | "textarea" | "toggle" | "date" | "time";
   maxLength?: number;
   hint?: string;
   default: string;
@@ -114,33 +117,40 @@ function geometry(a: DrawArgs): Geometry {
   return { u, cls, headerLeft: m, left, right, top: m, bottom: a.height - m, cw: right - left, logoW: logoUnits * u };
 }
 
-/** True when a photo shows untinted: always on Clear, and on the other styles when the tint is set to None. */
-function photoUntinted(a: DrawArgs): boolean {
-  return Boolean(a.photo && (a.theme.noPhotoTint || a.photoSettings.visible >= 1));
+/** The small-text colours to use: the style's own, or its darker on-photo ones when a photo is behind the text. */
+function smallTextColours(a: DrawArgs): { muted: string; accentText: string } {
+  const onPhoto = a.photo ? a.theme.onPhoto : undefined;
+  return { muted: onPhoto?.muted ?? a.theme.muted, accentText: onPhoto?.accentText ?? a.theme.accentText };
 }
 
-/** Text over an untinted photo gets a light outline to stay readable, as the Brush line does. */
-function needsHalo(a: DrawArgs): boolean {
-  return photoUntinted(a);
-}
-
-/** fillText, plus the untinted-photo outline when it is needed. Uses the context's current font and fill. */
+/** fillText, noting the text for the checks. Uses the context's current font and fill. */
 function fillText(a: DrawArgs, text: string, x: number, y: number, maxWidth?: number) {
   const { ctx } = a;
-  const size = parseFloat(/([\d.]+)px/.exec(ctx.font)?.[1] ?? "0");
-  a.lint?.noteText(size / a.scale);
-  if (needsHalo(a)) {
-    const u = Math.sqrt(a.width * a.height) / 1000;
-    ctx.save();
-    ctx.strokeStyle = a.theme.text === INK ? "#FFFFFF" : INK;
-    ctx.lineJoin = "round";
-    ctx.lineWidth = Math.min(size * 0.24, 16 * u);
-    if (maxWidth === undefined) ctx.strokeText(text, x, y);
-    else ctx.strokeText(text, x, y, maxWidth);
-    ctx.restore();
-  }
+  if (a.lint) noteTextForLint(a, a.lint, text, x, y, parseFloat(/([\d.]+)px/.exec(ctx.font)?.[1] ?? "0"), maxWidth);
   if (maxWidth === undefined) ctx.fillText(text, x, y);
   else ctx.fillText(text, x, y, maxWidth);
+}
+
+/** Text this size or larger, in design units, counts as large for contrast (3:1 rather than 4.5:1). */
+const LARGE_TEXT_UNITS = 40;
+
+/** Records a line's size for the print check and its box and colour for the contrast check. */
+function noteTextForLint(a: DrawArgs, lint: LintCollector, text: string, x: number, y: number, size: number, maxWidth?: number) {
+  lint.noteText(size / a.scale);
+  if (!a.photo) return;
+  const { ctx } = a;
+  const m = ctx.measureText(text);
+  const inkW = m.actualBoundingBoxLeft + m.actualBoundingBoxRight;
+  // A maxWidth narrower than the text squeezes it horizontally around the same anchor.
+  const squeeze = maxWidth !== undefined && inkW > maxWidth ? maxWidth / inkW : 1;
+  const rect = {
+    x: x - m.actualBoundingBoxLeft * squeeze,
+    y: y - m.actualBoundingBoxAscent,
+    w: inkW * squeeze,
+    h: m.actualBoundingBoxAscent + m.actualBoundingBoxDescent,
+  };
+  const u = Math.sqrt(a.width * a.height) / 1000;
+  lint.noteTextBox(text, rect, hexToRgb(String(ctx.fillStyle)), size >= LARGE_TEXT_UNITS * u);
 }
 
 function font(weight: number | string, size: number, family: string): string {
@@ -165,14 +175,8 @@ function paintBackground(a: DrawArgs) {
   if (!photo) return;
   const r = coverRect(photo.width, photo.height, width, height, photoSettings.zoom, photoSettings.focalX, photoSettings.focalY);
   ctx.drawImage(photo.source, r.x, r.y, r.w, r.h);
-  if (photoUntinted(a)) {
-    a.lint?.add({
-      id: "photo-untinted",
-      level: "info",
-      message: "The text sits on an untinted photo with an outline. Check it reads clearly, or add some tint.",
-    });
-    return;
-  }
+  a.lint?.captureBackdrop(ctx.canvas, { bg: hexToRgb(theme.bg) ?? [255, 255, 255], visible: photoSettings.visible });
+  if (photoSettings.visible >= 1) return;
   ctx.globalAlpha = 1 - photoSettings.visible;
   ctx.fillStyle = theme.bg;
   ctx.fillRect(0, 0, width, height);
@@ -181,7 +185,7 @@ function paintBackground(a: DrawArgs) {
 
 /** Logo top-left with any partner logos beside it, "UK · GROUP" top-right. Returns the y of the header's bottom edge. */
 function drawHeader(a: DrawArgs, g: Geometry): number {
-  const { ctx, theme, values } = a;
+  const { ctx, values } = a;
   const logoH = g.logoW / LOGO_ASPECT;
   ctx.drawImage(a.logo.source, g.headerLeft, g.top, g.logoW, logoH);
 
@@ -198,7 +202,7 @@ function drawHeader(a: DrawArgs, g: Geometry): number {
   ctx.save();
   ctx.font = font(800, size, BODY_FONT);
   setTracking(ctx, size * 0.14);
-  ctx.fillStyle = theme.accentText;
+  ctx.fillStyle = smallTextColours(a).accentText;
   ctx.textAlign = "right";
   ctx.textBaseline = "middle";
   // Tracking adds trailing space after the last glyph, so nudge back to the margin.
@@ -347,14 +351,17 @@ function lintQrTargets(a: DrawArgs, codes: QrCode[]) {
   if (!a.lint) return;
   const targets = codes.map((c) => normaliseUrl(c.url).toLowerCase().replace(/\/+$/, ""));
   if (new Set(targets).size < targets.length) {
-    a.lint.add({ id: "qr-duplicate", level: "warn", message: "Two of your QR codes open the same address." });
+    a.lint.add({ id: "qr-duplicate", level: "warn", scope: "design", message: "Two of your QR codes open the same address." });
   }
   const shownUrl = a.values.url?.trim();
   const printed = shownUrl ? normaliseUrl(shownUrl).toLowerCase().replace(/\/+$/, "") : "";
-  if (printed && !targets.includes(printed)) {
+  // Our events page lists every event, so printing it while a code opens one event is intended.
+  const hub = printed === normaliseUrl(EVENTS_PAGE_URL);
+  if (printed && !hub && !targets.includes(printed)) {
     a.lint.add({
       id: "qr-mismatch",
       level: "info",
+      scope: "design",
       message: `No QR code opens ${shownUrl}, the web address on the design. Check that is intended.`,
     });
   }
@@ -497,12 +504,12 @@ function drawBrushLines(a: DrawArgs, lines: string[], x: number, y: number, size
 }
 
 function drawKicker(a: DrawArgs, g: Geometry, text: string, y: number): number {
-  const { ctx, theme } = a;
+  const { ctx } = a;
   const size = 30 * g.u;
   const tracking = size * 0.16;
   ctx.font = font(800, size, BODY_FONT);
   setTracking(ctx, tracking);
-  ctx.fillStyle = theme.accentText;
+  ctx.fillStyle = smallTextColours(a).accentText;
   ctx.textBaseline = "top";
   if (a.align === "center") {
     ctx.textAlign = "center";
@@ -633,7 +640,7 @@ const announcement: Template = {
     y += headline.height;
     if (subFit) {
       y += 22 * g.u;
-      ctx.fillStyle = theme.muted;
+      ctx.fillStyle = smallTextColours(a).muted;
       ctx.font = font(500, subFit.fontSize, BODY_FONT);
       drawLines(a, subFit.lines, g.left, y, subFit.lineHeightPx, g.cw);
     }
@@ -648,12 +655,13 @@ const event: Template = {
     { key: "kicker", label: "Kicker", kind: "text", maxLength: 40, default: "Join us" },
     { key: "headline", label: "Event title", kind: "textarea", maxLength: 80, default: "Letter writing night" },
     { key: "uppercase", label: "Uppercase title", kind: "toggle", default: "true" },
-    { key: "date", label: "Date", kind: "text", maxLength: 32, default: "Thursday 15 October" },
-    { key: "time", label: "Time", kind: "text", maxLength: 24, default: "7pm" },
+    { key: "date", label: "Date", kind: "date", default: exampleEventDate() },
+    { key: "start", label: "Start time", kind: "time", default: "19:00" },
+    { key: "end", label: "End time", kind: "time", hint: "Optional", default: "" },
     { key: "venue", label: "Venue", kind: "text", maxLength: 60, default: "Venue name, City" },
     { key: "blurb", label: "Short description", kind: "textarea", maxLength: 120, default: "Meet local volunteers and write to your MP about AI safety." },
     { ...FOOTER_FIELDS[0], default: "RSVP on Luma" },
-    { ...FOOTER_FIELDS[1], default: "luma.com/pauseai.uk" },
+    { ...FOOTER_FIELDS[1], default: "pauseai.uk/events" },
     ...FOOTER_FIELDS.slice(2),
   ],
   draw(a) {
@@ -665,7 +673,7 @@ const event: Template = {
 
     const kicker = values.kicker?.trim();
     const kickerH = kicker ? 30 * g.u * 1.3 + 22 * g.u : 0;
-    const when = [values.date?.trim(), values.time?.trim()].filter(Boolean).join(" · ");
+    const whenParts = [formatPickedDate(values.date ?? ""), formatPickedTimeRange(values.start ?? "", values.end ?? "")].filter(Boolean);
     const venue = values.venue?.trim();
     const blurb = compact ? "" : (values.blurb?.trim() ?? "");
 
@@ -684,15 +692,17 @@ const event: Template = {
             lineHeight: 1.25,
           })
         : null;
-      const whenFit = when
-        ? fitText(measurer(ctx, 800, BODY_FONT), when, {
-            maxWidth: g.cw - 30 * g.u,
-            maxHeight: dateSize * 1.3 * 2,
-            maxFont: dateSize,
-            minFont: Math.min(dateSize, 24 * g.u),
-            lineHeight: 1.25,
-          })
-        : null;
+      // "Date · time" on one line. When that would wrap, the time takes its own line instead, so no line starts with a dot.
+      const fitWhen = (text: string) =>
+        fitText(measurer(ctx, 800, BODY_FONT), text, {
+          maxWidth: g.cw - 30 * g.u,
+          maxHeight: dateSize * 1.3 * 2,
+          maxFont: dateSize,
+          minFont: Math.min(dateSize, 24 * g.u),
+          lineHeight: 1.25,
+        });
+      const oneLine = whenParts.length ? fitWhen(whenParts.join(" · ")) : null;
+      const whenFit = oneLine && oneLine.lines.length > 1 ? fitWhen(whenParts.join("\n")) : oneLine;
       const detailsH = (whenFit?.height ?? 0) + (venueFit ? venueFit.height + 6 * g.u : 0);
       const detailsBlock = detailsH ? detailsH + 30 * g.u : 0;
 
@@ -764,7 +774,7 @@ const event: Template = {
         ty += whenFit.height + 6 * g.u;
       }
       if (venueFit) {
-        ctx.fillStyle = theme.muted;
+        ctx.fillStyle = smallTextColours(a).muted;
         ctx.font = font(600, venueFit.fontSize, BODY_FONT);
         drawLines(a, venueFit.lines, textX, ty, venueFit.lineHeightPx, textW);
       }
@@ -772,7 +782,7 @@ const event: Template = {
     }
     if (blurbFit) {
       y += 18 * g.u;
-      ctx.fillStyle = theme.muted;
+      ctx.fillStyle = smallTextColours(a).muted;
       ctx.font = font(500, blurbFit.fontSize, BODY_FONT);
       drawLines(a, blurbFit.lines, g.left, y, blurbFit.lineHeightPx, g.cw);
     }
@@ -838,7 +848,7 @@ const quote: Template = {
         const tracking = 34 * g.u * 0.1;
         ctx.font = font(800, 34 * g.u, BODY_FONT);
         setTracking(ctx, tracking);
-        ctx.fillStyle = theme.accentText;
+        ctx.fillStyle = smallTextColours(a).accentText;
         ctx.textBaseline = "top";
         fillText(a, name.toUpperCase(), centre ? lineX + tracking / 2 : lineX, y);
         setTracking(ctx, 0);
@@ -846,7 +856,7 @@ const quote: Template = {
       }
       if (role) {
         ctx.font = font(500, 28 * g.u, BODY_FONT);
-        ctx.fillStyle = theme.muted;
+        ctx.fillStyle = smallTextColours(a).muted;
         ctx.textBaseline = "top";
         fillText(a, role, lineX, y);
       }

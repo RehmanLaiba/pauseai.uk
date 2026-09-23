@@ -710,7 +710,7 @@ export default function GalleryStudio() {
 
         <section>
           <h2>3. Style</h2>
-          <p className="collateral-hint">Slide {activeIndex + 1}. Each slide picks its own — alternate looks, or mix tinted and Clear.</p>
+          <p className="collateral-hint">Slide {activeIndex + 1}. Each slide picks its own, so you can alternate looks.</p>
           <div className="collateral-swatches" role="radiogroup" aria-label="Style">
             {THEMES.map((t) => (
               <button

@@ -4,7 +4,7 @@ import { newPackOutput, parsePackProject, serializePackProject, type PackProject
 const pack: PackProject = {
   templateId: "event",
   themeId: "black",
-  values: { event: { headline: "Public meeting", date: "Wednesday 28 October" } },
+  values: { event: { headline: "Public meeting", date: "2026-10-28" } },
   qrCodes: [{ label: "Scan to RSVP", url: "lu.ma/abc" }],
   trackQr: false,
   qrSize: "m",

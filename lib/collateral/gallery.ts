@@ -19,7 +19,7 @@ export interface Slide {
   photo: SlidePhoto | null;
   photoSettings: PhotoSettings;
   caption: string;
-  /** Each slide picks its own style, so a carousel can alternate looks or mix tinted and Clear slides. */
+  /** Each slide picks its own style, so a carousel can alternate looks. */
   themeId: string;
 }
 

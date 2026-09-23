@@ -61,32 +61,64 @@ export function formatClock(hours: number, minutes: number): string {
   return minutes ? `${h}:${String(minutes).padStart(2, "0")}${suffix}` : `${h}${suffix}`;
 }
 
-function clockIn(date: Date, timeZone: string): string {
+/** "2026-10-28" and "18:30" for an instant in a time zone: what date and time inputs hold. */
+export function inputValuesIn(iso: string, timeZone: string): { date: string; time: string } {
   const p = Object.fromEntries(
-    new Intl.DateTimeFormat("en-GB", { hour: "numeric", minute: "numeric", hourCycle: "h23", timeZone })
-      .formatToParts(date)
+    new Intl.DateTimeFormat("en-GB", { year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", hourCycle: "h23", timeZone })
+      .formatToParts(new Date(iso))
       .map((x) => [x.type, x.value]),
   );
-  return formatClock(Number(p.hour), Number(p.minute));
+  return { date: `${p.year}-${p.month}-${p.day}`, time: `${p.hour}:${p.minute}` };
 }
 
-/** "6:30pm – 8:30pm", or just the start when there is no end. */
-export function formatTimeRange(start: string, end: string | undefined, timeZone: string): string {
-  const from = clockIn(new Date(start), timeZone);
-  return end ? `${from} – ${clockIn(new Date(end), timeZone)}` : from;
+/** "Wednesday 28 October" for an event, in its own time zone, for listing it. */
+export function eventDayLabel(ev: CalendarEvent, now = new Date()): string {
+  return formatDay(new Date(ev.startAt), validTimeZone(ev.timezone), now);
 }
 
-/** Field values for the Event layout, filled from a calendar event. */
-export function eventFieldValues(ev: CalendarEvent, now = new Date()): Record<string, string> {
+/** Our events page, which lists the Luma calendar: the readable link printed on event designs. */
+export const EVENTS_PAGE_URL = "pauseai.uk/events";
+
+/** The event's own page. Luma's ids are random codes, so this goes in a QR code rather than being printed. */
+export function eventLink(ev: CalendarEvent): string {
+  return `lu.ma/${ev.id}`;
+}
+
+/**
+ * Field values for the Event layout, filled from a calendar event. Date and times are in the event's own zone.
+ * The printed web address is our events page, since the event's own link is a code nobody can type.
+ */
+export function eventFieldValues(ev: CalendarEvent): Record<string, string> {
   const tz = validTimeZone(ev.timezone);
+  const start = inputValuesIn(ev.startAt, tz);
   return {
     headline: ev.name.slice(0, 80),
-    date: formatDay(new Date(ev.startAt), tz, now).slice(0, 32),
-    time: formatTimeRange(ev.startAt, ev.endAt, tz).slice(0, 24),
+    date: start.date,
+    start: start.time,
+    end: ev.endAt ? inputValuesIn(ev.endAt, tz).time : "",
     venue: ev.venue.slice(0, 60),
-    url: `lu.ma/${ev.id}`,
+    // Luma's calendar has no descriptions, and the example one would describe a different event, so start empty.
+    blurb: "",
+    url: EVENTS_PAGE_URL,
     group: (ev.city ?? "").slice(0, 24),
   };
+}
+
+export const DATE_INPUT = /^\d{4}-\d{2}-\d{2}$/;
+export const TIME_INPUT = /^\d{2}:\d{2}$/;
+
+/** "6:30pm – 8pm" from time input values, or just the start. Empty without a start. */
+export function formatPickedTimeRange(start: string, end: string): string {
+  const from = formatPickedTime(start);
+  const to = formatPickedTime(end);
+  return from && to ? `${from} – ${to}` : from;
+}
+
+/** A date for the Event layout's example: the Thursday at least two weeks from `now`, as a date input holds it. */
+export function exampleEventDate(now = new Date()): string {
+  const d = new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() + 14, 12));
+  d.setUTCDate(d.getUTCDate() + ((4 - d.getUTCDay() + 7) % 7));
+  return d.toISOString().slice(0, 10);
 }
 
 /** "Wednesday 28 October" from a date input's "YYYY-MM-DD". Empty when it cannot be read. */

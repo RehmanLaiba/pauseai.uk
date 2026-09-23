@@ -11,11 +11,12 @@ import {
   type QrSize,
   type TextAlign,
 } from "./design";
+import { DATE_INPUT, TIME_INPUT } from "./eventText";
 import { getFormat } from "./formats";
 import { LIBRARY_PHOTOS } from "./photos";
 import { MAX_ZOOM } from "./photoTransform";
 import { MAX_QR_CODES, type QrCode } from "./qr";
-import { TEMPLATES, getTemplate, type PhotoSettings, type Values } from "./templates";
+import { TEMPLATES, getTemplate, type FieldDef, type PhotoSettings, type Values } from "./templates";
 import { getTheme } from "./themes";
 
 export const PROJECT_APP = "pauseai-collateral";
@@ -138,6 +139,13 @@ export function parseProject(text: string): ParseResult {
   };
 }
 
+/** Date and time fields hold what their inputs give, or nothing. Free text from older saves falls back to the default. */
+function fitsKind(kind: FieldDef["kind"], value: string): boolean {
+  if (kind === "date") return value === "" || DATE_INPUT.test(value);
+  if (kind === "time") return value === "" || TIME_INPUT.test(value);
+  return true;
+}
+
 /**
  * Validates the design fields of a saved file from untrusted JSON. Fields added after a file was saved
  * get their defaults, and a file from before the tint steps gets the step nearest its old photo strength.
@@ -149,7 +157,9 @@ export function parseDesignData(raw: Record<string, unknown>): DesignData {
     const saved = rawValues[template.id];
     if (!isRecord(saved)) continue;
     values[template.id] = Object.fromEntries(
-      template.fields.filter((f) => typeof saved[f.key] === "string").map((f) => [f.key, str(saved[f.key], f.maxLength ?? 200)]),
+      template.fields
+        .filter((f) => typeof saved[f.key] === "string" && fitsKind(f.kind, saved[f.key] as string))
+        .map((f) => [f.key, str(saved[f.key], f.maxLength ?? 200)]),
     );
   }
 
@@ -175,7 +185,16 @@ export function parseDesignData(raw: Record<string, unknown>): DesignData {
     : [];
 
   const oldVisible = isRecord(raw.photoSettings) ? num(raw.photoSettings.visible, 0, 1, tintVisible(DEFAULT_PHOTO_TINT)) : undefined;
-  const tint: PhotoTint = isPhotoTint(raw.tint) ? raw.tint : oldVisible !== undefined ? snapTint(oldVisible) : DEFAULT_PHOTO_TINT;
+  // The retired Clear style never tinted its photo, so a design saved with it opens as Cream with the lightest tint.
+  // A saved "none" is not a tint step any more, so it falls through to its saved strength and snaps to Medium.
+  const tint: PhotoTint =
+    raw.themeId === "clear"
+      ? "medium"
+      : isPhotoTint(raw.tint)
+        ? raw.tint
+        : oldVisible !== undefined
+          ? snapTint(oldVisible)
+          : DEFAULT_PHOTO_TINT;
 
   return {
     templateId: getTemplate(str(raw.templateId, 40)).id,

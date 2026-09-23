@@ -185,6 +185,8 @@
 
 .collateral-controls select,
 .collateral-controls input[type="text"],
+.collateral-controls input[type="date"],
+.collateral-controls input[type="time"],
 .collateral-controls textarea {
   width: 100%;
   padding: 10px 12px;
@@ -649,28 +651,6 @@
 .collateral-qr-size-label,
 .collateral-tint-label {
   margin-top: 14px;
-}
-
-.collateral-date-pickers {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: center;
-  gap: 8px;
-}
-
-.collateral-date-pickers input {
-  padding: 8px 10px;
-  border: 1px solid var(--border-strong);
-  border-radius: 8px;
-  background: var(--surface);
-  color: var(--text);
-  font: inherit;
-  font-size: 15px;
-}
-
-.collateral-date-pickers span {
-  font-size: 14px;
-  color: var(--text-secondary);
 }
 
 .collateral-checks {

@@ -5,7 +5,9 @@ import {
   formatDay,
   formatPickedDate,
   formatPickedTime,
-  formatTimeRange,
+  formatPickedTimeRange,
+  exampleEventDate,
+  inputValuesIn,
   toCalendarEvents,
   type CalendarEvent,
 } from "./eventText";
@@ -36,13 +38,27 @@ describe("formatDay", () => {
   });
 });
 
-describe("formatTimeRange", () => {
-  it("formats a start and end in the event's zone", () => {
-    expect(formatTimeRange("2026-10-28T18:30:00Z", "2026-10-28T20:30:00Z", "Europe/London")).toBe("6:30pm – 8:30pm");
+describe("inputValuesIn", () => {
+  it("gives date and time input values in the event's zone", () => {
+    // 23:30 UTC on the 28th is 00:30 on the 29th in London during BST.
+    expect(inputValuesIn("2026-09-28T23:30:00Z", "Europe/London")).toEqual({ date: "2026-09-29", time: "00:30" });
   });
+});
 
-  it("formats just the start when there is no end", () => {
-    expect(formatTimeRange("2026-12-01T19:00:00Z", undefined, "Europe/London")).toBe("7pm");
+describe("formatPickedTimeRange", () => {
+  it("formats a start and end, or just the start", () => {
+    expect(formatPickedTimeRange("18:30", "20:00")).toBe("6:30pm – 8pm");
+    expect(formatPickedTimeRange("19:00", "")).toBe("7pm");
+    expect(formatPickedTimeRange("", "20:00")).toBe("");
+  });
+});
+
+describe("exampleEventDate", () => {
+  it("is a Thursday at least two weeks away", () => {
+    const date = exampleEventDate(now);
+    expect(new Date(`${date}T12:00:00Z`).getUTCDay()).toBe(4);
+    expect(date >= "2026-10-07").toBe(true);
+    expect(date).toBe("2026-10-08");
   });
 });
 
@@ -57,23 +73,25 @@ describe("eventFieldValues", () => {
     city: "Bristol",
   };
 
-  it("fills the Event layout fields", () => {
-    expect(eventFieldValues(ev, now)).toEqual({
+  it("fills the Event layout fields, with the date and times in the event's zone", () => {
+    expect(eventFieldValues(ev)).toEqual({
       headline: "Public meeting in Bristol",
-      date: "Wednesday 28 October",
-      time: "5:30pm – 7:30pm",
+      date: "2026-10-28",
+      start: "17:30",
+      end: "19:30",
       venue: "The Station, Bristol",
-      url: "lu.ma/abc123",
+      blurb: "",
+      url: "pauseai.uk/events",
       group: "Bristol",
     });
   });
 
   it("falls back to London when the zone is unknown", () => {
-    expect(eventFieldValues({ ...ev, timezone: "Not/AZone" }, now).time).toBe("5:30pm – 7:30pm");
+    expect(eventFieldValues({ ...ev, timezone: "Not/AZone" }).start).toBe("17:30");
   });
 
   it("trims to the field limits", () => {
-    const long = eventFieldValues({ ...ev, name: "x".repeat(200), venue: "y".repeat(200) }, now);
+    const long = eventFieldValues({ ...ev, name: "x".repeat(200), venue: "y".repeat(200) });
     expect(long.headline).toHaveLength(80);
     expect(long.venue).toHaveLength(60);
   });

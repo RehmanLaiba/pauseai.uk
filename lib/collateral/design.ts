@@ -1,11 +1,12 @@
-/** How strongly the style's colour covers a photo. Three steps, so a design never ends up faintly tinted. */
-export type PhotoTint = "strong" | "medium" | "none";
+/**
+ * How strongly the style's colour covers a photo. Two steps, so a design never ends up faintly tinted. There is
+ * deliberately no untinted step: text straight on a photo needed an outline to read, which did not look good.
+ */
+export type PhotoTint = "strong" | "medium";
 
 export const PHOTO_TINTS: { id: PhotoTint; label: string; visible: number }[] = [
   { id: "strong", label: "Strong", visible: 0.25 },
   { id: "medium", label: "Medium", visible: 0.5 },
-  // 1 means the photo shows untouched; text over it gets an outline, as on the Clear style.
-  { id: "none", label: "None", visible: 1 },
 ];
 
 export const DEFAULT_PHOTO_TINT: PhotoTint = "strong";
@@ -15,7 +16,7 @@ export function tintVisible(tint: PhotoTint): number {
   return (PHOTO_TINTS.find((t) => t.id === tint) ?? PHOTO_TINTS[0]).visible;
 }
 
-/** The nearest tint step to an older free-slider value, so saves from before the steps still open sensibly. */
+/** The nearest tint step to an older value (the free slider, or the retired None step), so older saves open sensibly. */
 export function snapTint(visible: number): PhotoTint {
   let best = PHOTO_TINTS[0];
   for (const t of PHOTO_TINTS) if (Math.abs(t.visible - visible) < Math.abs(best.visible - visible)) best = t;
