@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Nav from "@/components/Nav";
 import NoAnalytics from "@/components/NoAnalytics";
+import { toCalendarEvents } from "@/lib/collateral/eventText";
+import { getEvents } from "@/lib/data/events";
 import CollateralApp from "./CollateralApp";
 import "./collateral.css";
 
@@ -12,7 +14,9 @@ export const metadata: Metadata = {
   robots: { index: false, follow: false },
 };
 
-export default function CollateralPage() {
+export default async function CollateralPage() {
+  // Upcoming events from our Luma calendar, for "fill in from one of our events". Cached for an hour by getEvents.
+  const events = toCalendarEvents(await getEvents("future"));
   return (
     <>
       <Nav />
@@ -27,7 +31,7 @@ export default function CollateralPage() {
             Pick a format and a style, fill in the text, and download. Everything happens in your browser, so nothing is uploaded.
             Just need a QR code? Use the <Link href="/tools/qr">QR code generator</Link>.
           </p>
-          <CollateralApp />
+          <CollateralApp events={events} />
         </div>
       </main>
     </>

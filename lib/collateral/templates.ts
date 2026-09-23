@@ -1,8 +1,10 @@
+import type { QrSize, TextAlign } from "./design";
 import { aspectClass, layoutMarginUnits, type AspectClass } from "./formats";
-import { QR_GAP_UNITS, qrPlan, qrTarget, usableQrCodes, type QrCode } from "./qr";
+import type { LintCollector } from "./lint";
+import { normaliseUrl, QR_GAP_UNITS, qrPlan, qrTarget, usableQrCodes, type QrCode } from "./qr";
 import { pauseBars, QR_INK, qrShape } from "./qrShape";
 import { BRAND_ORANGE, INK, LOGO_ASPECT, type Theme } from "./themes";
-import { coverRect, fitText, type Measure } from "./text";
+import { coverRect, fitText, type FitResult, type Measure } from "./text";
 
 export const DISPLAY_FONT = '"PAI Lato", Lato, system-ui, sans-serif';
 export const BODY_FONT = '"PAI Inter", Inter, system-ui, sans-serif';
@@ -28,7 +30,7 @@ export interface PhotoSettings {
   zoom: number;
   focalX: number;
   focalY: number;
-  /** 0..1, how much of the photo shows through the theme tint. */
+  /** 0..1, how much of the photo shows through the theme tint. 1 means untinted (see PHOTO_TINTS). */
   visible: number;
 }
 
@@ -53,6 +55,16 @@ export interface DrawArgs {
   qrCodes: QrCode[];
   /** Whether QR links get an analytics tag. */
   trackQr: boolean;
+  /** Preferred QR size. Medium when left out. */
+  qrSize?: QrSize;
+  /** Body text alignment. The header always keeps the logos left and the group right. */
+  align?: TextAlign;
+  /** Multiplier on the title's automatic size range, from the title size nudge. 1 when left out. */
+  headlineScale?: number;
+  /** Partner logos, drawn to the right of the PauseAI logo. */
+  partnerLogos?: Drawable[];
+  /** Collects problems for the checks list. Only the live preview passes one. */
+  lint?: LintCollector;
 }
 
 export interface FieldDef {
@@ -102,16 +114,22 @@ function geometry(a: DrawArgs): Geometry {
   return { u, cls, headerLeft: m, left, right, top: m, bottom: a.height - m, cw: right - left, logoW: logoUnits * u };
 }
 
-/** Clear leaves the photo untinted, so text over it gets a light outline to stay readable, as the Brush line does. */
-function needsHalo(a: DrawArgs): boolean {
-  return Boolean(a.photo && a.theme.noPhotoTint);
+/** True when a photo shows untinted: always on Clear, and on the other styles when the tint is set to None. */
+function photoUntinted(a: DrawArgs): boolean {
+  return Boolean(a.photo && (a.theme.noPhotoTint || a.photoSettings.visible >= 1));
 }
 
-/** fillText, plus the Clear-over-a-photo outline when it is needed. Uses the context's current font and fill. */
+/** Text over an untinted photo gets a light outline to stay readable, as the Brush line does. */
+function needsHalo(a: DrawArgs): boolean {
+  return photoUntinted(a);
+}
+
+/** fillText, plus the untinted-photo outline when it is needed. Uses the context's current font and fill. */
 function fillText(a: DrawArgs, text: string, x: number, y: number, maxWidth?: number) {
   const { ctx } = a;
+  const size = parseFloat(/([\d.]+)px/.exec(ctx.font)?.[1] ?? "0");
+  a.lint?.noteText(size / a.scale);
   if (needsHalo(a)) {
-    const size = parseFloat(/([\d.]+)px/.exec(ctx.font)?.[1] ?? "0");
     const u = Math.sqrt(a.width * a.height) / 1000;
     ctx.save();
     ctx.strokeStyle = a.theme.text === INK ? "#FFFFFF" : INK;
@@ -147,22 +165,36 @@ function paintBackground(a: DrawArgs) {
   if (!photo) return;
   const r = coverRect(photo.width, photo.height, width, height, photoSettings.zoom, photoSettings.focalX, photoSettings.focalY);
   ctx.drawImage(photo.source, r.x, r.y, r.w, r.h);
-  if (theme.noPhotoTint) return;
+  if (photoUntinted(a)) {
+    a.lint?.add({
+      id: "photo-untinted",
+      level: "info",
+      message: "The text sits on an untinted photo with an outline. Check it reads clearly, or add some tint.",
+    });
+    return;
+  }
   ctx.globalAlpha = 1 - photoSettings.visible;
   ctx.fillStyle = theme.bg;
   ctx.fillRect(0, 0, width, height);
   ctx.globalAlpha = 1;
 }
 
-/** Logo top-left, "UK · GROUP" top-right. Returns the y of the header's bottom edge. */
+/** Logo top-left with any partner logos beside it, "UK · GROUP" top-right. Returns the y of the header's bottom edge. */
 function drawHeader(a: DrawArgs, g: Geometry): number {
   const { ctx, theme, values } = a;
   const logoH = g.logoW / LOGO_ASPECT;
   ctx.drawImage(a.logo.source, g.headerLeft, g.top, g.logoW, logoH);
 
   const group = values.group?.trim();
-  const label = group ? `UK · ${group}` : "UK";
+  const label = (group ? `UK · ${group}` : "UK").toUpperCase();
   const size = (g.cls === "banner" ? 24 : 28) * g.u;
+  ctx.save();
+  ctx.font = font(800, size, BODY_FONT);
+  setTracking(ctx, size * 0.14);
+  const labelLeft = g.right - ctx.measureText(label).width;
+  ctx.restore();
+  drawPartnerLogos(a, g, logoH, labelLeft - 30 * g.u);
+
   ctx.save();
   ctx.font = font(800, size, BODY_FONT);
   setTracking(ctx, size * 0.14);
@@ -170,9 +202,62 @@ function drawHeader(a: DrawArgs, g: Geometry): number {
   ctx.textAlign = "right";
   ctx.textBaseline = "middle";
   // Tracking adds trailing space after the last glyph, so nudge back to the margin.
-  fillText(a, label.toUpperCase(), g.right + size * 0.14, g.top + logoH / 2);
+  fillText(a, label, g.right + size * 0.14, g.top + logoH / 2);
   ctx.restore();
   return g.top + logoH;
+}
+
+/** Partner logos may shrink to this share of the PauseAI logo's height before one is left out. */
+const MIN_PARTNER_SCALE = 0.6;
+
+/**
+ * Partner logos to the right of the PauseAI logo, each after a thin divider, at the PauseAI logo's height.
+ * They shrink to fit before `limitRight` (the group label), and any that still do not fit are left out.
+ */
+function drawPartnerLogos(a: DrawArgs, g: Geometry, logoH: number, limitRight: number) {
+  const logos = a.partnerLogos ?? [];
+  if (logos.length === 0) return;
+  const { ctx, theme } = a;
+  const gap = 26 * g.u;
+  const rule = Math.max(1, 3 * g.u);
+  const start = g.headerLeft + g.logoW;
+  // A very wide logo is capped, so it cannot dominate the PauseAI one.
+  const widths = logos.map((l) => Math.min((logoH * l.width) / l.height, g.logoW));
+  const fixed = (n: number) => n * (2 * gap + rule);
+
+  let shown = logos.length;
+  let k = 1;
+  for (; shown > 0; shown--) {
+    const room = limitRight - start - fixed(shown);
+    const need = widths.slice(0, shown).reduce((s, w) => s + w, 0);
+    k = Math.min(1, room / need);
+    if (k >= MIN_PARTNER_SCALE) break;
+  }
+  if (shown < logos.length) {
+    a.lint?.add({
+      id: "partner-logo-dropped",
+      level: "warn",
+      message:
+        shown === 0
+          ? "The partner logo does not fit on this format, so it is left out."
+          : "Not every partner logo fits on this format, so the last one is left out.",
+    });
+  }
+
+  let x = start;
+  for (let i = 0; i < shown; i++) {
+    const w = widths[i] * k;
+    const h = (w * logos[i].height) / logos[i].width;
+    x += gap;
+    ctx.save();
+    ctx.globalAlpha = 0.35;
+    ctx.fillStyle = theme.text;
+    ctx.fillRect(x, g.top + logoH * 0.1, rule, logoH * 0.8);
+    ctx.restore();
+    x += rule + gap;
+    ctx.drawImage(logos[i].source, x, g.top + (logoH - h) / 2, w, h);
+    x += w;
+  }
 }
 
 function roundRect(ctx: CanvasRenderingContext2D, x: number, y: number, w: number, h: number, r: number) {
@@ -243,7 +328,10 @@ function qrLayout(a: DrawArgs, g: Geometry): QrLayout | null {
     dpi: a.dpi,
     urls: codes.map((c) => c.url),
     track: a.trackQr,
+    sizePref: a.qrSize,
   });
+  if (plan.reason) a.lint?.add({ id: "qr-plan", level: plan.ok ? "info" : "warn", message: plan.reason });
+  lintQrTargets(a, codes);
   if (!plan.ok) return null;
   const shown = codes.slice(0, plan.shown);
   const size = plan.size * a.scale;
@@ -252,6 +340,24 @@ function qrLayout(a: DrawArgs, g: Geometry): QrLayout | null {
   const labelH = shown.some((c) => c.label.trim()) ? labelFont * 1.7 : 0;
   const blockW = shown.length * size + (shown.length - 1) * gap;
   return { codes: shown, size, gap, labelFont, labelH, blockW, blockH: size + labelH, side: shown.length === 1 || blockW <= g.cw * 0.42 };
+}
+
+/** Flags codes that repeat each other, or that all open somewhere other than the web address printed on the design. */
+function lintQrTargets(a: DrawArgs, codes: QrCode[]) {
+  if (!a.lint) return;
+  const targets = codes.map((c) => normaliseUrl(c.url).toLowerCase().replace(/\/+$/, ""));
+  if (new Set(targets).size < targets.length) {
+    a.lint.add({ id: "qr-duplicate", level: "warn", message: "Two of your QR codes open the same address." });
+  }
+  const shownUrl = a.values.url?.trim();
+  const printed = shownUrl ? normaliseUrl(shownUrl).toLowerCase().replace(/\/+$/, "") : "";
+  if (printed && !targets.includes(printed)) {
+    a.lint.add({
+      id: "qr-mismatch",
+      level: "info",
+      message: `No QR code opens ${shownUrl}, the web address on the design. Check that is intended.`,
+    });
+  }
 }
 
 function drawQrBlock(a: DrawArgs, q: QrLayout, x: number, y: number) {
@@ -290,10 +396,12 @@ function drawFooter(a: DrawArgs, g: Geometry): number {
 
   // Codes beside the text only get that spot if the pill and the URL (shrunk no further than
   // MIN_URL_SCALE) fit in what is left of the row. Otherwise they take their own row, so nothing overlaps.
+  // Centred designs always give the codes their own centred row.
+  const centre = a.align === "center";
   const planned = qrLayout(a, g);
   const besideRoom = planned ? g.right - planned.blockW - gap - g.left : g.cw;
   const fitsBeside = pillW <= besideRoom && urlW * MIN_URL_SCALE <= besideRoom;
-  const q = planned?.side && !fitsBeside ? { ...planned, side: false } : planned;
+  const q = planned?.side && (centre || !fitsBeside) ? { ...planned, side: false } : planned;
   const textRight = q?.side ? g.right - q.blockW - gap : g.right;
 
   const stacked = Boolean(cta && url && g.left + pillW + gap + urlW > textRight);
@@ -315,8 +423,23 @@ function drawFooter(a: DrawArgs, g: Geometry): number {
       top = Math.min(qy, textBottom - textH);
     } else {
       const qy = g.bottom - textH - (textH ? gap : 0) - q.blockH;
-      drawQrBlock(a, q, g.left, qy);
+      drawQrBlock(a, q, centre ? g.left + (g.cw - q.blockW) / 2 : g.left, qy);
       top = qy;
+    }
+  }
+
+  // Where the pill and URL start. Centred designs centre the row, or each line when stacked.
+  const room = textRight - g.left;
+  const urlDrawW = url ? Math.min(urlRoom, (urlW * urlFs) / fs) : 0;
+  let pillX = g.left;
+  let urlDrawX = urlX;
+  if (centre) {
+    if (cta && url && !stacked) {
+      pillX = g.left + (room - (pillW + gap + urlDrawW)) / 2;
+      urlDrawX = pillX + pillW + gap;
+    } else {
+      pillX = g.left + (room - pillW) / 2;
+      urlDrawX = g.left + (room - urlDrawW) / 2;
     }
   }
 
@@ -324,13 +447,13 @@ function drawFooter(a: DrawArgs, g: Geometry): number {
   const urlY = stacked ? pillY + pillH + fs * 0.85 : pillY + pillH / 2;
   if (cta) {
     ctx.fillStyle = theme.accent;
-    roundRect(ctx, g.left, pillY, pillW, pillH, pillH / 2);
+    roundRect(ctx, pillX, pillY, pillW, pillH, pillH / 2);
     ctx.fill();
     ctx.fillStyle = theme.onAccent;
     ctx.font = font(800, fs, BODY_FONT);
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
-    ctx.fillText(pillText, g.left + fs * 0.9, pillY + pillH / 2 + fs * 0.04);
+    ctx.fillText(pillText, pillX + fs * 0.9, pillY + pillH / 2 + fs * 0.04);
   }
   if (url) {
     ctx.fillStyle = theme.text;
@@ -338,15 +461,18 @@ function drawFooter(a: DrawArgs, g: Geometry): number {
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
     // maxWidth squeezes a URL that is still too long at the smallest size, rather than letting it run under a QR code.
-    fillText(a, url, urlX, urlY, urlRoom);
+    fillText(a, url, urlDrawX, urlY, urlRoom);
   }
   return top;
 }
 
-function drawLines(a: DrawArgs, lines: string[], x: number, y: number, lineHeightPx: number) {
-  a.ctx.textAlign = "left";
+/** Lines of text from the top-left of a block `width` wide, centred in it when the design is centred. */
+function drawLines(a: DrawArgs, lines: string[], x: number, y: number, lineHeightPx: number, width: number) {
+  const centre = a.align === "center";
+  a.ctx.textAlign = centre ? "center" : "left";
   a.ctx.textBaseline = "top";
-  lines.forEach((line, i) => fillText(a, line, x, y + i * lineHeightPx));
+  const lx = centre ? x + width / 2 : x;
+  lines.forEach((line, i) => fillText(a, line, lx, y + i * lineHeightPx));
 }
 
 /**
@@ -370,17 +496,48 @@ function drawBrushLines(a: DrawArgs, lines: string[], x: number, y: number, size
   ctx.restore();
 }
 
-function drawKicker(a: DrawArgs, g: Geometry, text: string, x: number, y: number): number {
+function drawKicker(a: DrawArgs, g: Geometry, text: string, y: number): number {
   const { ctx, theme } = a;
   const size = 30 * g.u;
+  const tracking = size * 0.16;
   ctx.font = font(800, size, BODY_FONT);
-  setTracking(ctx, size * 0.16);
+  setTracking(ctx, tracking);
   ctx.fillStyle = theme.accentText;
-  ctx.textAlign = "left";
   ctx.textBaseline = "top";
-  fillText(a, text.toUpperCase(), x, y);
+  if (a.align === "center") {
+    ctx.textAlign = "center";
+    // Tracking adds trailing space after the last glyph, so shift by half of it to stay optically centred.
+    fillText(a, text.toUpperCase(), g.left + g.cw / 2 + tracking / 2, y);
+  } else {
+    ctx.textAlign = "left";
+    fillText(a, text.toUpperCase(), g.left, y);
+  }
   setTracking(ctx, 0);
   return size * 1.3;
+}
+
+/** The title's automatic size range, scaled by the title size nudge. */
+function headlineRange(a: DrawArgs, maxFont: number, minFont: number): { maxFont: number; minFont: number } {
+  const k = a.headlineScale ?? 1;
+  return { maxFont: maxFont * k, minFont: minFont * k };
+}
+
+/** Checks list entries for a fitted title. */
+function lintHeadline(a: DrawArgs, fit: FitResult, maxFont: number) {
+  if (!a.lint || fit.lines.every((l) => !l)) return;
+  if (fit.overflow) {
+    a.lint.add({
+      id: "text-overflow",
+      level: "warn",
+      message: "The text does not fit. Shorten it, turn the title size down, or pick a bigger format.",
+    });
+  } else if (fit.fontSize < maxFont * 0.4) {
+    a.lint.add({
+      id: "title-small",
+      level: "info",
+      message: "The title had to shrink a lot to fit. Shorter text will read better.",
+    });
+  }
 }
 
 interface Zone {
@@ -407,8 +564,15 @@ function maxHeadlineFont(cls: AspectClass, u: number): number {
 // Templates
 
 const FOOTER_FIELDS: FieldDef[] = [
-  { key: "cta", label: "Button text", kind: "text", maxLength: 28, default: "Join PauseAI UK" },
-  { key: "url", label: "Web address", kind: "text", maxLength: 60, hint: "A short link reads best", default: "pauseai.uk" },
+  { key: "cta", label: "Button text", kind: "text", maxLength: 28, hint: "Clear it to remove the button", default: "Join PauseAI UK" },
+  {
+    key: "url",
+    label: "Web address",
+    kind: "text",
+    maxLength: 60,
+    hint: "A short link reads best. Clear it to remove",
+    default: "pauseai.uk",
+  },
   { key: "group", label: "Local group", kind: "text", maxLength: 24, hint: "e.g. London. Leave blank for national.", default: "" },
 ];
 
@@ -435,13 +599,14 @@ const announcement: Template = {
     const subReserve = sub ? Math.min(zone.height * 0.3, 200 * g.u) : 0;
     const headlineText = values.uppercase === "true" ? (values.headline ?? "").toUpperCase() : (values.headline ?? "");
 
+    const range = headlineRange(a, maxHeadlineFont(g.cls, g.u), 34 * g.u);
     const headline = fitText(measurer(ctx, 900, DISPLAY_FONT), headlineText, {
       maxWidth: g.cw,
       maxHeight: Math.max(0, zone.height - kickerH - subReserve),
-      maxFont: maxHeadlineFont(g.cls, g.u),
-      minFont: 34 * g.u,
+      ...range,
       lineHeight: 1.02,
     });
+    lintHeadline(a, headline, range.maxFont);
     const subFit = sub
       ? fitText(measurer(ctx, 500, BODY_FONT), sub, {
           maxWidth: g.cw * (g.cls === "banner" ? 0.8 : 0.92),
@@ -456,19 +621,21 @@ const announcement: Template = {
     const total = kickerH + headline.height + subH;
     let y = zone.top + Math.max(0, (zone.height - total) / 2);
 
+    if (subFit?.overflow) lintHeadline(a, subFit, subFit.fontSize);
+
     if (kicker) {
-      drawKicker(a, g, kicker, g.left, y);
+      drawKicker(a, g, kicker, y);
       y += kickerH;
     }
     ctx.fillStyle = theme.text;
     ctx.font = font(900, headline.fontSize, DISPLAY_FONT);
-    drawLines(a, headline.lines, g.left, y, headline.lineHeightPx);
+    drawLines(a, headline.lines, g.left, y, headline.lineHeightPx, g.cw);
     y += headline.height;
     if (subFit) {
       y += 22 * g.u;
       ctx.fillStyle = theme.muted;
       ctx.font = font(500, subFit.fontSize, BODY_FONT);
-      drawLines(a, subFit.lines, g.left, y, subFit.lineHeightPx);
+      drawLines(a, subFit.lines, g.left, y, subFit.lineHeightPx, g.cw);
     }
   },
 };
@@ -542,14 +709,15 @@ const event: Template = {
       const blurbH = blurbFit ? blurbFit.height + 18 * g.u : 0;
 
       // The title always stays bigger than the date, so the hierarchy survives a crowded layout.
+      const range = headlineRange(a, maxHeadlineFont(g.cls, g.u) * 0.9, 34 * g.u);
       const headline = fitText(measurer(ctx, 900, DISPLAY_FONT), headlineText, {
         maxWidth: g.cw,
         maxHeight: Math.max(0, zone.height - kickerH - detailsBlock - blurbH),
-        maxFont: maxHeadlineFont(g.cls, g.u) * 0.9,
-        minFont: Math.max(34 * g.u, (whenFit?.fontSize ?? 0) * 1.15),
+        maxFont: range.maxFont,
+        minFont: Math.max(range.minFont, (whenFit?.fontSize ?? 0) * 1.15),
         lineHeight: 1.02,
       });
-      return { venueFit, whenFit, detailsH, detailsBlock, blurbFit, blurbH, headline };
+      return { venueFit, whenFit, detailsH, detailsBlock, blurbFit, blurbH, headline, maxFont: range.maxFont };
     };
 
     // When space runs out, shrink the date and venue a little, then drop the description, then shrink them further.
@@ -560,36 +728,45 @@ const event: Template = {
       if (!body.headline.overflow) break;
       body = fitBody(...step);
     }
-    const { venueFit, whenFit, detailsH, detailsBlock, blurbFit, blurbH, headline } = body;
+    const { venueFit, whenFit, detailsH, detailsBlock, blurbFit, blurbH, headline, maxFont } = body;
+    lintHeadline(a, headline, maxFont);
+    if (blurb && !blurbFit) {
+      a.lint?.add({ id: "blurb-dropped", level: "info", message: "The short description was left out to make room." });
+    }
 
     const total = kickerH + headline.height + detailsBlock + blurbH;
     let y = zone.top + Math.max(0, (zone.height - total) / 2);
 
     if (kicker) {
-      drawKicker(a, g, kicker, g.left, y);
+      drawKicker(a, g, kicker, y);
       y += kickerH;
     }
     ctx.fillStyle = theme.text;
     ctx.font = font(900, headline.fontSize, DISPLAY_FONT);
-    drawLines(a, headline.lines, g.left, y, headline.lineHeightPx);
+    drawLines(a, headline.lines, g.left, y, headline.lineHeightPx, g.cw);
     y += headline.height;
 
     if (detailsH) {
       y += 30 * g.u;
-      const textX = g.left + 30 * g.u;
-      ctx.fillStyle = theme.accentText;
-      ctx.fillRect(g.left, y, 8 * g.u, detailsH);
+      // Left-aligned details hang off an accent rule. Centred ones drop the rule, which would look lopsided.
+      const centre = a.align === "center";
+      const textX = centre ? g.left : g.left + 30 * g.u;
+      const textW = centre ? g.cw : g.cw - 30 * g.u;
+      if (!centre) {
+        ctx.fillStyle = theme.accentText;
+        ctx.fillRect(g.left, y, 8 * g.u, detailsH);
+      }
       let ty = y;
       if (whenFit) {
         ctx.fillStyle = theme.text;
         ctx.font = font(800, whenFit.fontSize, BODY_FONT);
-        drawLines(a, whenFit.lines, textX, ty, whenFit.lineHeightPx);
+        drawLines(a, whenFit.lines, textX, ty, whenFit.lineHeightPx, textW);
         ty += whenFit.height + 6 * g.u;
       }
       if (venueFit) {
         ctx.fillStyle = theme.muted;
         ctx.font = font(600, venueFit.fontSize, BODY_FONT);
-        drawLines(a, venueFit.lines, textX, ty, venueFit.lineHeightPx);
+        drawLines(a, venueFit.lines, textX, ty, venueFit.lineHeightPx, textW);
       }
       y += detailsH;
     }
@@ -597,7 +774,7 @@ const event: Template = {
       y += 18 * g.u;
       ctx.fillStyle = theme.muted;
       ctx.font = font(500, blurbFit.fontSize, BODY_FONT);
-      drawLines(a, blurbFit.lines, g.left, y, blurbFit.lineHeightPx);
+      drawLines(a, blurbFit.lines, g.left, y, blurbFit.lineHeightPx, g.cw);
     }
   },
 };
@@ -626,38 +803,44 @@ const quote: Template = {
     const attrH = name || role ? (name ? 34 * g.u * 1.3 : 0) + (role ? 28 * g.u * 1.4 : 0) + 30 * g.u : 0;
     const markH = compact ? 0 : 110 * g.u;
 
+    const range = headlineRange(a, (g.cls === "story" ? 96 : g.cls === "banner" ? 64 : 84) * g.u, 28 * g.u);
     const q = fitText(measurer(ctx, 700, DISPLAY_FONT), values.quote ?? "", {
       maxWidth: g.cw,
       maxHeight: Math.max(0, zone.height - attrH - markH),
-      maxFont: (g.cls === "story" ? 96 : g.cls === "banner" ? 64 : 84) * g.u,
-      minFont: 28 * g.u,
+      ...range,
       lineHeight: 1.15,
     });
+    lintHeadline(a, q, range.maxFont);
 
     const total = markH + q.height + attrH;
     let y = zone.top + Math.max(0, (zone.height - total) / 2);
+    const centre = a.align === "center";
+    // Single lines (quote mark, name, role) start here, and are centred on it when the design is centred.
+    const lineX = centre ? g.left + g.cw / 2 : g.left;
 
     if (markH) {
       ctx.fillStyle = theme.accentText;
       ctx.font = font(900, 260 * g.u, DISPLAY_FONT);
-      ctx.textAlign = "left";
+      ctx.textAlign = centre ? "center" : "left";
       ctx.textBaseline = "alphabetic";
-      fillText(a, "“", g.left - 6 * g.u, y + 210 * g.u);
+      fillText(a, "“", centre ? lineX : g.left - 6 * g.u, y + 210 * g.u);
       y += markH;
     }
     ctx.fillStyle = theme.text;
     ctx.font = font(700, q.fontSize, DISPLAY_FONT);
-    drawLines(a, q.lines, g.left, y, q.lineHeightPx);
+    drawLines(a, q.lines, g.left, y, q.lineHeightPx, g.cw);
     y += q.height;
 
     if (attrH) {
       y += 30 * g.u;
+      ctx.textAlign = centre ? "center" : "left";
       if (name) {
+        const tracking = 34 * g.u * 0.1;
         ctx.font = font(800, 34 * g.u, BODY_FONT);
-        setTracking(ctx, 34 * g.u * 0.1);
+        setTracking(ctx, tracking);
         ctx.fillStyle = theme.accentText;
         ctx.textBaseline = "top";
-        fillText(a, name.toUpperCase(), g.left, y);
+        fillText(a, name.toUpperCase(), centre ? lineX + tracking / 2 : lineX, y);
         setTracking(ctx, 0);
         y += 34 * g.u * 1.3;
       }
@@ -665,7 +848,7 @@ const quote: Template = {
         ctx.font = font(500, 28 * g.u, BODY_FONT);
         ctx.fillStyle = theme.muted;
         ctx.textBaseline = "top";
-        fillText(a, role, g.left, y);
+        fillText(a, role, lineX, y);
       }
     }
   },

@@ -1,4 +1,5 @@
 import qrcode from "qrcode-generator";
+import type { QrSize } from "./design";
 import { aspectClass, layoutMarginUnits } from "./formats";
 
 export interface QrCode {
@@ -98,6 +99,8 @@ export function qrPlan(opts: {
   dpi?: number;
   urls: string[];
   track: boolean;
+  /** The volunteer's preferred size. Medium when left out. */
+  sizePref?: QrSize;
 }): QrPlan {
   const targets = opts.urls.map((u) => qrTarget(u, opts.track)).filter(Boolean).slice(0, MAX_QR_CODES);
   if (targets.length === 0) return { ok: false, size: 0, shown: 0, reason: "Add a web address to make a QR code." };
@@ -105,7 +108,10 @@ export function qrPlan(opts: {
   const modules = targets.map((t) => qrMatrix(t).length);
   const u = Math.sqrt(opts.width * opts.height) / 1000;
   const cls = aspectClass(opts.width, opts.height);
-  const preferred = (cls === "banner" ? 150 : cls === "story" ? 250 : 210) * u;
+  const sizeScale = opts.sizePref === "s" ? 0.8 : opts.sizePref === "l" ? 1.3 : 1;
+  const preferred = (cls === "banner" ? 150 : cls === "story" ? 250 : 210) * u * sizeScale;
+  // Large may also take a bigger share of the design than the usual cap.
+  const shareScale = opts.sizePref === "l" ? 1.25 : 1;
   const contentWidth = opts.width - 2 * layoutMarginUnits(cls) * u;
   const gap = QR_GAP_UNITS * u;
   const short = Math.min(opts.width, opts.height);
@@ -114,7 +120,7 @@ export function qrPlan(opts: {
   for (let k = targets.length; k >= 1; k--) {
     const widest = Math.max(...modules.slice(0, k));
     const min = Math.ceil(Math.max((QR_MIN_MODULE_PX * widest) / (1 - 2 * QR_PANEL_PAD), byPhysical));
-    const cap = Math.min(short * (k === 1 ? QR_MAX_SHARE_SINGLE : QR_MAX_SHARE_MULTI), (contentWidth - (k - 1) * gap) / k);
+    const cap = Math.min(short * (k === 1 ? QR_MAX_SHARE_SINGLE : QR_MAX_SHARE_MULTI) * shareScale, (contentWidth - (k - 1) * gap) / k);
     // Only the scannable minimum can rule a QR out. The preferred size is just clamped to the cap.
     if (min <= cap) {
       return {

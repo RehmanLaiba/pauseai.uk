@@ -1,79 +1,40 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import type { PointerEvent as ReactPointerEvent } from "react";
+import { tintVisible } from "@/lib/collateral/design";
+import type { CalendarEvent } from "@/lib/collateral/eventText";
 import { downloadCanvasPdf, downloadCanvasPng, downloadText, exportFilename } from "@/lib/collateral/export";
-import {
-  BLEED_MM,
-  DEFAULT_FORMAT_ID,
-  FORMAT_GROUPS,
-  FORMATS,
-  formatDimensionLabel,
-  getFormat,
-  renderSize,
-} from "@/lib/collateral/formats";
-import { LIBRARY_PHOTOS, type LibraryPhoto } from "@/lib/collateral/photos";
-import { MAX_ZOOM, panPhoto, zoomPhoto } from "@/lib/collateral/photoTransform";
-import {
-  parseProject,
-  QR_LABEL_MAX,
-  QR_URL_MAX,
-  serializeProject,
-  type Project,
-  type ProjectPhoto,
-} from "@/lib/collateral/project";
-import { MAX_QR_CODES, normaliseUrl, qrPlan, usableQrCodes, type QrCode } from "@/lib/collateral/qr";
-import {
-  drawableToJpegDataUrl,
-  fileToDrawable,
-  loadDataUrl,
-  loadFonts,
-  loadImage,
-  renderCollateral,
-} from "@/lib/collateral/render";
-import {
-  DEFAULT_TEMPLATE_ID,
-  defaultValues,
-  getTemplate,
-  TEMPLATES,
-  type Drawable,
-  type PhotoSettings,
-  type Values,
-} from "@/lib/collateral/templates";
-import { DEFAULT_THEME_ID, getTheme, THEMES } from "@/lib/collateral/themes";
-import CharCount from "./CharCount";
+import { BLEED_MM, DEFAULT_FORMAT_ID, FORMAT_GROUPS, FORMATS, formatDimensionLabel, getFormat, renderSize } from "@/lib/collateral/formats";
+import { sameIssues, type LintIssue } from "@/lib/collateral/lint";
+import { MAX_ZOOM, type PhotoView } from "@/lib/collateral/photoTransform";
+import { parseProject, serializeProject, type Project } from "@/lib/collateral/project";
+import { qrPlan, usableQrCodes } from "@/lib/collateral/qr";
+import { renderCollateral, type RenderOptions } from "@/lib/collateral/render";
+import { defaultValues, type Drawable } from "@/lib/collateral/templates";
+import { getTheme } from "@/lib/collateral/themes";
+import Checks from "./Checks";
+import DesignControls from "./DesignControls";
+import { designFromData, designTemplate, designToData, designValues, newDesign, type DesignState } from "./designState";
 import Slider from "./Slider";
+import TitleSizeControl from "./TitleSizeControl";
+import { usePhotoGestures } from "./usePhotoGestures";
+import { useStudioAssets } from "./useStudioAssets";
 
-// Caption is a gallery slide (photo-forward, no logo), so single images offer the other layouts and point to the gallery.
-// Brush is suspended for now: its code stays in templates.ts so it can come back.
-const HIDDEN_TEMPLATE_IDS = ["caption", "brush"];
-const SINGLE_TEMPLATES = TEMPLATES.filter((t) => !HIDDEN_TEMPLATE_IDS.includes(t.id));
 const RESET_MESSAGE = "Reset to the example text.";
-
 const STORAGE_KEY = "pauseai-collateral-v2";
 const PREVIEW_MAX_SIDE = 1400;
 const MAX_PROJECT_FILE_BYTES = 12_000_000;
+const DEFAULT_VIEW: PhotoView = { zoom: 1, focalX: 0.5, focalY: 0.5 };
+/** Checks that mean the title size nudge may help. */
+const TITLE_ISSUES = ["text-overflow", "title-small"];
 
-const DEFAULT_PHOTO_SETTINGS: PhotoSettings = { zoom: 1, focalX: 0.5, focalY: 0.5, visible: 0.25 };
-
-interface PhotoState {
-  drawable: Drawable;
-  name: string;
-  source: { kind: "library"; id: string } | { kind: "upload" };
-}
-
-export default function CollateralStudio({ onOpenGallery }: { onOpenGallery: () => void }) {
+export default function CollateralStudio({ onOpenGallery, events }: { onOpenGallery: () => void; events: CalendarEvent[] }) {
   const [formatId, setFormatId] = useState(DEFAULT_FORMAT_ID);
-  const [templateId, setTemplateId] = useState(DEFAULT_TEMPLATE_ID);
-  const [themeId, setThemeId] = useState<string>(DEFAULT_THEME_ID);
-  const [valuesByTemplate, setValuesByTemplate] = useState<Record<string, Values>>({});
-  const [qrCodes, setQrCodes] = useState<QrCode[]>([]);
-  // UTM tagging is switched off for now, see qrTarget in lib/collateral/qr.ts.
-  const [trackQr, setTrackQr] = useState(false);
-  const [photo, setPhoto] = useState<PhotoState | null>(null);
-  const [photoSettings, setPhotoSettings] = useState<PhotoSettings>(DEFAULT_PHOTO_SETTINGS);
-  const [logo, setLogo] = useState<Drawable | null>(null);
-  const [fontsReady, setFontsReady] = useState(false);
+  const [design, setDesign] = useState<DesignState>(() => newDesign());
+  // A crop belongs to the photo it was set on, so a new photo starts centred and unzoomed.
+  const [photoViewState, setPhotoViewState] = useState<{ photo: Drawable | null; view: PhotoView }>({ photo: null, view: DEFAULT_VIEW });
+  const [headlineScale, setHeadlineScale] = useState(1);
+  const [issues, setIssues] = useState<LintIssue[]>([]);
   const [restored, setRestored] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
@@ -81,77 +42,55 @@ export default function CollateralStudio({ onOpenGallery }: { onOpenGallery: () 
   const [undoReset, setUndoReset] = useState<(() => void) | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const openInputRef = useRef<HTMLInputElement>(null);
-  const pointers = useRef(new Map<number, { x: number; y: number }>());
-  const pinch = useRef<{ dist: number; zoom: number } | null>(null);
+  const { fontsReady, logos, error: assetError } = useStudioAssets();
 
   const format = getFormat(formatId);
-  // Older saves may still name a hidden layout (Caption, Brush), so fall back to the default.
-  const template = SINGLE_TEMPLATES.find((t) => t.id === templateId) ?? getTemplate(DEFAULT_TEMPLATE_ID);
-  const theme = getTheme(themeId);
-  // Merge over defaults so fields added after a volunteer's last visit still get a value.
-  const values = { ...defaultValues(template), ...valuesByTemplate[template.id] };
+  const template = designTemplate(design);
+  const theme = getTheme(design.themeId);
+  const values = designValues(design);
+  const logo = logos[theme.logoSrc] ?? null;
+  const ready = !busy && Boolean(logo) && fontsReady;
 
-  // QR codes are only drawn when they can be big enough to scan.
+  // Why QR codes are hidden or trimmed on this format, shown beside the codes.
   const exportSize = renderSize(format);
-  const usableCodes = usableQrCodes(qrCodes);
-  const qrAvailability = qrPlan({
+  const qrReason = qrPlan({
     width: exportSize.width,
     height: exportSize.height,
     dpi: exportSize.dpi,
-    urls: usableCodes.map((c) => c.url),
-    track: trackQr,
-  });
-  const qrTargets = usableCodes.map((c) => normaliseUrl(c.url).toLowerCase());
-  const duplicateQr = new Set(qrTargets).size < qrTargets.length;
+    urls: usableQrCodes(design.qrCodes).map((c) => c.url),
+    track: design.trackQr,
+    sizePref: design.qrSize,
+  }).reason;
 
-  // The first code opens the design's own web address, since that is almost always where it should go.
-  // Later codes start blank, so two codes never quietly point at the same place.
-  function newQr(): QrCode {
-    if (qrCodes.length > 0) return { label: "", url: "" };
-    return { label: template.id === "event" ? "Scan to RSVP" : "Scan to join", url: values.url?.trim() || "pauseai.uk" };
-  }
+  const update = useCallback((fn: (d: DesignState) => DesignState) => setDesign(fn), []);
+  const currentPhoto = design.photo?.drawable ?? null;
+  const photoView = photoViewState.photo === currentPhoto ? photoViewState.view : DEFAULT_VIEW;
+  const setPhotoView = useCallback(
+    (fn: (v: PhotoView) => PhotoView) =>
+      setPhotoViewState((s) => ({ photo: currentPhoto, view: fn(s.photo === currentPhoto ? s.view : DEFAULT_VIEW) })),
+    [currentPhoto],
+  );
+  const photoGestures = usePhotoGestures(canvasRef, currentPhoto, photoView, setPhotoView);
 
   const currentProject = useCallback(
-    (projectPhoto: ProjectPhoto | null): Project => ({
+    (embedUploads: boolean): Project => ({
+      ...designToData(design, embedUploads),
       formatId,
-      templateId,
-      themeId,
-      values: valuesByTemplate,
-      qrCodes,
-      trackQr,
-      photo: projectPhoto,
-      photoSettings,
+      photoSettings: { ...photoView, visible: tintVisible(design.tint) },
+      headlineScale,
     }),
-    [formatId, templateId, themeId, valuesByTemplate, qrCodes, trackQr, photoSettings],
+    [design, formatId, photoView, headlineScale],
   );
 
-  // Puts a saved or restored project on screen. Returns false if its photo could not be loaded.
+  // Puts a saved or restored project on screen. Returns false if an image could not be loaded.
   const applyProject = useCallback(async (project: Project): Promise<boolean> => {
+    const { design: loaded, ok } = await designFromData(project);
+    setDesign(loaded);
     setFormatId(project.formatId);
-    setTemplateId(project.templateId);
-    setThemeId(project.themeId);
-    setValuesByTemplate(project.values);
-    setQrCodes(project.qrCodes);
-    setTrackQr(project.trackQr);
-    setPhotoSettings(project.photoSettings);
-    if (!project.photo) {
-      setPhoto(null);
-      return true;
-    }
-    try {
-      if (project.photo.kind === "library") {
-        const id = project.photo.id;
-        const item = LIBRARY_PHOTOS.find((p) => p.id === id);
-        if (!item) return false;
-        setPhoto({ drawable: await loadImage(item.src), name: item.label, source: { kind: "library", id } });
-      } else {
-        setPhoto({ drawable: await loadDataUrl(project.photo.dataUrl), name: project.photo.name, source: { kind: "upload" } });
-      }
-      return true;
-    } catch {
-      setPhoto(null);
-      return false;
-    }
+    setHeadlineScale(project.headlineScale);
+    const { zoom, focalX, focalY } = project.photoSettings;
+    setPhotoViewState({ photo: loaded.photo?.drawable ?? null, view: { zoom, focalX, focalY } });
+    return ok;
   }, []);
 
   // Restore the last session once on the client.
@@ -172,170 +111,44 @@ export default function CollateralStudio({ onOpenGallery }: { onOpenGallery: () 
     };
   }, [applyProject]);
 
-  // Autosave. Uploaded photos are not kept (too big for browser storage), library photos are.
+  // Autosave. Uploaded photos are not kept (too big for browser storage), library photos and partner logos are.
   useEffect(() => {
     if (!restored) return;
     try {
-      const saved = photo?.source.kind === "library" ? ({ kind: "library", id: photo.source.id } as const) : null;
-      localStorage.setItem(STORAGE_KEY, serializeProject(currentProject(saved)));
+      localStorage.setItem(STORAGE_KEY, serializeProject(currentProject(false)));
     } catch {
       // Ignore, see above.
     }
-  }, [restored, photo, currentProject]);
+  }, [restored, currentProject]);
 
-  useEffect(() => {
-    let cancelled = false;
-    loadFonts()
-      .catch(() => undefined)
-      .then(() => {
-        if (!cancelled) setFontsReady(true);
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-    loadImage(theme.logoSrc)
-      .then((img) => {
-        if (!cancelled) setLogo(img);
-      })
-      .catch(() => {
-        if (!cancelled) setMessage("Could not load the logo.");
-      });
-    return () => {
-      cancelled = true;
-    };
-  }, [theme.logoSrc]);
-
-  // Live preview, redrawn on every change.
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas || !logo || !fontsReady) return;
-    renderCollateral(canvas, {
-      format,
-      template,
-      theme,
-      values,
-      logo,
-      photo: photo?.drawable ?? null,
-      photoSettings,
-      qrCodes,
-      trackQr,
-      maxSide: PREVIEW_MAX_SIDE,
-    });
-  });
-
-  // Scroll wheel and trackpad pinch zoom the photo. Needs a non-passive listener to stop the page scrolling.
-  useEffect(() => {
-    const canvas = canvasRef.current;
-    if (!canvas || !photo) return;
-    const img = { w: photo.drawable.width, h: photo.drawable.height };
-    const onWheel = (e: WheelEvent) => {
-      e.preventDefault();
-      const rect = canvas.getBoundingClientRect();
-      const k = canvas.width / rect.width;
-      const anchor = { x: (e.clientX - rect.left) * k, y: (e.clientY - rect.top) * k };
-      const dy = e.deltaMode === 1 ? e.deltaY * 16 : e.deltaY;
-      const factor = Math.exp(-dy * (e.ctrlKey ? 0.01 : 0.0015));
-      setPhotoSettings((s) => ({ ...s, ...zoomPhoto(img, { w: canvas.width, h: canvas.height }, s, s.zoom * factor, anchor) }));
-    };
-    canvas.addEventListener("wheel", onWheel, { passive: false });
-    return () => canvas.removeEventListener("wheel", onWheel);
-  }, [photo]);
-
-  function canvasScale(): number {
-    const canvas = canvasRef.current;
-    if (!canvas) return 1;
-    return canvas.width / canvas.getBoundingClientRect().width;
-  }
-
-  function onPointerDown(e: ReactPointerEvent<HTMLCanvasElement>) {
-    if (!photo) return;
-    e.currentTarget.setPointerCapture(e.pointerId);
-    pointers.current.set(e.pointerId, { x: e.clientX, y: e.clientY });
-    if (pointers.current.size === 2) {
-      const [a, b] = [...pointers.current.values()];
-      pinch.current = { dist: Math.hypot(a.x - b.x, a.y - b.y) || 1, zoom: photoSettings.zoom };
-    }
-  }
-
-  function onPointerMove(e: ReactPointerEvent<HTMLCanvasElement>) {
-    const canvas = canvasRef.current;
-    const prev = pointers.current.get(e.pointerId);
-    if (!photo || !canvas || !prev) return;
-    const next = { x: e.clientX, y: e.clientY };
-    pointers.current.set(e.pointerId, next);
-    const img = { w: photo.drawable.width, h: photo.drawable.height };
-    const box = { w: canvas.width, h: canvas.height };
-    const k = canvasScale();
-    if (pointers.current.size === 1) {
-      setPhotoSettings((s) => ({ ...s, ...panPhoto(img, box, s, (next.x - prev.x) * k, (next.y - prev.y) * k) }));
-    } else if (pointers.current.size === 2 && pinch.current) {
-      const [a, b] = [...pointers.current.values()];
-      const rect = canvas.getBoundingClientRect();
-      const mid = { x: ((a.x + b.x) / 2 - rect.left) * k, y: ((a.y + b.y) / 2 - rect.top) * k };
-      const zoom = (pinch.current.zoom * Math.hypot(a.x - b.x, a.y - b.y)) / pinch.current.dist;
-      setPhotoSettings((s) => ({ ...s, ...zoomPhoto(img, box, s, zoom, mid) }));
-    }
-  }
-
-  function onPointerEnd(e: ReactPointerEvent<HTMLCanvasElement>) {
-    pointers.current.delete(e.pointerId);
-    pinch.current = null;
-  }
-
-  const setValue = useCallback(
-    (key: string, value: string) => {
-      setValuesByTemplate((prev) => ({
-        ...prev,
-        [template.id]: { ...defaultValues(template), ...prev[template.id], [key]: value },
-      }));
-    },
-    [template],
-  );
-
-  function updateQr(index: number, patch: Partial<QrCode>) {
-    setQrCodes((prev) => prev.map((c, i) => (i === index ? { ...c, ...patch } : c)));
-  }
-
-  async function onPhoto(file: File | undefined) {
-    if (!file) return;
-    setMessage(null);
-    try {
-      const drawable = await fileToDrawable(file);
-      setPhoto({ drawable, name: file.name, source: { kind: "upload" } });
-      setPhotoSettings(DEFAULT_PHOTO_SETTINGS);
-    } catch {
-      setMessage("Could not read that image. Try a JPG or PNG.");
-    }
-  }
-
-  async function onLibraryPhoto(item: LibraryPhoto) {
-    setMessage(null);
-    try {
-      setPhoto({ drawable: await loadImage(item.src), name: item.label, source: { kind: "library", id: item.id } });
-      setPhotoSettings(DEFAULT_PHOTO_SETTINGS);
-    } catch {
-      setMessage("Could not load that photo.");
-    }
-  }
-
-  function renderOptions(bleed: boolean) {
+  function renderOptions(bleed: boolean): RenderOptions {
     return {
       format,
       template,
       theme,
       values,
       logo: logo!,
-      photo: photo?.drawable ?? null,
-      photoSettings,
-      qrCodes,
-      trackQr,
+      photo: design.photo?.drawable ?? null,
+      photoSettings: { ...photoView, visible: tintVisible(design.tint) },
+      qrCodes: design.qrCodes,
+      trackQr: design.trackQr,
+      qrSize: design.qrSize,
+      align: design.align,
+      headlineScale,
+      partnerLogos: design.partnerLogos.map((l) => l.drawable),
       bleed,
     };
   }
+
+  // Live preview and its checks, redrawn on every change. No dependency list on purpose: it redraws after every
+  // render, and setIssues only fires when the checks actually change, so it cannot loop.
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  useEffect(() => {
+    const canvas = canvasRef.current;
+    if (!canvas || !logo || !fontsReady) return;
+    const { issues: found } = renderCollateral(canvas, { ...renderOptions(false), maxSide: PREVIEW_MAX_SIDE, lint: true });
+    setIssues((prev) => (sameIssues(prev, found) ? prev : found));
+  });
 
   async function onDownloadPng() {
     if (!logo) return;
@@ -370,14 +183,7 @@ export default function CollateralStudio({ onOpenGallery }: { onOpenGallery: () 
   function onSaveProject() {
     setMessage(null);
     try {
-      let projectPhoto: ProjectPhoto | null = null;
-      if (photo?.source.kind === "library") projectPhoto = { kind: "library", id: photo.source.id };
-      else if (photo) projectPhoto = { kind: "upload", name: photo.name, dataUrl: drawableToJpegDataUrl(photo.drawable) };
-      downloadText(
-        serializeProject(currentProject(projectPhoto)),
-        exportFilename([template.id, format.id, "project"], "json"),
-        "application/json",
-      );
+      downloadText(serializeProject(currentProject(true)), exportFilename([template.id, format.id, "project"], "json"), "application/json");
       setMessage("Project saved. Use “Open project” to carry on editing later.");
     } catch {
       setMessage("Could not save the project.");
@@ -397,28 +203,30 @@ export default function CollateralStudio({ onOpenGallery }: { onOpenGallery: () 
       setMessage(result.error);
       return;
     }
-    const photoOk = await applyProject(result.project);
-    setMessage(photoOk ? `Opened ${file.name}.` : `Opened ${file.name}, but its photo could not be loaded.`);
+    const ok = await applyProject(result.project);
+    setMessage(ok ? `Opened ${file.name}.` : `Opened ${file.name}, but an image in it could not be loaded.`);
   }
 
   function onReset() {
-    const before = { id: template.id, values: values, qrCodes, photo, photoSettings };
-    setValuesByTemplate((prev) => ({ ...prev, [template.id]: defaultValues(template) }));
-    setQrCodes([]);
-    setPhoto(null);
-    setPhotoSettings(DEFAULT_PHOTO_SETTINGS);
+    const before = { design, photoViewState, headlineScale };
+    setDesign((d) => ({
+      ...d,
+      valuesByTemplate: { ...d.valuesByTemplate, [template.id]: defaultValues(template) },
+      qrCodes: [],
+      photo: null,
+      partnerLogos: [],
+    }));
+    setHeadlineScale(1);
     setMessage(RESET_MESSAGE);
     setUndoReset(() => () => {
-      setValuesByTemplate((prev) => ({ ...prev, [before.id]: before.values }));
-      setQrCodes(before.qrCodes);
-      setPhoto(before.photo);
-      setPhotoSettings(before.photoSettings);
+      setDesign(before.design);
+      setHeadlineScale(before.headlineScale);
+      setPhotoViewState(before.photoViewState);
       setUndoReset(null);
       setMessage(null);
     });
   }
 
-  const ready = !busy && Boolean(logo) && fontsReady;
   const downloadButtons = (
     <>
       <button type="button" className="btn primary large" onClick={onDownloadPng} disabled={!ready}>
@@ -431,6 +239,8 @@ export default function CollateralStudio({ onOpenGallery }: { onOpenGallery: () 
       )}
     </>
   );
+  const titleFlagged = issues.some((i) => TITLE_ISSUES.includes(i.id));
+  const shown = message ?? assetError;
 
   return (
     <div className="collateral-studio">
@@ -441,19 +251,19 @@ export default function CollateralStudio({ onOpenGallery }: { onOpenGallery: () 
             role="img"
             aria-label={`Preview of ${format.label}`}
             hidden={!logo || !fontsReady}
-            className={photo ? "is-draggable" : undefined}
-            onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
-            onPointerUp={onPointerEnd}
-            onPointerCancel={onPointerEnd}
+            className={design.photo ? "is-draggable" : undefined}
+            {...photoGestures}
           />
           {(!logo || !fontsReady) && <p className="collateral-loading">Loading…</p>}
         </div>
         <p className="collateral-preview-meta">
           {format.label} · {formatDimensionLabel(format)}
         </p>
-        {photo && <p className="collateral-preview-meta">Drag the photo to move it. Scroll or pinch to zoom.</p>}
-        <div className="collateral-preview-actions">{downloadButtons}</div>
+        {design.photo && <p className="collateral-preview-meta">Drag the photo to move it. Scroll or pinch to zoom.</p>}
+        <div className="collateral-preview-actions">
+          <Checks issues={issues} />
+          {downloadButtons}
+        </div>
       </div>
 
       <div className="collateral-controls">
@@ -476,236 +286,35 @@ export default function CollateralStudio({ onOpenGallery }: { onOpenGallery: () 
           {format.note && <p className="collateral-hint">{format.note}</p>}
         </section>
 
-        <section>
-          <h2>2. Layout</h2>
-          <div className="collateral-choice-grid" role="radiogroup" aria-label="Layout">
-            {SINGLE_TEMPLATES.map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                role="radio"
-                aria-checked={t.id === template.id}
-                className="collateral-choice"
-                onClick={() => setTemplateId(t.id)}
-              >
-                <strong>{t.label}</strong>
-                <span>{t.description}</span>
-              </button>
-            ))}
-          </div>
-          <p className="collateral-hint">
-            Photo with a caption, or a post with several slides?
-            <button type="button" className="collateral-link" onClick={onOpenGallery}>
-              Use Gallery / carousel
-            </button>
-          </p>
-        </section>
-
-        <section>
-          <h2>3. Style</h2>
-          <div className="collateral-swatches" role="radiogroup" aria-label="Style">
-            {THEMES.map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                role="radio"
-                aria-checked={t.id === theme.id}
-                className="collateral-swatch"
-                onClick={() => setThemeId(t.id)}
-              >
-                <span className="collateral-swatch-chip" style={{ background: t.bg, color: t.text }} aria-hidden="true">
-                  <i style={{ background: t.accent }} />
-                </span>
-                {t.label}
-              </button>
-            ))}
-          </div>
-        </section>
-
-        <section>
-          <h2>4. Text</h2>
-          {template.fields.map((field) => {
-            const id = `collateral-${template.id}-${field.key}`;
-            const value = values[field.key] ?? "";
-            if (field.kind === "toggle") {
-              return (
-                <label key={field.key} className="collateral-toggle" htmlFor={id}>
-                  <input
-                    id={id}
-                    type="checkbox"
-                    checked={value === "true"}
-                    onChange={(e) => setValue(field.key, e.target.checked ? "true" : "false")}
-                  />
-                  {field.label}
-                </label>
-              );
-            }
-            return (
-              <div key={field.key} className="collateral-field">
-                <label className="collateral-label" htmlFor={id}>
-                  {field.label}
-                  {field.hint && <span> · {field.hint}</span>}
-                </label>
-                {field.kind === "textarea" ? (
-                  <textarea
-                    id={id}
-                    rows={2}
-                    maxLength={field.maxLength}
-                    value={value}
-                    onChange={(e) => setValue(field.key, e.target.value)}
-                  />
-                ) : (
-                  <input
-                    id={id}
-                    type="text"
-                    maxLength={field.maxLength}
-                    value={value}
-                    onChange={(e) => setValue(field.key, e.target.value)}
-                  />
-                )}
-                <CharCount value={value} max={field.maxLength} />
-              </div>
-            );
-          })}
-        </section>
-
-        <section>
-          <h2>5. QR codes (optional)</h2>
-          {qrCodes.map((code, i) => (
-            <div key={i} className="collateral-qr-row">
-              <div className="collateral-qr-fields">
-                <input
-                  type="text"
-                  aria-label={`QR code ${i + 1} label`}
-                  placeholder="Label under the code, e.g. RSVP"
-                  maxLength={QR_LABEL_MAX}
-                  value={code.label}
-                  onChange={(e) => updateQr(i, { label: e.target.value })}
-                />
-                <input
-                  type="text"
-                  aria-label={`QR code ${i + 1} web address`}
-                  placeholder="Web address, e.g. pauseai.uk/join"
-                  maxLength={QR_URL_MAX}
-                  value={code.url}
-                  onChange={(e) => updateQr(i, { url: e.target.value })}
-                />
-                <CharCount value={code.url} max={QR_URL_MAX} />
-              </div>
-              <button
-                type="button"
-                className="collateral-qr-remove"
-                aria-label={`Remove QR code ${i + 1}`}
-                onClick={() => setQrCodes((prev) => prev.filter((_, j) => j !== i))}
-              >
-                ×
-              </button>
-            </div>
-          ))}
-          <button
-            type="button"
-            className="btn ghost small"
-            disabled={qrCodes.length >= MAX_QR_CODES}
-            onClick={() => setQrCodes((prev) => [...prev, newQr()])}
-          >
-            {qrCodes.length === 0 ? "Add a QR code" : `Add another (${qrCodes.length} of ${MAX_QR_CODES})`}
-          </button>
-          {/* UTM tagging is switched off until we have a way to read the results. See qrTarget in lib/collateral/qr.ts.
-          {usableCodes.length > 0 && (
-            <label className="collateral-toggle collateral-qr-track" htmlFor="collateral-track">
-              <input id="collateral-track" type="checkbox" checked={trackQr} onChange={(e) => setTrackQr(e.target.checked)} />
-              Tag the links so scans can be counted
-            </label>
-          )}
-          */}
-          {qrCodes.length > 0 && qrAvailability.reason && <p className="collateral-hint">{qrAvailability.reason}</p>}
-          {duplicateQr && <p className="collateral-hint">Two of your QR codes open the same address.</p>}
-        </section>
-
-        <section>
-          <h2>6. Photo (optional)</h2>
-          <p className="collateral-hint">Pick one of ours:</p>
-          <div className="collateral-photo-grid">
-            {LIBRARY_PHOTOS.map((item) => (
-              <button
-                key={item.id}
-                type="button"
-                className="collateral-photo-thumb"
-                aria-label={item.label}
-                aria-pressed={photo?.source.kind === "library" && photo.source.id === item.id}
-                title={item.label}
-                onClick={() => onLibraryPhoto(item)}
-                style={{ backgroundImage: `url(${item.thumb})` }}
-              />
-            ))}
-          </div>
-          <p className="collateral-hint">…or upload your own:</p>
-          <input
-            type="file"
-            accept="image/*"
-            aria-label="Upload a photo"
-            onChange={(e) => onPhoto(e.target.files?.[0])}
-          />
-          {photo && (
-            <div className="collateral-photo-controls">
-              <p className="collateral-hint">
-                {photo.name} · stays in your browser
-                <button type="button" className="collateral-link" onClick={() => setPhoto(null)}>
-                  Remove
-                </button>
-              </p>
-              <Slider
-                label="Zoom"
-                min={1}
-                max={MAX_ZOOM}
-                step={0.05}
-                value={photoSettings.zoom}
-                onChange={(zoom) => setPhotoSettings((s) => ({ ...s, zoom }))}
-              />
-              <Slider
-                label="Left / right"
-                min={0}
-                max={1}
-                step={0.01}
-                value={photoSettings.focalX}
-                onChange={(focalX) => setPhotoSettings((s) => ({ ...s, focalX }))}
-              />
-              <Slider
-                label="Up / down"
-                min={0}
-                max={1}
-                step={0.01}
-                value={photoSettings.focalY}
-                onChange={(focalY) => setPhotoSettings((s) => ({ ...s, focalY }))}
-              />
-              {theme.noPhotoTint && (
-                <p className="collateral-hint">
-                  Clear keeps your photo untouched and outlines the text so it stands out. If it is still hard to read, try
-                  another style.
-                </p>
-              )}
-              {!theme.noPhotoTint && (
-                <Slider
-                  label="Photo strength"
-                  min={0.1}
-                  max={0.7}
-                  step={0.01}
-                  value={photoSettings.visible}
-                  onChange={(visible) => setPhotoSettings((s) => ({ ...s, visible }))}
-                />
-              )}
-            </div>
-          )}
-        </section>
+        <DesignControls
+          design={design}
+          update={update}
+          events={events}
+          firstSection={2}
+          qrReason={qrReason}
+          onOpenGallery={onOpenGallery}
+          onMessage={setMessage}
+          photoExtras={
+            <>
+              <Slider label="Zoom" min={1} max={MAX_ZOOM} step={0.05} value={photoView.zoom} onChange={(zoom) => setPhotoView((v) => ({ ...v, zoom }))} />
+              <Slider label="Left / right" min={0} max={1} step={0.01} value={photoView.focalX} onChange={(focalX) => setPhotoView((v) => ({ ...v, focalX }))} />
+              <Slider label="Up / down" min={0} max={1} step={0.01} value={photoView.focalY} onChange={(focalY) => setPhotoView((v) => ({ ...v, focalY }))} />
+            </>
+          }
+        />
 
         <section className="collateral-actions">
+          <div className="collateral-actions-checks">
+            <Checks issues={issues} />
+            <TitleSizeControl value={headlineScale} onChange={setHeadlineScale} flagged={titleFlagged} />
+          </div>
           {downloadButtons}
           <button type="button" className="btn ghost large" onClick={onReset}>
             Reset
           </button>
-          {message && (
+          {shown && (
             <p className="collateral-message" role="status">
-              {message}
+              {shown}
               {message === RESET_MESSAGE && undoReset && (
                 <button type="button" className="collateral-link" onClick={undoReset}>
                   Undo
@@ -718,8 +327,8 @@ export default function CollateralStudio({ onOpenGallery }: { onOpenGallery: () 
         <section>
           <h2>Save your work</h2>
           <p className="collateral-hint">
-            Save a project file to edit later or send to another volunteer. It holds your text, style, QR codes and photo. It is
-            not uploaded anywhere.
+            Save a project file to edit later or send to another volunteer. It holds your text, style, QR codes, photo and partner logos. It
+            is not uploaded anywhere.
           </p>
           <div className="collateral-actions">
             <button type="button" className="btn ghost" onClick={onSaveProject} disabled={!restored}>

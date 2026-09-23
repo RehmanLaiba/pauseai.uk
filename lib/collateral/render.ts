@@ -1,4 +1,6 @@
+import type { QrSize, TextAlign } from "./design";
 import { renderSize, type Format } from "./formats";
+import { LintCollector, type LintIssue } from "./lint";
 import { FONT_LOADS, type Drawable, type PhotoSettings, type Template, type Values } from "./templates";
 import type { QrCode } from "./qr";
 import type { Theme } from "./themes";
@@ -64,14 +66,20 @@ export interface RenderOptions {
   photoSettings: PhotoSettings;
   qrCodes: QrCode[];
   trackQr: boolean;
+  qrSize?: QrSize;
+  align?: TextAlign;
+  headlineScale?: number;
+  partnerLogos?: Drawable[];
   /** Include bleed (print formats only). */
   bleed?: boolean;
   /** Scale output down so its longest side is at most this many px. Used for the live preview. */
   maxSide?: number;
+  /** Collect problems for the checks list. The live preview asks; downloads do not. */
+  lint?: boolean;
 }
 
-/** Draws the collateral into `canvas`, sizing the canvas to match. Returns the final pixel size. */
-export function renderCollateral(canvas: HTMLCanvasElement, opts: RenderOptions) {
+/** Draws the collateral into `canvas`, sizing the canvas to match. Returns the final pixel size, and any problems when asked. */
+export function renderCollateral(canvas: HTMLCanvasElement, opts: RenderOptions): { width: number; height: number; issues: LintIssue[] } {
   const size = renderSize(opts.format, { bleed: opts.bleed });
   const scale = opts.maxSide ? Math.min(1, opts.maxSide / Math.max(size.width, size.height)) : 1;
   const width = Math.max(1, Math.round(size.width * scale));
@@ -80,6 +88,7 @@ export function renderCollateral(canvas: HTMLCanvasElement, opts: RenderOptions)
   canvas.height = height;
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas is not supported in this browser");
+  const lint = opts.lint ? new LintCollector() : undefined;
   opts.template.draw({
     ctx,
     width,
@@ -95,6 +104,23 @@ export function renderCollateral(canvas: HTMLCanvasElement, opts: RenderOptions)
     photoSettings: opts.photoSettings,
     qrCodes: opts.qrCodes,
     trackQr: opts.trackQr,
+    qrSize: opts.qrSize,
+    align: opts.align,
+    headlineScale: opts.headlineScale,
+    partnerLogos: opts.partnerLogos,
+    lint,
   });
-  return { width, height };
+  return { width, height, issues: lint ? lint.finish(size.dpi) : [] };
+}
+
+/** Downscales a partner logo and encodes it as a PNG data URL, keeping transparency, so it can be saved with a project. */
+export function drawableToPngDataUrl(image: Drawable, maxSide = 600): string {
+  const scale = Math.min(1, maxSide / Math.max(image.width, image.height));
+  const canvas = document.createElement("canvas");
+  canvas.width = Math.max(1, Math.round(image.width * scale));
+  canvas.height = Math.max(1, Math.round(image.height * scale));
+  const ctx = canvas.getContext("2d");
+  if (!ctx) throw new Error("Canvas is not supported in this browser");
+  ctx.drawImage(image.source, 0, 0, canvas.width, canvas.height);
+  return canvas.toDataURL("image/png");
 }

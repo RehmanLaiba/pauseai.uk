@@ -335,14 +335,37 @@ export default function GalleryStudio() {
     pinch.current = null;
   }
 
-  async function onPhoto(file: File | undefined) {
-    if (!file) return;
+  /**
+   * One photo replaces the current slide's. Several fill the current slide, then the later slides that have
+   * no photo yet, then new slides up to the limit, one photo each.
+   */
+  async function onPhotos(files: File[]) {
+    if (files.length === 0) return;
     setMessage(null);
-    try {
-      const drawable = await fileToDrawable(file);
-      updateSlide(activeSlide.id, { photo: { drawable, name: file.name, source: { kind: "upload" } }, photoSettings: { ...DEFAULT_SLIDE_PHOTO_SETTINGS } });
-    } catch {
-      setMessage("Could not read that image. Try a JPG or PNG.");
+    const loaded: SlidePhoto[] = [];
+    let failed = 0;
+    for (const file of files) {
+      try {
+        loaded.push({ drawable: await fileToDrawable(file), name: file.name, source: { kind: "upload" } });
+      } catch {
+        failed += 1;
+      }
+    }
+    const withPhoto = (s: Slide, p: SlidePhoto): Slide => ({ ...s, photo: p, photoSettings: { ...DEFAULT_SLIDE_PHOTO_SETTINGS } });
+    const queue = [...loaded];
+    const next = slides.map((s, i) => {
+      const takes = i === activeIndex || (i > activeIndex && !s.photo);
+      return takes && queue.length ? withPhoto(s, queue.shift()!) : s;
+    });
+    while (queue.length && next.length < MAX_SLIDES) next.push(withPhoto(newSlide(), queue.shift()!));
+    setSlides(next);
+    const left = queue.length;
+    if (failed || left) {
+      setMessage(
+        [failed && `${failed} ${failed === 1 ? "image" : "images"} could not be read.`, left && `${left} did not fit: a gallery holds ${MAX_SLIDES} slides.`]
+          .filter(Boolean)
+          .join(" "),
+      );
     }
   }
 
@@ -739,8 +762,19 @@ export default function GalleryStudio() {
               />
             ))}
           </div>
-          <p className="collateral-hint">…or upload your own:</p>
-          <input type="file" accept="image/*" aria-label="Upload a photo" onChange={(e) => onPhoto(e.target.files?.[0])} />
+          <p className="collateral-hint">…or upload your own. Pick several at once to fill a slide each:</p>
+          <input
+            type="file"
+            accept="image/*"
+            multiple
+            aria-label="Upload photos"
+            onChange={(e) => {
+              // Copy the files before clearing the input, so picking the same files again still fires.
+              const files = Array.from(e.target.files ?? []);
+              e.target.value = "";
+              void onPhotos(files);
+            }}
+          />
           {photo && (
             <div className="collateral-photo-controls">
               <p className="collateral-hint">

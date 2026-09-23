@@ -1,3 +1,16 @@
+import {
+  clampHeadlineScale,
+  DEFAULT_PHOTO_TINT,
+  isPhotoTint,
+  isQrSize,
+  isTextAlign,
+  MAX_PARTNER_LOGOS,
+  snapTint,
+  tintVisible,
+  type PhotoTint,
+  type QrSize,
+  type TextAlign,
+} from "./design";
 import { getFormat } from "./formats";
 import { LIBRARY_PHOTOS } from "./photos";
 import { MAX_ZOOM } from "./photoTransform";
@@ -16,21 +29,42 @@ export type ProjectPhoto =
   | { kind: "library"; id: string }
   | { kind: "upload"; name: string; dataUrl: string };
 
-/** Everything needed to reopen a design. Plain data, so it can be saved as JSON. */
-export interface Project {
-  formatId: string;
+/** A partner organisation's logo, embedded in the file like an uploaded photo. */
+export interface PartnerLogoData {
+  name: string;
+  /** PNG, JPEG or WebP data URL. */
+  dataUrl: string;
+}
+
+/** A partner logo is downscaled before saving, so a much bigger one is not a logo. */
+export const MAX_PARTNER_LOGO_CHARS = 1_500_000;
+
+/** What a design says and how it looks, apart from where it goes. Shared by single-image and campaign pack projects. */
+export interface DesignData {
   templateId: string;
   themeId: string;
   /** Text fields, kept per layout so switching layouts does not lose what was typed. */
   values: Record<string, Values>;
   qrCodes: QrCode[];
   trackQr: boolean;
+  qrSize: QrSize;
+  align: TextAlign;
   photo: ProjectPhoto | null;
+  tint: PhotoTint;
+  partnerLogos: PartnerLogoData[];
+}
+
+/** Everything needed to reopen a single-image design. Plain data, so it can be saved as JSON. */
+export interface Project extends DesignData {
+  formatId: string;
+  /** Photo zoom and position. `visible` mirrors `tint`, so older versions of the tool can still read the file. */
   photoSettings: PhotoSettings;
+  headlineScale: number;
 }
 
 export function serializeProject(project: Project, now = new Date()): string {
-  return JSON.stringify({ app: PROJECT_APP, version: PROJECT_VERSION, savedAt: now.toISOString(), ...project }, null, 2);
+  const photoSettings = { ...project.photoSettings, visible: tintVisible(project.tint) };
+  return JSON.stringify({ app: PROJECT_APP, version: PROJECT_VERSION, savedAt: now.toISOString(), ...project, photoSettings }, null, 2);
 }
 
 export type ParseResult = { ok: true; project: Project } | { ok: false; error: string };
@@ -91,6 +125,24 @@ export function parseProject(text: string): ParseResult {
     return { ok: false, error: "This project was saved by a newer version of the tool." };
   }
 
+  const design = parseDesignData(raw);
+  const photoSettings = { ...parsePhotoSettings(raw.photoSettings, 1), visible: tintVisible(design.tint) };
+  return {
+    ok: true,
+    project: {
+      ...design,
+      formatId: getFormat(str(raw.formatId, 40)).id,
+      photoSettings,
+      headlineScale: clampHeadlineScale(raw.headlineScale),
+    },
+  };
+}
+
+/**
+ * Validates the design fields of a saved file from untrusted JSON. Fields added after a file was saved
+ * get their defaults, and a file from before the tint steps gets the step nearest its old photo strength.
+ */
+export function parseDesignData(raw: Record<string, unknown>): DesignData {
   const values: Record<string, Values> = {};
   const rawValues = isRecord(raw.values) ? raw.values : {};
   for (const template of TEMPLATES) {
@@ -108,19 +160,34 @@ export function parseProject(text: string): ParseResult {
         .map((c) => ({ label: str(c.label, QR_LABEL_MAX), url: str(c.url, QR_URL_MAX) }))
     : [];
 
-  const photo = parseProjectPhoto(raw.photo);
+  const partnerLogos: PartnerLogoData[] = Array.isArray(raw.partnerLogos)
+    ? raw.partnerLogos
+        .filter(isRecord)
+        .filter(
+          (l) =>
+            typeof l.dataUrl === "string" &&
+            // Raster formats only. SVG data URLs are not accepted.
+            /^data:image\/(png|jpeg|webp);base64,[A-Za-z0-9+/=]+$/.test(l.dataUrl) &&
+            l.dataUrl.length <= MAX_PARTNER_LOGO_CHARS,
+        )
+        .slice(0, MAX_PARTNER_LOGOS)
+        .map((l) => ({ name: str(l.name, 120) || "Partner logo", dataUrl: l.dataUrl as string }))
+    : [];
+
+  const oldVisible = isRecord(raw.photoSettings) ? num(raw.photoSettings.visible, 0, 1, tintVisible(DEFAULT_PHOTO_TINT)) : undefined;
+  const tint: PhotoTint = isPhotoTint(raw.tint) ? raw.tint : oldVisible !== undefined ? snapTint(oldVisible) : DEFAULT_PHOTO_TINT;
+
   return {
-    ok: true,
-    project: {
-      formatId: getFormat(str(raw.formatId, 40)).id,
-      templateId: getTemplate(str(raw.templateId, 40)).id,
-      themeId: getTheme(str(raw.themeId, 40)).id,
-      values,
-      qrCodes,
-      // Off unless a file explicitly turns it on. Tagging is currently disabled in qrTarget anyway.
-      trackQr: raw.trackQr === true,
-      photo,
-      photoSettings: parsePhotoSettings(raw.photoSettings),
-    },
+    templateId: getTemplate(str(raw.templateId, 40)).id,
+    themeId: getTheme(str(raw.themeId, 40)).id,
+    values,
+    qrCodes,
+    // Off unless a file explicitly turns it on. Tagging is currently disabled in qrTarget anyway.
+    trackQr: raw.trackQr === true,
+    qrSize: isQrSize(raw.qrSize) ? raw.qrSize : "m",
+    align: isTextAlign(raw.align) ? raw.align : "left",
+    photo: parseProjectPhoto(raw.photo),
+    tint,
+    partnerLogos,
   };
 }

@@ -160,3 +160,18 @@ describe("print and screen size guidance", () => {
     expect(qrMinScreenPx(45)).toBeGreaterThanOrEqual(45 * QR_MIN_MODULE_PX);
   });
 });
+
+describe("qrPlan size preference", () => {
+  const plan = (sizePref?: "s" | "m" | "l") =>
+    qrPlan({ urls: ["pauseai.uk"], track: false, width: 1080, height: 1350, sizePref });
+
+  it("makes Small smaller and Large larger than the default", () => {
+    expect(plan("s").size).toBeLessThan(plan().size);
+    expect(plan("m").size).toBe(plan().size);
+    expect(plan("l").size).toBeGreaterThan(plan().size);
+  });
+
+  it("never goes below the scannable minimum", () => {
+    expect(plan("s").size).toBeGreaterThanOrEqual(qrMinScreenPx(qrMatrix("https://pauseai.uk").length));
+  });
+});

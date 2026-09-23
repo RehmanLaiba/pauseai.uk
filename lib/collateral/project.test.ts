@@ -11,8 +11,13 @@ const project: Project = {
     { label: "Join WhatsApp", url: "pauseai.uk/join" },
   ],
   trackQr: false,
+  qrSize: "l",
+  align: "center",
   photo: { kind: "library", id: "westminster" },
-  photoSettings: { zoom: 2, focalX: 0.2, focalY: 0.8, visible: 0.3 },
+  tint: "medium",
+  partnerLogos: [{ name: "partner.png", dataUrl: "data:image/png;base64,iVBORw0KGgo=" }],
+  photoSettings: { zoom: 2, focalX: 0.2, focalY: 0.8, visible: 0.5 },
+  headlineScale: 1.2,
 };
 
 function withEdit(edit: (o: Record<string, unknown>) => void): string {
@@ -97,6 +102,38 @@ describe("parseProject cleans untrusted content", () => {
 
   it("clamps photo settings", () => {
     const result = parseProject(withEdit((o) => (o.photoSettings = { zoom: 99, focalX: -5, focalY: "a", visible: 9 })));
-    expect(result.ok && result.project.photoSettings).toEqual({ zoom: 4, focalX: 0, focalY: 0.5, visible: 0.7 });
+    // visible follows the saved tint step, whatever the file says.
+    expect(result.ok && result.project.photoSettings).toEqual({ zoom: 4, focalX: 0, focalY: 0.5, visible: 0.5 });
+  });
+
+  it("gives a file from before the tint steps the step nearest its old photo strength", () => {
+    const result = parseProject(
+      withEdit((o) => {
+        delete o.tint;
+        o.photoSettings = { zoom: 1, focalX: 0.5, focalY: 0.5, visible: 0.45 };
+      }),
+    );
+    expect(result.ok && result.project.tint).toBe("medium");
+  });
+
+  it("defaults newer fields that an older file does not have", () => {
+    const result = parseProject(
+      withEdit((o) => {
+        for (const k of ["qrSize", "align", "partnerLogos", "headlineScale"]) delete o[k];
+      }),
+    );
+    expect(result.ok && result.project).toMatchObject({ qrSize: "m", align: "left", partnerLogos: [], headlineScale: 1 });
+  });
+
+  it("clamps the title size nudge and rejects unknown alignment and QR sizes", () => {
+    const result = parseProject(withEdit((o) => Object.assign(o, { headlineScale: 9, align: "justify", qrSize: "xl" })));
+    expect(result.ok && result.project).toMatchObject({ headlineScale: 1.3, align: "left", qrSize: "m" });
+  });
+
+  it("only accepts raster partner logos, at most two", () => {
+    const png = { name: "a", dataUrl: "data:image/png;base64,iVBORw0KGgo=" };
+    const svg = { name: "b", dataUrl: "data:image/svg+xml;base64,PHN2Zz4=" };
+    const result = parseProject(withEdit((o) => (o.partnerLogos = [svg, png, png, png])));
+    expect(result.ok && result.project.partnerLogos).toEqual([png, png]);
   });
 });

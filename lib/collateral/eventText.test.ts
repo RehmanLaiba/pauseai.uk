@@ -1,0 +1,104 @@
+import { describe, expect, it } from "vitest";
+import {
+  eventFieldValues,
+  formatClock,
+  formatDay,
+  formatPickedDate,
+  formatPickedTime,
+  formatTimeRange,
+  toCalendarEvents,
+  type CalendarEvent,
+} from "./eventText";
+
+const now = new Date("2026-09-23T12:00:00Z");
+
+describe("formatClock", () => {
+  it("drops :00 and uses am/pm", () => {
+    expect(formatClock(19, 0)).toBe("7pm");
+    expect(formatClock(18, 30)).toBe("6:30pm");
+    expect(formatClock(0, 5)).toBe("12:05am");
+    expect(formatClock(12, 0)).toBe("12pm");
+  });
+});
+
+describe("formatDay", () => {
+  it("leaves out the year when it is this year", () => {
+    expect(formatDay(new Date("2026-10-28T18:30:00Z"), "Europe/London", now)).toBe("Wednesday 28 October");
+  });
+
+  it("adds the year when it is not this year", () => {
+    expect(formatDay(new Date("2027-01-06T18:30:00Z"), "Europe/London", now)).toBe("Wednesday 6 January 2027");
+  });
+
+  it("uses the event's time zone for the calendar day", () => {
+    // 23:30 UTC on the 28th is already the 29th in London during BST.
+    expect(formatDay(new Date("2026-09-28T23:30:00Z"), "Europe/London", now)).toBe("Tuesday 29 September");
+  });
+});
+
+describe("formatTimeRange", () => {
+  it("formats a start and end in the event's zone", () => {
+    expect(formatTimeRange("2026-10-28T18:30:00Z", "2026-10-28T20:30:00Z", "Europe/London")).toBe("6:30pm – 8:30pm");
+  });
+
+  it("formats just the start when there is no end", () => {
+    expect(formatTimeRange("2026-12-01T19:00:00Z", undefined, "Europe/London")).toBe("7pm");
+  });
+});
+
+describe("eventFieldValues", () => {
+  const ev: CalendarEvent = {
+    id: "abc123",
+    name: "Public meeting in Bristol",
+    startAt: "2026-10-28T17:30:00Z",
+    endAt: "2026-10-28T19:30:00Z",
+    timezone: "Europe/London",
+    venue: "The Station, Bristol",
+    city: "Bristol",
+  };
+
+  it("fills the Event layout fields", () => {
+    expect(eventFieldValues(ev, now)).toEqual({
+      headline: "Public meeting in Bristol",
+      date: "Wednesday 28 October",
+      time: "5:30pm – 7:30pm",
+      venue: "The Station, Bristol",
+      url: "lu.ma/abc123",
+      group: "Bristol",
+    });
+  });
+
+  it("falls back to London when the zone is unknown", () => {
+    expect(eventFieldValues({ ...ev, timezone: "Not/AZone" }, now).time).toBe("5:30pm – 7:30pm");
+  });
+
+  it("trims to the field limits", () => {
+    const long = eventFieldValues({ ...ev, name: "x".repeat(200), venue: "y".repeat(200) }, now);
+    expect(long.headline).toHaveLength(80);
+    expect(long.venue).toHaveLength(60);
+  });
+});
+
+describe("toCalendarEvents", () => {
+  it("builds a venue from the address and city, and marks events without one as online", () => {
+    const events = toCalendarEvents([
+      { event: { url: "a", name: "Pub", start_at: "2026-10-01T18:00:00Z", geo_address_info: { address: "Cittie of Yorke", city: "London" } } },
+      { event: { url: "b", name: "Call", start_at: "2026-10-02T18:00:00Z" } },
+      { event: { url: "c", name: "Same", start_at: "2026-10-03T18:00:00Z", geo_address_info: { address: "London", city: "London" } } },
+    ]);
+    expect(events.map((e) => e.venue)).toEqual(["Cittie of Yorke, London", "Online", "London"]);
+    expect(events[1].city).toBeUndefined();
+  });
+});
+
+describe("date and time pickers", () => {
+  it("formats a picked date without shifting the day", () => {
+    expect(formatPickedDate("2026-10-28", now)).toBe("Wednesday 28 October");
+    expect(formatPickedDate("", now)).toBe("");
+  });
+
+  it("formats a picked time", () => {
+    expect(formatPickedTime("18:30")).toBe("6:30pm");
+    expect(formatPickedTime("nope")).toBe("");
+  });
+});
