@@ -157,8 +157,26 @@
   margin: 0 0 14px;
   color: var(--text);
 }
-.signatories-embargo {
-  margin: 0 0 20px;
+/* Small note under the list of names, for the press. */
+.signatories-press-note {
+  max-width: 900px;
+  margin: 24px 0 0;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--text-secondary);
+}
+.signatories-press-note strong {
+  color: var(--text);
+  font-weight: 600;
+}
+.signatories-press-note a {
+  color: var(--accent);
+  text-decoration: underline;
+  text-decoration-thickness: 1px;
+  text-underline-offset: 3px;
+}
+.signatories-press-note a:hover {
+  color: var(--pause-orange);
 }
 .signatories-status {
   color: var(--text-secondary);

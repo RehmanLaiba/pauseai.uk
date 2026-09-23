@@ -3,6 +3,7 @@ import Image from "next/image";
 import Nav from "@/components/Nav";
 import CampaignsClient from "./CampaignsClient";
 import SignatoriesList from "./SignatoriesList";
+import { site } from "@/lib/data/site";
 import "./campaigns.css";
 
 // Fallback for local/preview environments without AIRTABLE_TOKEN set — the
@@ -93,7 +94,6 @@ export default function CampaignsPage() {
         <section id="signatories" className="campaigns-signatories">
           <div className="container">
             <h2>Parliamentary signatories</h2>
-            <p className="signatories-embargo">This list of names is currently under a media embargo.</p>
             {process.env.AIRTABLE_TOKEN ? (
               <SignatoriesList />
             ) : (
@@ -106,6 +106,10 @@ export default function CampaignsPage() {
                 ></iframe>
               </div>
             )}
+            <p className="signatories-press-note">
+              <strong>Note for journalists:</strong> we&rsquo;re planning a public announcement about this letter at a later date. We&rsquo;d be grateful if you held off reporting on the signatories until then. For early access or interviews, contact{" "}
+              <a href={`mailto:${site.pressEmail}`}>{site.pressEmail}</a>.
+            </p>
           </div>
         </section>
 
