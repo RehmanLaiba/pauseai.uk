@@ -38,7 +38,6 @@ const MAX_PROJECT_FILE_BYTES = 12_000_000 * MAX_SLIDES;
 
 export default function GalleryStudio() {
   const [formatId, setFormatId] = useState(DEFAULT_FORMAT_ID);
-  const [themeId, setThemeId] = useState<string>(DEFAULT_THEME_ID);
   const [platforms, setPlatforms] = useState<Set<PlatformId>>(() => new Set(ALL_PLATFORM_IDS));
   const [customFormat, setCustomFormat] = useState(false);
   const [slides, setSlides] = useState<Slide[]>(() => [newSlide(), newSlide()]);
@@ -54,10 +53,10 @@ export default function GalleryStudio() {
   const pinch = useRef<{ dist: number; zoom: number } | null>(null);
 
   const format = getFormat(formatId);
-  const theme = getTheme(themeId);
   const firstSelectedVariant = CAROUSEL_PLATFORMS.find((v) => platforms.has(v.platform));
   const effectiveFormat = customFormat ? format : getFormat(firstSelectedVariant?.formatId ?? DEFAULT_FORMAT_ID);
   const activeSlide = slides[Math.min(activeIndex, slides.length - 1)] ?? slides[0];
+  const activeTheme = getTheme(activeSlide.themeId);
   const photo = activeSlide.photo;
   const photoSettings = activeSlide.photoSettings;
 
@@ -74,25 +73,25 @@ export default function GalleryStudio() {
   const currentProject = useCallback(
     (embed: boolean): GalleryProject => ({
       formatId,
-      themeId,
-      slides: slides.map((s): GallerySlideData => ({ photo: projectPhoto(s.photo, embed), photoSettings: s.photoSettings, caption: s.caption })),
+      slides: slides.map(
+        (s): GallerySlideData => ({ photo: projectPhoto(s.photo, embed), photoSettings: s.photoSettings, caption: s.caption, themeId: s.themeId }),
+      ),
       platforms: Array.from(platforms),
       customFormat,
     }),
-    [formatId, themeId, slides, platforms, customFormat],
+    [formatId, slides, platforms, customFormat],
   );
 
   // Puts a saved or restored gallery on screen. Returns false if any photo could not be loaded.
   const applyProject = useCallback(async (project: GalleryProject): Promise<boolean> => {
     setFormatId(project.formatId);
-    setThemeId(project.themeId);
     setPlatforms(new Set(project.platforms));
     setCustomFormat(project.customFormat);
     let allOk = true;
     const loaded = await Promise.all(
       project.slides.map(async (s): Promise<Slide> => {
         const ref = s.photo;
-        if (!ref) return { id: newSlideId(), photo: null, photoSettings: s.photoSettings, caption: s.caption };
+        if (!ref) return { id: newSlideId(), photo: null, photoSettings: s.photoSettings, caption: s.caption, themeId: s.themeId };
         try {
           let drawable, name: string, source: SlidePhoto["source"];
           if (ref.kind === "library") {
@@ -106,10 +105,10 @@ export default function GalleryStudio() {
             name = ref.name;
             source = { kind: "upload" };
           }
-          return { id: newSlideId(), photo: { drawable, name, source }, photoSettings: s.photoSettings, caption: s.caption };
+          return { id: newSlideId(), photo: { drawable, name, source }, photoSettings: s.photoSettings, caption: s.caption, themeId: s.themeId };
         } catch {
           allOk = false;
-          return { id: newSlideId(), photo: null, photoSettings: s.photoSettings, caption: s.caption };
+          return { id: newSlideId(), photo: null, photoSettings: s.photoSettings, caption: s.caption, themeId: s.themeId };
         }
       }),
     );
@@ -157,9 +156,10 @@ export default function GalleryStudio() {
     };
   }, []);
 
+  // The caption template never draws the logo, so any theme's logo works here — it just satisfies the render API.
   useEffect(() => {
     let cancelled = false;
-    loadImage(theme.logoSrc)
+    loadImage(getTheme(DEFAULT_THEME_ID).logoSrc)
       .then((img) => {
         if (!cancelled) setLogo(img);
       })
@@ -169,7 +169,7 @@ export default function GalleryStudio() {
     return () => {
       cancelled = true;
     };
-  }, [theme.logoSrc]);
+  }, []);
 
   // Live preview of the active slide, redrawn on every change.
   useEffect(() => {
@@ -178,7 +178,7 @@ export default function GalleryStudio() {
     renderCollateral(canvas, {
       format: effectiveFormat,
       template: CAPTION_TEMPLATE,
-      theme,
+      theme: activeTheme,
       values: { caption: activeSlide.caption },
       logo,
       photo: photo?.drawable ?? null,
@@ -303,7 +303,7 @@ export default function GalleryStudio() {
     renderCollateral(canvas, {
       format: fmt,
       template: CAPTION_TEMPLATE,
-      theme,
+      theme: getTheme(slide.themeId),
       values: { caption: slide.caption },
       logo: logo!,
       photo: slide.photo?.drawable ?? null,
@@ -321,11 +321,7 @@ export default function GalleryStudio() {
     setMessage(null);
     try {
       const canvases = await Promise.all(slides.map((s) => renderSlideCanvas(s, format, false)));
-      await downloadCanvasesPngZip(
-        canvases,
-        (i) => `${i + 1}-${exportFilename([theme.id], "png")}`,
-        exportFilename(["gallery", format.id, theme.id], "zip"),
-      );
+      await downloadCanvasesPngZip(canvases, (i) => `${i + 1}.png`, exportFilename(["gallery", format.id], "zip"));
     } catch {
       setMessage("Could not create the images. Try a smaller format.");
     } finally {
@@ -340,7 +336,7 @@ export default function GalleryStudio() {
     try {
       const bleed = format.kind === "print";
       const canvases = await Promise.all(slides.map((s) => renderSlideCanvas(s, format, bleed)));
-      const filename = exportFilename(["gallery", format.id, theme.id], "pdf");
+      const filename = exportFilename(["gallery", format.id], "pdf");
       if (format.kind === "print") await downloadCanvasesPdf(canvases, format, BLEED_MM, filename);
       else await downloadCanvasesPdfDigital(canvases, filename);
     } catch {
@@ -504,28 +500,7 @@ export default function GalleryStudio() {
         </section>
 
         <section>
-          <h2>2. Style</h2>
-          <div className="collateral-swatches" role="radiogroup" aria-label="Style">
-            {THEMES.map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                role="radio"
-                aria-checked={t.id === theme.id}
-                className="collateral-swatch"
-                onClick={() => setThemeId(t.id)}
-              >
-                <span className="collateral-swatch-chip" style={{ background: t.bg, color: t.text }} aria-hidden="true">
-                  <i style={{ background: t.accent }} />
-                </span>
-                {t.label}
-              </button>
-            ))}
-          </div>
-        </section>
-
-        <section>
-          <h2>3. Slides</h2>
+          <h2>2. Slides</h2>
           <div className="collateral-slide-list">
             {slides.map((s, i) => (
               <div key={s.id} className="collateral-slide-row">
@@ -561,6 +536,28 @@ export default function GalleryStudio() {
           <button type="button" className="btn ghost small" disabled={slides.length >= MAX_SLIDES} onClick={addSlide}>
             {`Add a slide (${slides.length} of ${MAX_SLIDES})`}
           </button>
+        </section>
+
+        <section>
+          <h2>3. Style</h2>
+          <p className="collateral-hint">Slide {activeIndex + 1}. Each slide picks its own — alternate looks, or mix tinted and Clear.</p>
+          <div className="collateral-swatches" role="radiogroup" aria-label="Style">
+            {THEMES.map((t) => (
+              <button
+                key={t.id}
+                type="button"
+                role="radio"
+                aria-checked={t.id === activeTheme.id}
+                className="collateral-swatch"
+                onClick={() => updateSlide(activeSlide.id, { themeId: t.id })}
+              >
+                <span className="collateral-swatch-chip" style={{ background: t.bg, color: t.text }} aria-hidden="true">
+                  <i style={{ background: t.accent }} />
+                </span>
+                {t.label}
+              </button>
+            ))}
+          </div>
         </section>
 
         <section>

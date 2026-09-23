@@ -12,12 +12,12 @@ export interface GallerySlideData {
   photo: ProjectPhoto | null;
   photoSettings: PhotoSettings;
   caption: string;
+  themeId: string;
 }
 
 /** Everything needed to reopen a gallery. Plain data, so it can be saved as JSON. */
 export interface GalleryProject {
   formatId: string;
-  themeId: string;
   slides: GallerySlideData[];
   /** Which platform cards are checked for the bundle export. */
   platforms: PlatformId[];
@@ -57,6 +57,7 @@ export function parseGalleryProject(text: string): GalleryParseResult {
       photo: parseProjectPhoto(s.photo),
       photoSettings: parsePhotoSettings(s.photoSettings, 1),
       caption: str(s.caption, CAPTION_MAX),
+      themeId: getTheme(str(s.themeId, 40)).id,
     }));
 
   const rawPlatforms = Array.isArray(raw.platforms) ? raw.platforms.filter((p): p is PlatformId => ALL_PLATFORM_IDS.includes(p as PlatformId)) : [];
@@ -65,7 +66,6 @@ export function parseGalleryProject(text: string): GalleryParseResult {
     ok: true,
     project: {
       formatId: getFormat(str(raw.formatId, 40)).id,
-      themeId: getTheme(str(raw.themeId, 40)).id,
       slides,
       platforms: rawPlatforms.length > 0 ? rawPlatforms : ALL_PLATFORM_IDS,
       customFormat: raw.customFormat === true,

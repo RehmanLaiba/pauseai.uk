@@ -1,3 +1,4 @@
+import { DEFAULT_THEME_ID } from "./themes";
 import type { Drawable, PhotoSettings } from "./templates";
 
 export const MIN_SLIDES = 2;
@@ -18,6 +19,8 @@ export interface Slide {
   photo: SlidePhoto | null;
   photoSettings: PhotoSettings;
   caption: string;
+  /** Each slide picks its own style, so a carousel can alternate looks or mix tinted and Clear slides. */
+  themeId: string;
 }
 
 let idCounter = 0;
@@ -28,5 +31,5 @@ export function newSlideId(): string {
 }
 
 export function newSlide(): Slide {
-  return { id: newSlideId(), photo: null, photoSettings: { ...DEFAULT_SLIDE_PHOTO_SETTINGS }, caption: "" };
+  return { id: newSlideId(), photo: null, photoSettings: { ...DEFAULT_SLIDE_PHOTO_SETTINGS }, caption: "", themeId: DEFAULT_THEME_ID };
 }
