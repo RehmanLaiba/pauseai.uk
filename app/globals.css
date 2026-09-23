@@ -532,6 +532,12 @@ section[id],
   margin: 0;
 }
 
+/* Under the full list on /events. */
+.events-page-note {
+  margin: 28px 0 0;
+  color: var(--text-secondary);
+}
+
 /* Badge floats over the top-left of the image so it doesn't push the
    body content of badged vs unbadged cards out of alignment. */
 .luma-event-badge {

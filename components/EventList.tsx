@@ -79,9 +79,12 @@ export default function EventList({
   events,
   lumaUrl,
   empty,
+  showAll = false,
 }: {
   events: LumaEntry[];
   lumaUrl: string;
+  /** List every event at once, without the "Show more" button. For the events page, where the list is the point. */
+  showAll?: boolean;
   /**
    * What to say when there is nothing to list. A local group page has already
    * named its city in the heading above, so the default reads as a non-answer
@@ -89,8 +92,8 @@ export default function EventList({
    */
   empty?: ReactNode;
 }) {
-  const [expanded, setExpanded] = useState(false);
-  const hasMore = events.length > 4;
+  const [expanded, setExpanded] = useState(showAll);
+  const hasMore = !showAll && events.length > 4;
 
   if (events.length === 0) {
     return (
