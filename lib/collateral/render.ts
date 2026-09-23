@@ -85,6 +85,7 @@ export function renderCollateral(canvas: HTMLCanvasElement, opts: RenderOptions)
     width,
     height,
     bleedPx: Math.round(size.bleedPx * scale),
+    safeLeft: opts.format.kind === "digital" ? opts.format.safeLeft : undefined,
     scale,
     dpi: size.dpi,
     theme: opts.theme,

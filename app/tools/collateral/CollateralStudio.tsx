@@ -22,7 +22,7 @@ import {
   type Project,
   type ProjectPhoto,
 } from "@/lib/collateral/project";
-import { MAX_QR_CODES, qrPlan, usableQrCodes, type QrCode } from "@/lib/collateral/qr";
+import { MAX_QR_CODES, normaliseUrl, qrPlan, usableQrCodes, type QrCode } from "@/lib/collateral/qr";
 import {
   drawableToJpegDataUrl,
   fileToDrawable,
@@ -41,14 +41,18 @@ import {
   type Values,
 } from "@/lib/collateral/templates";
 import { DEFAULT_THEME_ID, getTheme, THEMES } from "@/lib/collateral/themes";
+import CharCount from "./CharCount";
 import Slider from "./Slider";
+
+// Caption is a gallery slide (photo-forward, no logo), so single images offer the other layouts and point to the gallery.
+const SINGLE_TEMPLATES = TEMPLATES.filter((t) => t.id !== "caption");
+const RESET_MESSAGE = "Reset to the example text.";
 
 const STORAGE_KEY = "pauseai-collateral-v2";
 const PREVIEW_MAX_SIDE = 1400;
 const MAX_PROJECT_FILE_BYTES = 12_000_000;
 
 const DEFAULT_PHOTO_SETTINGS: PhotoSettings = { zoom: 1, focalX: 0.5, focalY: 0.5, visible: 0.25 };
-const NEW_QR: QrCode = { label: "Scan to join", url: "pauseai.uk" };
 
 interface PhotoState {
   drawable: Drawable;
@@ -56,7 +60,7 @@ interface PhotoState {
   source: { kind: "library"; id: string } | { kind: "upload" };
 }
 
-export default function CollateralStudio() {
+export default function CollateralStudio({ onOpenGallery }: { onOpenGallery: () => void }) {
   const [formatId, setFormatId] = useState(DEFAULT_FORMAT_ID);
   const [templateId, setTemplateId] = useState(DEFAULT_TEMPLATE_ID);
   const [themeId, setThemeId] = useState<string>(DEFAULT_THEME_ID);
@@ -71,13 +75,16 @@ export default function CollateralStudio() {
   const [restored, setRestored] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  // Restores what the last Reset cleared. Only offered while the reset message is showing.
+  const [undoReset, setUndoReset] = useState<(() => void) | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const openInputRef = useRef<HTMLInputElement>(null);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const pinch = useRef<{ dist: number; zoom: number } | null>(null);
 
   const format = getFormat(formatId);
-  const template = getTemplate(templateId);
+  // Older saves may still name the Caption layout, which now lives in the gallery.
+  const template = SINGLE_TEMPLATES.find((t) => t.id === templateId) ?? getTemplate(DEFAULT_TEMPLATE_ID);
   const theme = getTheme(themeId);
   // Merge over defaults so fields added after a volunteer's last visit still get a value.
   const values = { ...defaultValues(template), ...valuesByTemplate[template.id] };
@@ -92,6 +99,15 @@ export default function CollateralStudio() {
     urls: usableCodes.map((c) => c.url),
     track: trackQr,
   });
+  const qrTargets = usableCodes.map((c) => normaliseUrl(c.url).toLowerCase());
+  const duplicateQr = new Set(qrTargets).size < qrTargets.length;
+
+  // The first code opens the design's own web address, since that is almost always where it should go.
+  // Later codes start blank, so two codes never quietly point at the same place.
+  function newQr(): QrCode {
+    if (qrCodes.length > 0) return { label: "", url: "" };
+    return { label: template.id === "event" ? "Scan to RSVP" : "Scan to join", url: values.url?.trim() || "pauseai.uk" };
+  }
 
   const currentProject = useCallback(
     (projectPhoto: ProjectPhoto | null): Project => ({
@@ -384,11 +400,35 @@ export default function CollateralStudio() {
   }
 
   function onReset() {
+    const before = { id: template.id, values: values, qrCodes, photo, photoSettings };
     setValuesByTemplate((prev) => ({ ...prev, [template.id]: defaultValues(template) }));
     setQrCodes([]);
     setPhoto(null);
     setPhotoSettings(DEFAULT_PHOTO_SETTINGS);
+    setMessage(RESET_MESSAGE);
+    setUndoReset(() => () => {
+      setValuesByTemplate((prev) => ({ ...prev, [before.id]: before.values }));
+      setQrCodes(before.qrCodes);
+      setPhoto(before.photo);
+      setPhotoSettings(before.photoSettings);
+      setUndoReset(null);
+      setMessage(null);
+    });
   }
+
+  const ready = !busy && Boolean(logo) && fontsReady;
+  const downloadButtons = (
+    <>
+      <button type="button" className="btn primary large" onClick={onDownloadPng} disabled={!ready}>
+        {busy ? "Preparing…" : "Download PNG"}
+      </button>
+      {format.kind === "print" && (
+        <button type="button" className="btn primary large" onClick={onDownloadPdf} disabled={!ready}>
+          {busy ? "Preparing…" : `Download print PDF (+${BLEED_MM} mm bleed)`}
+        </button>
+      )}
+    </>
+  );
 
   return (
     <div className="collateral-studio">
@@ -411,6 +451,7 @@ export default function CollateralStudio() {
           {format.label} · {formatDimensionLabel(format)}
         </p>
         {photo && <p className="collateral-preview-meta">Drag the photo to move it. Scroll or pinch to zoom.</p>}
+        <div className="collateral-preview-actions">{downloadButtons}</div>
       </div>
 
       <div className="collateral-controls">
@@ -430,12 +471,13 @@ export default function CollateralStudio() {
               </optgroup>
             ))}
           </select>
+          {format.note && <p className="collateral-hint">{format.note}</p>}
         </section>
 
         <section>
           <h2>2. Layout</h2>
           <div className="collateral-choice-grid" role="radiogroup" aria-label="Layout">
-            {TEMPLATES.map((t) => (
+            {SINGLE_TEMPLATES.map((t) => (
               <button
                 key={t.id}
                 type="button"
@@ -449,6 +491,12 @@ export default function CollateralStudio() {
               </button>
             ))}
           </div>
+          <p className="collateral-hint">
+            Photo with a caption, or a post with several slides?
+            <button type="button" className="collateral-link" onClick={onOpenGallery}>
+              Use Gallery / carousel
+            </button>
+          </p>
         </section>
 
         <section>
@@ -513,12 +561,12 @@ export default function CollateralStudio() {
                     onChange={(e) => setValue(field.key, e.target.value)}
                   />
                 )}
+                <CharCount value={value} max={field.maxLength} />
               </div>
             );
           })}
         </section>
 
-        {template.id !== "caption" && (
         <section>
           <h2>5. QR codes (optional)</h2>
           {qrCodes.map((code, i) => (
@@ -540,6 +588,7 @@ export default function CollateralStudio() {
                   value={code.url}
                   onChange={(e) => updateQr(i, { url: e.target.value })}
                 />
+                <CharCount value={code.url} max={QR_URL_MAX} />
               </div>
               <button
                 type="button"
@@ -555,7 +604,7 @@ export default function CollateralStudio() {
             type="button"
             className="btn ghost small"
             disabled={qrCodes.length >= MAX_QR_CODES}
-            onClick={() => setQrCodes((prev) => [...prev, { ...NEW_QR }])}
+            onClick={() => setQrCodes((prev) => [...prev, newQr()])}
           >
             {qrCodes.length === 0 ? "Add a QR code" : `Add another (${qrCodes.length} of ${MAX_QR_CODES})`}
           </button>
@@ -568,8 +617,8 @@ export default function CollateralStudio() {
           )}
           */}
           {qrCodes.length > 0 && qrAvailability.reason && <p className="collateral-hint">{qrAvailability.reason}</p>}
+          {duplicateQr && <p className="collateral-hint">Two of your QR codes open the same address.</p>}
         </section>
-        )}
 
         <section>
           <h2>6. Photo (optional)</h2>
@@ -627,6 +676,12 @@ export default function CollateralStudio() {
                 value={photoSettings.focalY}
                 onChange={(focalY) => setPhotoSettings((s) => ({ ...s, focalY }))}
               />
+              {theme.noPhotoTint && (
+                <p className="collateral-hint">
+                  Clear keeps your photo untouched and outlines the text so it stands out. If it is still hard to read, try
+                  another style.
+                </p>
+              )}
               {!theme.noPhotoTint && (
                 <Slider
                   label="Photo strength"
@@ -642,20 +697,18 @@ export default function CollateralStudio() {
         </section>
 
         <section className="collateral-actions">
-          <button type="button" className="btn primary large" onClick={onDownloadPng} disabled={busy || !logo || !fontsReady}>
-            {busy ? "Preparing…" : "Download PNG"}
-          </button>
-          {format.kind === "print" && (
-            <button type="button" className="btn primary large" onClick={onDownloadPdf} disabled={busy || !logo || !fontsReady}>
-              {busy ? "Preparing…" : `Download print PDF (+${BLEED_MM} mm bleed)`}
-            </button>
-          )}
+          {downloadButtons}
           <button type="button" className="btn ghost large" onClick={onReset}>
             Reset
           </button>
           {message && (
             <p className="collateral-message" role="status">
               {message}
+              {message === RESET_MESSAGE && undoReset && (
+                <button type="button" className="collateral-link" onClick={undoReset}>
+                  Undo
+                </button>
+              )}
             </p>
           )}
         </section>

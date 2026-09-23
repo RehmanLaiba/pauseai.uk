@@ -30,6 +30,12 @@ export function newSlideId(): string {
   return `slide-${Date.now()}-${idCounter}`;
 }
 
+/** A first slide to show what a finished one looks like, like the example text in the single-image layouts. */
+export const EXAMPLE_SLIDE = {
+  photoId: "deepmind",
+  caption: "Saturday: PauseAI UK volunteers outside Google DeepMind, asking for a pause on frontier AI.",
+};
+
 export function newSlide(): Slide {
   return { id: newSlideId(), photo: null, photoSettings: { ...DEFAULT_SLIDE_PHOTO_SETTINGS }, caption: "", themeId: DEFAULT_THEME_ID };
 }

@@ -15,7 +15,17 @@ import {
   type PlatformExportGroup,
 } from "@/lib/collateral/export";
 import { BLEED_MM, DEFAULT_FORMAT_ID, FORMAT_GROUPS, FORMATS, formatDimensionLabel, getFormat, type Format } from "@/lib/collateral/formats";
-import { CAPTION_MAX, DEFAULT_SLIDE_PHOTO_SETTINGS, MAX_SLIDES, MIN_SLIDES, newSlide, newSlideId, type Slide, type SlidePhoto } from "@/lib/collateral/gallery";
+import {
+  CAPTION_MAX,
+  DEFAULT_SLIDE_PHOTO_SETTINGS,
+  EXAMPLE_SLIDE,
+  MAX_SLIDES,
+  MIN_SLIDES,
+  newSlide,
+  newSlideId,
+  type Slide,
+  type SlidePhoto,
+} from "@/lib/collateral/gallery";
 import {
   parseGalleryProject,
   serializeGalleryProject,
@@ -29,12 +39,71 @@ import type { ProjectPhoto } from "@/lib/collateral/project";
 import { drawableToJpegDataUrl, fileToDrawable, loadDataUrl, loadFonts, loadImage, renderCollateral } from "@/lib/collateral/render";
 import { getTemplate, type Drawable } from "@/lib/collateral/templates";
 import { DEFAULT_THEME_ID, getTheme, THEMES } from "@/lib/collateral/themes";
+import CharCount from "./CharCount";
 import Slider from "./Slider";
 
 const CAPTION_TEMPLATE = getTemplate("caption");
 const STORAGE_KEY = "pauseai-collateral-gallery-v1";
 const PREVIEW_MAX_SIDE = 1400;
+const THUMB_MAX_SIDE = 160;
 const MAX_PROJECT_FILE_BYTES = 12_000_000 * MAX_SLIDES;
+const RESET_MESSAGE = "Started a new gallery.";
+
+/** Slide 1 filled in with an example, slide 2 empty. Falls back to two empty slides if the photo will not load. */
+async function exampleSlides(): Promise<Slide[]> {
+  const item = LIBRARY_PHOTOS.find((p) => p.id === EXAMPLE_SLIDE.photoId);
+  if (!item) return [newSlide(), newSlide()];
+  try {
+    const drawable = await loadImage(item.src);
+    const first: Slide = {
+      ...newSlide(),
+      photo: { drawable, name: item.label, source: { kind: "library", id: item.id } },
+      caption: EXAMPLE_SLIDE.caption,
+    };
+    return [first, newSlide()];
+  } catch {
+    return [newSlide(), newSlide()];
+  }
+}
+
+/** A distinct crop the selected platforms need, e.g. 4:5 for Instagram and LinkedIn, square for X. */
+interface PreviewCrop {
+  formatId: string;
+  label: string;
+}
+
+function SlideThumb(props: {
+  slide: Slide;
+  format: Format;
+  logo: Drawable;
+  index: number;
+  active: boolean;
+  onSelect: () => void;
+}) {
+  const { slide, format, logo, index, active, onSelect } = props;
+  const ref = useRef<HTMLCanvasElement>(null);
+  useEffect(() => {
+    if (!ref.current) return;
+    renderCollateral(ref.current, {
+      format,
+      template: CAPTION_TEMPLATE,
+      theme: getTheme(slide.themeId),
+      values: { caption: slide.caption },
+      logo,
+      photo: slide.photo?.drawable ?? null,
+      photoSettings: slide.photoSettings,
+      qrCodes: [],
+      trackQr: false,
+      maxSide: THUMB_MAX_SIDE,
+    });
+  });
+  return (
+    <button type="button" aria-label={`Show slide ${index + 1}`} aria-current={active} onClick={onSelect}>
+      <canvas ref={ref} aria-hidden="true" />
+      <span>{index + 1}</span>
+    </button>
+  );
+}
 
 export default function GalleryStudio() {
   const [formatId, setFormatId] = useState(DEFAULT_FORMAT_ID);
@@ -47,14 +116,25 @@ export default function GalleryStudio() {
   const [restored, setRestored] = useState(false);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  // Restores what the last Reset cleared. Only offered while the reset message is showing.
+  const [undoReset, setUndoReset] = useState<(() => void) | null>(null);
+  // Which platform crop the preview shows, when the selected platforms need more than one.
+  const [previewFormatId, setPreviewFormatId] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
   const openInputRef = useRef<HTMLInputElement>(null);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const pinch = useRef<{ dist: number; zoom: number } | null>(null);
 
   const format = getFormat(formatId);
-  const firstSelectedVariant = CAROUSEL_PLATFORMS.find((v) => platforms.has(v.platform));
-  const effectiveFormat = customFormat ? format : getFormat(firstSelectedVariant?.formatId ?? DEFAULT_FORMAT_ID);
+  const previewCrops: PreviewCrop[] = [];
+  for (const v of CAROUSEL_PLATFORMS) {
+    if (!platforms.has(v.platform)) continue;
+    const crop = previewCrops.find((c) => c.formatId === v.formatId);
+    if (crop) crop.label += ` · ${v.label}`;
+    else previewCrops.push({ formatId: v.formatId, label: v.label });
+  }
+  const previewCrop = previewCrops.find((c) => c.formatId === previewFormatId) ?? previewCrops[0];
+  const effectiveFormat = customFormat ? format : getFormat(previewCrop?.formatId ?? DEFAULT_FORMAT_ID);
   const activeSlide = slides[Math.min(activeIndex, slides.length - 1)] ?? slides[0];
   const activeTheme = getTheme(activeSlide.themeId);
   const photo = activeSlide.photo;
@@ -124,6 +204,10 @@ export default function GalleryStudio() {
         const raw = localStorage.getItem(STORAGE_KEY);
         const result = raw ? parseGalleryProject(raw) : null;
         if (result?.ok) await applyProject(result.project);
+        else {
+          const seeded = await exampleSlides();
+          if (!cancelled) setSlides(seeded);
+        }
       } catch {
         // Storage can be blocked (private windows etc). The tool works without it.
       }
@@ -410,12 +494,39 @@ export default function GalleryStudio() {
     setMessage(ok ? `Opened ${file.name}.` : `Opened ${file.name}, but some photos could not be loaded.`);
   }
 
-  function onReset() {
-    setSlides([newSlide(), newSlide()]);
+  async function onReset() {
+    const before = { slides, activeIndex, platforms, customFormat };
+    const seeded = await exampleSlides();
+    setSlides(seeded);
     setActiveIndex(0);
     setPlatforms(new Set(ALL_PLATFORM_IDS));
     setCustomFormat(false);
+    setMessage(RESET_MESSAGE);
+    setUndoReset(() => () => {
+      setSlides(before.slides);
+      setActiveIndex(before.activeIndex);
+      setPlatforms(before.platforms);
+      setCustomFormat(before.customFormat);
+      setUndoReset(null);
+      setMessage(null);
+    });
   }
+
+  const ready = !busy && Boolean(logo) && fontsReady;
+  const downloadButtons = customFormat ? (
+    <>
+      <button type="button" className="btn primary large" onClick={onDownloadImages} disabled={!ready}>
+        {busy ? "Preparing…" : `Download ${slides.length} images (.zip)`}
+      </button>
+      <button type="button" className="btn primary large" onClick={onDownloadPdf} disabled={!ready}>
+        {busy ? "Preparing…" : "Download PDF"}
+      </button>
+    </>
+  ) : (
+    <button type="button" className="btn primary large" onClick={onDownloadForPlatforms} disabled={!ready || platforms.size === 0}>
+      {busy ? "Preparing…" : "Download for selected platforms"}
+    </button>
+  );
 
   return (
     <div className="collateral-studio">
@@ -438,11 +549,47 @@ export default function GalleryStudio() {
           Slide {activeIndex + 1} of {slides.length} ·{" "}
           {customFormat
             ? `${format.label} · ${formatDimensionLabel(format)}`
-            : firstSelectedVariant
-              ? `Crop for ${firstSelectedVariant.label} · ${formatDimensionLabel(effectiveFormat)}`
+            : previewCrop
+              ? `Crop for ${previewCrop.label} · ${formatDimensionLabel(effectiveFormat)}`
               : formatDimensionLabel(effectiveFormat)}
         </p>
-        {photo && <p className="collateral-preview-meta">Drag the photo to move it. Scroll or pinch to zoom.</p>}
+        {!customFormat && previewCrops.length > 1 && (
+          <div className="collateral-crop-picker" role="group" aria-label="Preview crop">
+            {previewCrops.map((c) => (
+              <button
+                key={c.formatId}
+                type="button"
+                aria-pressed={c.formatId === previewCrop?.formatId}
+                onClick={() => setPreviewFormatId(c.formatId)}
+              >
+                {c.label}
+              </button>
+            ))}
+          </div>
+        )}
+        {photo ? (
+          <p className="collateral-preview-meta">Drag the photo to move it. Scroll or pinch to zoom.</p>
+        ) : (
+          !activeSlide.caption.trim() && (
+            <p className="collateral-preview-meta">This slide is empty. Pick a photo and write a caption for it below.</p>
+          )
+        )}
+        {logo && fontsReady && (
+          <div className="collateral-filmstrip" role="group" aria-label="All slides">
+            {slides.map((s, i) => (
+              <SlideThumb
+                key={s.id}
+                slide={s}
+                format={effectiveFormat}
+                logo={logo}
+                index={i}
+                active={i === activeIndex}
+                onSelect={() => setActiveIndex(i)}
+              />
+            ))}
+          </div>
+        )}
+        <div className="collateral-preview-actions">{downloadButtons}</div>
       </div>
 
       <div className="collateral-controls">
@@ -572,6 +719,7 @@ export default function GalleryStudio() {
             value={activeSlide.caption}
             onChange={(e) => updateSlide(activeSlide.id, { caption: e.target.value })}
           />
+          <CharCount value={activeSlide.caption} max={CAPTION_MAX} />
         </section>
 
         <section>
@@ -630,31 +778,18 @@ export default function GalleryStudio() {
         </section>
 
         <section className="collateral-actions">
-          {customFormat ? (
-            <>
-              <button type="button" className="btn primary large" onClick={onDownloadImages} disabled={busy || !logo || !fontsReady}>
-                {busy ? "Preparing…" : `Download ${slides.length} images (.zip)`}
-              </button>
-              <button type="button" className="btn primary large" onClick={onDownloadPdf} disabled={busy || !logo || !fontsReady}>
-                {busy ? "Preparing…" : "Download PDF"}
-              </button>
-            </>
-          ) : (
-            <button
-              type="button"
-              className="btn primary large"
-              onClick={onDownloadForPlatforms}
-              disabled={busy || !logo || !fontsReady || platforms.size === 0}
-            >
-              {busy ? "Preparing…" : "Download for selected platforms"}
-            </button>
-          )}
+          {downloadButtons}
           <button type="button" className="btn ghost large" onClick={onReset}>
             Reset
           </button>
           {message && (
             <p className="collateral-message" role="status">
               {message}
+              {message === RESET_MESSAGE && undoReset && (
+                <button type="button" className="collateral-link" onClick={undoReset}>
+                  Undo
+                </button>
+              )}
             </p>
           )}
         </section>

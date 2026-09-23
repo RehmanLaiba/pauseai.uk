@@ -15,6 +15,8 @@ export interface DigitalFormat extends FormatBase {
   kind: "digital";
   width: number;
   height: number;
+  /** Share of the width, from the left, that the platform covers below the header (X puts the profile photo there). */
+  safeLeft?: number;
 }
 
 export interface PrintFormat extends FormatBase {
@@ -32,7 +34,16 @@ export const FORMATS: Format[] = [
   { id: "x-post", label: "X / Twitter post", group: "Social", kind: "digital", width: 1600, height: 900 },
   { id: "link-share", label: "LinkedIn / Facebook link share", group: "Social", kind: "digital", width: 1200, height: 630 },
   { id: "fb-event", label: "Facebook event cover", group: "Social", kind: "digital", width: 1920, height: 1005 },
-  { id: "x-header", label: "X header", group: "Social", kind: "digital", width: 1500, height: 500 },
+  {
+    id: "x-header",
+    label: "X header",
+    group: "Social",
+    kind: "digital",
+    width: 1500,
+    height: 500,
+    safeLeft: 0.28,
+    note: "The bottom-left is kept clear, because X puts your profile photo there.",
+  },
   { id: "luma-cover", label: "Luma event cover", group: "Events", kind: "digital", width: 1080, height: 1080, note: "Square, works for Luma cards and pages." },
   { id: "slide", label: "Slide / Zoom background (16:9)", group: "Slides", kind: "digital", width: 1920, height: 1080 },
   { id: "a6", label: "A6 handout", group: "Print", kind: "print", widthMm: 105, heightMm: 148 },

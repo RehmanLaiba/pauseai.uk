@@ -24,7 +24,7 @@ const tools: Tool[] = [
     href: "/tools/collateral",
     title: "Collateral maker",
     description:
-      "Make PauseAI UK branded flyers, posters, event and social media images. Pick a format and a style, add your text, photo and QR codes, then download a PNG or a print-ready PDF.",
+      "Make PauseAI UK branded flyers, posters, event and social media images, and photo carousels. Pick a format and a style, add your text, photo and QR codes, then download a PNG, plus a print-ready PDF for flyers and posters.",
   },
   {
     href: "/tools/qr",

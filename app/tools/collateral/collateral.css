@@ -71,6 +71,8 @@
   display: flex;
   gap: 8px;
   margin-bottom: 24px;
+  /* Clears the sticky nav when scrolled into view. */
+  scroll-margin-top: 100px;
 }
 
 .collateral-mode-switch button {
@@ -471,6 +473,105 @@
   color: var(--text-secondary);
 }
 
+.collateral-count {
+  display: block;
+  margin-top: 4px;
+  font-size: 12px;
+  color: var(--text-secondary);
+  text-align: right;
+}
+
+.collateral-count.is-full {
+  color: var(--accent);
+  font-weight: 600;
+}
+
+/* Download buttons repeated under the preview, so they are not only at the end of a long form. */
+.collateral-preview-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.collateral-preview-actions .btn {
+  cursor: pointer;
+}
+
+.collateral-preview-actions .btn[disabled] {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* Every gallery slide at a glance, under the preview. */
+.collateral-filmstrip {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 16px;
+}
+
+.collateral-filmstrip button {
+  position: relative;
+  padding: 0;
+  border: 1px solid var(--border-strong);
+  border-radius: 4px;
+  background: var(--surface);
+  cursor: pointer;
+  line-height: 0;
+}
+
+.collateral-filmstrip button[aria-current="true"] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.collateral-filmstrip canvas {
+  display: block;
+  height: 72px;
+  width: auto;
+  border-radius: 3px;
+}
+
+.collateral-filmstrip span {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  padding: 1px 5px;
+  border-radius: 999px;
+  background: rgba(0, 0, 0, 0.6);
+  color: #fff;
+  font-size: 11px;
+  font-weight: 700;
+  line-height: 1.4;
+}
+
+.collateral-crop-picker {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 6px;
+  margin-top: 10px;
+}
+
+.collateral-crop-picker button {
+  padding: 4px 10px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+.collateral-crop-picker button[aria-pressed="true"] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 1px var(--accent);
+}
+
 /* ── QR generator ──────────────────────────────── */
 
 .collateral-qr-preview {
@@ -510,4 +611,42 @@
 
 .collateral-tips li + li {
   margin-top: 6px;
+}
+
+/* ── Narrow screens ────────────────────────────── */
+
+/* The controls sit under the preview here, so keep a smaller preview pinned under the 77px nav to
+   show changes while typing. The download buttons stay in the controls. Last in the file so it
+   overrides the base rules above. */
+@media (max-width: 899px) {
+  .collateral-preview {
+    position: sticky;
+    top: 77px;
+    z-index: 5;
+    padding: 8px 0;
+    background: var(--bg);
+    /* Extends the backdrop past the edges, so focus rings on the controls scrolling beneath do not peek out. */
+    box-shadow: 0 0 0 12px var(--bg);
+  }
+
+  .collateral-preview-frame {
+    min-height: 0;
+  }
+
+  .collateral-preview-frame canvas {
+    max-height: 32vh;
+  }
+
+  .collateral-preview-meta,
+  .collateral-preview-actions,
+  .collateral-filmstrip {
+    display: none;
+  }
+
+  /* Keep a focused field clear of the pinned preview when the browser scrolls it into view. */
+  .collateral-controls input,
+  .collateral-controls textarea,
+  .collateral-controls select {
+    scroll-margin-top: calc(77px + 32vh + 40px);
+  }
 }

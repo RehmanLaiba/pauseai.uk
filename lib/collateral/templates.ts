@@ -38,6 +38,8 @@ export interface DrawArgs {
   height: number;
   /** Bleed on each edge in px. Backgrounds fill it, content stays out of it. */
   bleedPx: number;
+  /** Share of the trim width, from the left, to keep clear below the header. See DigitalFormat.safeLeft. */
+  safeLeft?: number;
   /** Canvas px per export px: 1 for downloads, below 1 for the live preview. */
   scale: number;
   /** Print resolution at export size. Undefined for digital formats. */
@@ -77,6 +79,8 @@ interface Geometry {
   /** Design unit: 1 at 1000px on a side, scales with the trim area. */
   u: number;
   cls: AspectClass;
+  /** Left edge of the logo. Only differs from `left` when the format keeps a safe area clear below the header. */
+  headerLeft: number;
   left: number;
   right: number;
   top: number;
@@ -93,7 +97,32 @@ function geometry(a: DrawArgs): Geometry {
   const marginUnits = layoutMarginUnits(cls);
   const m = a.bleedPx + marginUnits * u;
   const logoUnits = cls === "banner" ? 230 : cls === "story" ? 340 : 300;
-  return { u, cls, left: m, right: a.width - m, top: m, bottom: a.height - m, cw: a.width - 2 * m, logoW: logoUnits * u };
+  const left = a.safeLeft ? Math.max(m, a.bleedPx + trimW * a.safeLeft) : m;
+  const right = a.width - m;
+  return { u, cls, headerLeft: m, left, right, top: m, bottom: a.height - m, cw: right - left, logoW: logoUnits * u };
+}
+
+/** Clear leaves the photo untinted, so text over it gets a light outline to stay readable, as the Brush line does. */
+function needsHalo(a: DrawArgs): boolean {
+  return Boolean(a.photo && a.theme.noPhotoTint);
+}
+
+/** fillText, plus the Clear-over-a-photo outline when it is needed. Uses the context's current font and fill. */
+function fillText(a: DrawArgs, text: string, x: number, y: number, maxWidth?: number) {
+  const { ctx } = a;
+  if (needsHalo(a)) {
+    const size = parseFloat(/([\d.]+)px/.exec(ctx.font)?.[1] ?? "0");
+    const u = Math.sqrt(a.width * a.height) / 1000;
+    ctx.save();
+    ctx.strokeStyle = a.theme.text === INK ? "#FFFFFF" : INK;
+    ctx.lineJoin = "round";
+    ctx.lineWidth = Math.min(size * 0.24, 16 * u);
+    if (maxWidth === undefined) ctx.strokeText(text, x, y);
+    else ctx.strokeText(text, x, y, maxWidth);
+    ctx.restore();
+  }
+  if (maxWidth === undefined) ctx.fillText(text, x, y);
+  else ctx.fillText(text, x, y, maxWidth);
 }
 
 function font(weight: number | string, size: number, family: string): string {
@@ -129,7 +158,7 @@ function paintBackground(a: DrawArgs) {
 function drawHeader(a: DrawArgs, g: Geometry): number {
   const { ctx, theme, values } = a;
   const logoH = g.logoW / LOGO_ASPECT;
-  ctx.drawImage(a.logo.source, g.left, g.top, g.logoW, logoH);
+  ctx.drawImage(a.logo.source, g.headerLeft, g.top, g.logoW, logoH);
 
   const group = values.group?.trim();
   const label = group ? `UK · ${group}` : "UK";
@@ -141,7 +170,7 @@ function drawHeader(a: DrawArgs, g: Geometry): number {
   ctx.textAlign = "right";
   ctx.textBaseline = "middle";
   // Tracking adds trailing space after the last glyph, so nudge back to the margin.
-  ctx.fillText(label.toUpperCase(), g.right + size * 0.14, g.top + logoH / 2);
+  fillText(a, label.toUpperCase(), g.right + size * 0.14, g.top + logoH / 2);
   ctx.restore();
   return g.top + logoH;
 }
@@ -239,9 +268,12 @@ function drawQrBlock(a: DrawArgs, q: QrLayout, x: number, y: number) {
     ctx.font = font(700, size, BODY_FONT);
     ctx.textAlign = "center";
     ctx.textBaseline = "top";
-    ctx.fillText(label, px + q.size / 2, y + q.size + q.labelFont * 0.4, q.size);
+    fillText(a, label, px + q.size / 2, y + q.size + q.labelFont * 0.4, q.size);
   });
 }
+
+/** A long web address may shrink to this share of the footer font before the layout changes to make room. */
+const MIN_URL_SCALE = 0.75;
 
 /** CTA pill plus URL and optional QR codes along the bottom margin. Returns the y of the footer's top edge. */
 function drawFooter(a: DrawArgs, g: Geometry): number {
@@ -251,26 +283,36 @@ function drawFooter(a: DrawArgs, g: Geometry): number {
   const fs = (g.cls === "banner" ? 26 : 30) * g.u;
   const pillH = cta || url ? fs * 1.9 : 0;
   const gap = 26 * g.u;
-  const q = qrLayout(a, g);
-  const textRight = q?.side ? g.right - q.blockW - gap : g.right;
 
   const pillText = cta ?? "";
   const pillW = cta ? measurer(ctx, 800, BODY_FONT)(pillText, fs) + fs * 1.8 : 0;
   const urlW = url ? measurer(ctx, 700, BODY_FONT)(url, fs) : 0;
+
+  // Codes beside the text only get that spot if the pill and the URL (shrunk no further than
+  // MIN_URL_SCALE) fit in what is left of the row. Otherwise they take their own row, so nothing overlaps.
+  const planned = qrLayout(a, g);
+  const besideRoom = planned ? g.right - planned.blockW - gap - g.left : g.cw;
+  const fitsBeside = pillW <= besideRoom && urlW * MIN_URL_SCALE <= besideRoom;
+  const q = planned?.side && !fitsBeside ? { ...planned, side: false } : planned;
+  const textRight = q?.side ? g.right - q.blockW - gap : g.right;
+
   const stacked = Boolean(cta && url && g.left + pillW + gap + urlW > textRight);
-  // When stacked, the URL sits on its own line above the pill.
+  // When stacked, the URL sits on its own line below the pill, so the pill always comes first.
   const stackH = stacked ? fs * 1.7 : 0;
+  const urlX = cta && !stacked ? g.left + pillW + gap : g.left;
+  const urlRoom = Math.max(0, textRight - urlX);
+  const urlFs = urlW > urlRoom ? Math.max(fs * MIN_URL_SCALE, (fs * urlRoom) / urlW) : fs;
   const textH = pillH + stackH;
 
-  let pillBottom = g.bottom;
+  let textBottom = g.bottom;
   let top = g.bottom - textH;
   if (q) {
     if (q.side) {
       const qy = g.bottom - q.blockH;
       drawQrBlock(a, q, g.right - q.blockW, qy);
       // Centre the text block on the QR panels.
-      pillBottom = Math.min(g.bottom, qy + q.size / 2 + textH / 2);
-      top = Math.min(qy, pillBottom - textH);
+      textBottom = Math.min(g.bottom, qy + q.size / 2 + textH / 2);
+      top = Math.min(qy, textBottom - textH);
     } else {
       const qy = g.bottom - textH - (textH ? gap : 0) - q.blockH;
       drawQrBlock(a, q, g.left, qy);
@@ -278,8 +320,8 @@ function drawFooter(a: DrawArgs, g: Geometry): number {
     }
   }
 
-  const pillY = pillBottom - pillH;
-  const urlY = stacked ? pillY - fs * 0.85 : pillY + pillH / 2;
+  const pillY = textBottom - textH;
+  const urlY = stacked ? pillY + pillH + fs * 0.85 : pillY + pillH / 2;
   if (cta) {
     ctx.fillStyle = theme.accent;
     roundRect(ctx, g.left, pillY, pillW, pillH, pillH / 2);
@@ -292,19 +334,19 @@ function drawFooter(a: DrawArgs, g: Geometry): number {
   }
   if (url) {
     ctx.fillStyle = theme.text;
-    ctx.font = font(700, fs, BODY_FONT);
+    ctx.font = font(700, urlFs, BODY_FONT);
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
-    const x = cta && !stacked ? g.left + pillW + gap : g.left;
-    ctx.fillText(url, x, urlY);
+    // maxWidth squeezes a URL that is still too long at the smallest size, rather than letting it run under a QR code.
+    fillText(a, url, urlX, urlY, urlRoom);
   }
   return top;
 }
 
-function drawLines(ctx: CanvasRenderingContext2D, lines: string[], x: number, y: number, lineHeightPx: number) {
-  ctx.textAlign = "left";
-  ctx.textBaseline = "top";
-  lines.forEach((line, i) => ctx.fillText(line, x, y + i * lineHeightPx));
+function drawLines(a: DrawArgs, lines: string[], x: number, y: number, lineHeightPx: number) {
+  a.ctx.textAlign = "left";
+  a.ctx.textBaseline = "top";
+  lines.forEach((line, i) => fillText(a, line, x, y + i * lineHeightPx));
 }
 
 /**
@@ -323,7 +365,7 @@ function drawBrushLines(a: DrawArgs, lines: string[], x: number, y: number, size
   lines.forEach((line, i) => {
     // actualBoundingBoxLeft is how far the ink extends left of the origin (negative when it starts to the right).
     const inkLeft = ctx.measureText(line).actualBoundingBoxLeft;
-    ctx.fillText(line, x + inkLeft, y + i * lineHeightPx + (lineHeightPx + capHeight) / 2);
+    fillText(a, line, x + inkLeft, y + i * lineHeightPx + (lineHeightPx + capHeight) / 2);
   });
   ctx.restore();
 }
@@ -336,7 +378,7 @@ function drawKicker(a: DrawArgs, g: Geometry, text: string, x: number, y: number
   ctx.fillStyle = theme.accentText;
   ctx.textAlign = "left";
   ctx.textBaseline = "top";
-  ctx.fillText(text.toUpperCase(), x, y);
+  fillText(a, text.toUpperCase(), x, y);
   setTracking(ctx, 0);
   return size * 1.3;
 }
@@ -366,7 +408,7 @@ function maxHeadlineFont(cls: AspectClass, u: number): number {
 
 const FOOTER_FIELDS: FieldDef[] = [
   { key: "cta", label: "Button text", kind: "text", maxLength: 28, default: "Join PauseAI UK" },
-  { key: "url", label: "Web address", kind: "text", maxLength: 40, default: "pauseai.uk" },
+  { key: "url", label: "Web address", kind: "text", maxLength: 60, hint: "A short link reads best", default: "pauseai.uk" },
   { key: "group", label: "Local group", kind: "text", maxLength: 24, hint: "e.g. London. Leave blank for national.", default: "" },
 ];
 
@@ -420,13 +462,13 @@ const announcement: Template = {
     }
     ctx.fillStyle = theme.text;
     ctx.font = font(900, headline.fontSize, DISPLAY_FONT);
-    drawLines(ctx, headline.lines, g.left, y, headline.lineHeightPx);
+    drawLines(a, headline.lines, g.left, y, headline.lineHeightPx);
     y += headline.height;
     if (subFit) {
       y += 22 * g.u;
       ctx.fillStyle = theme.muted;
       ctx.font = font(500, subFit.fontSize, BODY_FONT);
-      drawLines(ctx, subFit.lines, g.left, y, subFit.lineHeightPx);
+      drawLines(a, subFit.lines, g.left, y, subFit.lineHeightPx);
     }
   },
 };
@@ -460,48 +502,65 @@ const event: Template = {
     const venue = values.venue?.trim();
     const blurb = compact ? "" : (values.blurb?.trim() ?? "");
 
-    const dateSize = (compact ? 34 : 50) * g.u;
-    const venueFit = venue
-      ? fitText(measurer(ctx, 600, BODY_FONT), venue, {
-          maxWidth: g.cw - 30 * g.u,
-          maxHeight: 2 * 38 * g.u * 1.25,
-          maxFont: (compact ? 28 : 38) * g.u,
-          minFont: 22 * g.u,
-          lineHeight: 1.25,
-        })
-      : null;
-    const whenFit = when
-      ? fitText(measurer(ctx, 800, BODY_FONT), when, {
-          maxWidth: g.cw - 30 * g.u,
-          maxHeight: dateSize * 1.3 * 2,
-          maxFont: dateSize,
-          minFont: 24 * g.u,
-          lineHeight: 1.25,
-        })
-      : null;
-    const detailsH = (whenFit?.height ?? 0) + (venueFit ? venueFit.height + 6 * g.u : 0);
-    const detailsBlock = detailsH ? detailsH + 30 * g.u : 0;
-
-    const blurbReserve = blurb ? Math.min(zone.height * 0.2, 130 * g.u) : 0;
-    const blurbFit = blurb
-      ? fitText(measurer(ctx, 500, BODY_FONT), blurb, {
-          maxWidth: g.cw * 0.92,
-          maxHeight: Math.max(0, blurbReserve - 18 * g.u),
-          maxFont: 34 * g.u,
-          minFont: 22 * g.u,
-          lineHeight: 1.35,
-        })
-      : null;
-    const blurbH = blurbFit ? blurbFit.height + 18 * g.u : 0;
-
     const headlineText = values.uppercase === "true" ? (values.headline ?? "").toUpperCase() : (values.headline ?? "");
-    const headline = fitText(measurer(ctx, 900, DISPLAY_FONT), headlineText, {
-      maxWidth: g.cw,
-      maxHeight: Math.max(0, zone.height - kickerH - detailsBlock - blurbH),
-      maxFont: maxHeadlineFont(g.cls, g.u) * 0.9,
-      minFont: 34 * g.u,
-      lineHeight: 1.02,
-    });
+
+    // Lays the body out with the date and venue at `detailScale` of their full size, with or without the description.
+    const fitBody = (detailScale: number, withBlurb: boolean) => {
+      const dateSize = (compact ? 34 : 50) * g.u * detailScale;
+      const venueSize = (compact ? 28 : 38) * g.u * detailScale;
+      const venueFit = venue
+        ? fitText(measurer(ctx, 600, BODY_FONT), venue, {
+            maxWidth: g.cw - 30 * g.u,
+            maxHeight: 2 * venueSize * 1.25,
+            maxFont: venueSize,
+            minFont: Math.min(venueSize, 22 * g.u),
+            lineHeight: 1.25,
+          })
+        : null;
+      const whenFit = when
+        ? fitText(measurer(ctx, 800, BODY_FONT), when, {
+            maxWidth: g.cw - 30 * g.u,
+            maxHeight: dateSize * 1.3 * 2,
+            maxFont: dateSize,
+            minFont: Math.min(dateSize, 24 * g.u),
+            lineHeight: 1.25,
+          })
+        : null;
+      const detailsH = (whenFit?.height ?? 0) + (venueFit ? venueFit.height + 6 * g.u : 0);
+      const detailsBlock = detailsH ? detailsH + 30 * g.u : 0;
+
+      const blurbReserve = withBlurb && blurb ? Math.min(zone.height * 0.2, 130 * g.u) : 0;
+      const blurbFit = blurbReserve
+        ? fitText(measurer(ctx, 500, BODY_FONT), blurb, {
+            maxWidth: g.cw * 0.92,
+            maxHeight: Math.max(0, blurbReserve - 18 * g.u),
+            maxFont: 34 * g.u,
+            minFont: 22 * g.u,
+            lineHeight: 1.35,
+          })
+        : null;
+      const blurbH = blurbFit ? blurbFit.height + 18 * g.u : 0;
+
+      // The title always stays bigger than the date, so the hierarchy survives a crowded layout.
+      const headline = fitText(measurer(ctx, 900, DISPLAY_FONT), headlineText, {
+        maxWidth: g.cw,
+        maxHeight: Math.max(0, zone.height - kickerH - detailsBlock - blurbH),
+        maxFont: maxHeadlineFont(g.cls, g.u) * 0.9,
+        minFont: Math.max(34 * g.u, (whenFit?.fontSize ?? 0) * 1.15),
+        lineHeight: 1.02,
+      });
+      return { venueFit, whenFit, detailsH, detailsBlock, blurbFit, blurbH, headline };
+    };
+
+    // When space runs out, shrink the date and venue a little, then drop the description, then shrink them further.
+    // The last step is used even if it still overflows.
+    const steps: [number, boolean][] = [[1, true], [0.8, true], [1, false], [0.8, false], [0.65, false]];
+    let body = fitBody(...steps[0]);
+    for (const step of steps.slice(1)) {
+      if (!body.headline.overflow) break;
+      body = fitBody(...step);
+    }
+    const { venueFit, whenFit, detailsH, detailsBlock, blurbFit, blurbH, headline } = body;
 
     const total = kickerH + headline.height + detailsBlock + blurbH;
     let y = zone.top + Math.max(0, (zone.height - total) / 2);
@@ -512,7 +571,7 @@ const event: Template = {
     }
     ctx.fillStyle = theme.text;
     ctx.font = font(900, headline.fontSize, DISPLAY_FONT);
-    drawLines(ctx, headline.lines, g.left, y, headline.lineHeightPx);
+    drawLines(a, headline.lines, g.left, y, headline.lineHeightPx);
     y += headline.height;
 
     if (detailsH) {
@@ -524,13 +583,13 @@ const event: Template = {
       if (whenFit) {
         ctx.fillStyle = theme.text;
         ctx.font = font(800, whenFit.fontSize, BODY_FONT);
-        drawLines(ctx, whenFit.lines, textX, ty, whenFit.lineHeightPx);
+        drawLines(a, whenFit.lines, textX, ty, whenFit.lineHeightPx);
         ty += whenFit.height + 6 * g.u;
       }
       if (venueFit) {
         ctx.fillStyle = theme.muted;
         ctx.font = font(600, venueFit.fontSize, BODY_FONT);
-        drawLines(ctx, venueFit.lines, textX, ty, venueFit.lineHeightPx);
+        drawLines(a, venueFit.lines, textX, ty, venueFit.lineHeightPx);
       }
       y += detailsH;
     }
@@ -538,7 +597,7 @@ const event: Template = {
       y += 18 * g.u;
       ctx.fillStyle = theme.muted;
       ctx.font = font(500, blurbFit.fontSize, BODY_FONT);
-      drawLines(ctx, blurbFit.lines, g.left, y, blurbFit.lineHeightPx);
+      drawLines(a, blurbFit.lines, g.left, y, blurbFit.lineHeightPx);
     }
   },
 };
@@ -583,12 +642,12 @@ const quote: Template = {
       ctx.font = font(900, 260 * g.u, DISPLAY_FONT);
       ctx.textAlign = "left";
       ctx.textBaseline = "alphabetic";
-      ctx.fillText("“", g.left - 6 * g.u, y + 210 * g.u);
+      fillText(a, "“", g.left - 6 * g.u, y + 210 * g.u);
       y += markH;
     }
     ctx.fillStyle = theme.text;
     ctx.font = font(700, q.fontSize, DISPLAY_FONT);
-    drawLines(ctx, q.lines, g.left, y, q.lineHeightPx);
+    drawLines(a, q.lines, g.left, y, q.lineHeightPx);
     y += q.height;
 
     if (attrH) {
@@ -598,7 +657,7 @@ const quote: Template = {
         setTracking(ctx, 34 * g.u * 0.1);
         ctx.fillStyle = theme.accentText;
         ctx.textBaseline = "top";
-        ctx.fillText(name.toUpperCase(), g.left, y);
+        fillText(a, name.toUpperCase(), g.left, y);
         setTracking(ctx, 0);
         y += 34 * g.u * 1.3;
       }
@@ -606,7 +665,7 @@ const quote: Template = {
         ctx.font = font(500, 28 * g.u, BODY_FONT);
         ctx.fillStyle = theme.muted;
         ctx.textBaseline = "top";
-        ctx.fillText(role, g.left, y);
+        fillText(a, role, g.left, y);
       }
     }
   },
@@ -747,7 +806,10 @@ const caption: Template = {
     ctx.fillRect(a.bleedPx, bandY, a.width - 2 * a.bleedPx, bandH);
     ctx.fillStyle = "#FFFFFF";
     ctx.font = font(700, fit.fontSize, BODY_FONT);
-    drawLines(ctx, fit.lines, g.left, bandY + pad, fit.lineHeightPx);
+    // Drawn directly rather than through drawLines: the band already backs the text, so it needs no outline.
+    ctx.textAlign = "left";
+    ctx.textBaseline = "top";
+    fit.lines.forEach((line, i) => ctx.fillText(line, g.left, bandY + pad + i * fit.lineHeightPx));
   },
 };
 
