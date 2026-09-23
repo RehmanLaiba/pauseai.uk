@@ -719,7 +719,38 @@ const brush: Template = {
   },
 };
 
-export const TEMPLATES: Template[] = [announcement, event, quote, brush];
+const caption: Template = {
+  id: "caption",
+  label: "Caption",
+  description: "A photo with a short caption. Built as one slide of a gallery or carousel post — one idea per slide.",
+  fields: [{ key: "caption", label: "Caption", kind: "textarea", maxLength: 200, default: "" }],
+  draw(a) {
+    const g = geometry(a);
+    paintBackground(a);
+    const { ctx, values } = a;
+    const text = (values.caption ?? "").trim();
+    if (!text) return;
+
+    const pad = 40 * g.u;
+    const fit = fitText(measurer(ctx, 700, BODY_FONT), text, {
+      maxWidth: g.cw,
+      maxHeight: a.height * 0.32,
+      maxFont: 46 * g.u,
+      minFont: 22 * g.u,
+      lineHeight: 1.35,
+    });
+    const bandH = fit.height + pad * 2;
+    const bandY = a.height - a.bleedPx - bandH;
+    // A dark scrim reads under white text over any photo or theme colour, so captions don't need per-theme tuning.
+    ctx.fillStyle = "rgba(15, 12, 10, 0.6)";
+    ctx.fillRect(a.bleedPx, bandY, a.width - 2 * a.bleedPx, bandH);
+    ctx.fillStyle = "#FFFFFF";
+    ctx.font = font(700, fit.fontSize, BODY_FONT);
+    drawLines(ctx, fit.lines, g.left, bandY + pad, fit.lineHeightPx);
+  },
+};
+
+export const TEMPLATES: Template[] = [announcement, event, quote, brush, caption];
 export const DEFAULT_TEMPLATE_ID = "announcement";
 
 export function getTemplate(id: string): Template {

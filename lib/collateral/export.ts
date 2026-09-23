@@ -19,19 +19,22 @@ export function exportFilename(parts: string[], ext: string): string {
 
 const MM_TO_PT = 72 / 25.4;
 
-function canvasToPngBytes(canvas: HTMLCanvasElement): Promise<ArrayBuffer> {
+export function canvasToPngBlob(canvas: HTMLCanvasElement): Promise<Blob> {
   return new Promise((resolve, reject) => {
-    canvas.toBlob((blob) => (blob ? blob.arrayBuffer().then(resolve, reject) : reject(new Error("Could not create the image"))), "image/png");
+    canvas.toBlob((blob) => (blob ? resolve(blob) : reject(new Error("Could not create the image"))), "image/png");
   });
 }
 
-/** One-page PDF at trim size plus bleed, with TrimBox/BleedBox set so print shops can find the trim. */
-export async function downloadCanvasPdf(
-  canvas: HTMLCanvasElement,
+async function canvasToPngBytes(canvas: HTMLCanvasElement): Promise<ArrayBuffer> {
+  return (await canvasToPngBlob(canvas)).arrayBuffer();
+}
+
+/** Builds a multi-page PDF at trim size plus bleed, one page per canvas, with TrimBox/BleedBox set so print shops can find the trim. */
+export async function pdfBytesForPrint(
+  canvases: HTMLCanvasElement[],
   format: { widthMm: number; heightMm: number },
   bleedMm: number,
-  filename: string,
-): Promise<void> {
+): Promise<Uint8Array> {
   // Loaded on demand so the editor page stays light.
   const { PDFDocument } = await import("pdf-lib");
   const pdf = await PDFDocument.create();
@@ -40,13 +43,54 @@ export async function downloadCanvasPdf(
   const trimH = format.heightMm * MM_TO_PT;
   const pageW = trimW + bleed * 2;
   const pageH = trimH + bleed * 2;
-  const page = pdf.addPage([pageW, pageH]);
-  const image = await pdf.embedPng(await canvasToPngBytes(canvas));
-  page.drawImage(image, { x: 0, y: 0, width: pageW, height: pageH });
-  page.setTrimBox(bleed, bleed, trimW, trimH);
-  page.setBleedBox(0, 0, pageW, pageH);
+  for (const canvas of canvases) {
+    const page = pdf.addPage([pageW, pageH]);
+    const image = await pdf.embedPng(await canvasToPngBytes(canvas));
+    page.drawImage(image, { x: 0, y: 0, width: pageW, height: pageH });
+    page.setTrimBox(bleed, bleed, trimW, trimH);
+    page.setBleedBox(0, 0, pageW, pageH);
+  }
   pdf.setTitle("PauseAI UK collateral");
-  const bytes = await pdf.save();
+  return pdf.save();
+}
+
+/** Builds a multi-page PDF for a digital (pixel-sized) format, one page per canvas at 1px = 1pt. No bleed/trim — for sharing, not print. */
+export async function pdfBytesDigital(canvases: HTMLCanvasElement[]): Promise<Uint8Array> {
+  const { PDFDocument } = await import("pdf-lib");
+  const pdf = await PDFDocument.create();
+  for (const canvas of canvases) {
+    const page = pdf.addPage([canvas.width, canvas.height]);
+    const image = await pdf.embedPng(await canvasToPngBytes(canvas));
+    page.drawImage(image, { x: 0, y: 0, width: canvas.width, height: canvas.height });
+  }
+  pdf.setTitle("PauseAI UK collateral");
+  return pdf.save();
+}
+
+/** Multi-page PDF at trim size plus bleed, one page per canvas, with TrimBox/BleedBox set so print shops can find the trim. */
+export async function downloadCanvasesPdf(
+  canvases: HTMLCanvasElement[],
+  format: { widthMm: number; heightMm: number },
+  bleedMm: number,
+  filename: string,
+): Promise<void> {
+  const bytes = await pdfBytesForPrint(canvases, format, bleedMm);
+  download(new Blob([bytes as BlobPart], { type: "application/pdf" }), filename);
+}
+
+/** One-page PDF at trim size plus bleed, with TrimBox/BleedBox set so print shops can find the trim. */
+export function downloadCanvasPdf(
+  canvas: HTMLCanvasElement,
+  format: { widthMm: number; heightMm: number },
+  bleedMm: number,
+  filename: string,
+): Promise<void> {
+  return downloadCanvasesPdf([canvas], format, bleedMm, filename);
+}
+
+/** Multi-page PDF for a digital (pixel-sized) format, one page per canvas at 1px = 1pt. No bleed/trim — for sharing, not print. */
+export async function downloadCanvasesPdfDigital(canvases: HTMLCanvasElement[], filename: string): Promise<void> {
+  const bytes = await pdfBytesDigital(canvases);
   download(new Blob([bytes as BlobPart], { type: "application/pdf" }), filename);
 }
 
@@ -58,4 +102,43 @@ export function downloadCanvasPng(canvas: HTMLCanvasElement, filename: string): 
       resolve();
     }, "image/png");
   });
+}
+
+/**
+ * Zips one PNG per canvas into a single download. Browsers block or silently drop a burst of downloads
+ * triggered from one click, so a multi-image export has to land as one file.
+ */
+export async function downloadCanvasesPngZip(canvases: HTMLCanvasElement[], entryNameFor: (index: number) => string, filename: string): Promise<void> {
+  // Loaded on demand so the editor page stays light.
+  const { default: JSZip } = await import("jszip");
+  const zip = new JSZip();
+  const blobs = await Promise.all(canvases.map(canvasToPngBlob));
+  blobs.forEach((blob, i) => zip.file(entryNameFor(i), blob));
+  const bytes = await zip.generateAsync({ type: "blob" });
+  download(bytes, filename);
+}
+
+export interface PlatformExportGroup {
+  /** Top-level folder this group's files land in inside the bundle. */
+  folder: string;
+  kind: "images" | "pdf";
+  pngBlobs?: Blob[];
+  pdfBytes?: Uint8Array;
+  pdfName?: string;
+}
+
+/** Zips several platforms' exports into one archive, one folder per platform, so a multi-platform export lands as a single download. */
+export async function downloadPlatformBundleZip(groups: PlatformExportGroup[], filename: string): Promise<void> {
+  // Loaded on demand so the editor page stays light.
+  const { default: JSZip } = await import("jszip");
+  const zip = new JSZip();
+  for (const g of groups) {
+    if (g.kind === "images") {
+      g.pngBlobs!.forEach((blob, i) => zip.file(`${g.folder}/${i + 1}.png`, blob));
+    } else {
+      zip.file(`${g.folder}/${g.pdfName}`, g.pdfBytes!);
+    }
+  }
+  const bytes = await zip.generateAsync({ type: "blob" });
+  download(bytes, filename);
 }

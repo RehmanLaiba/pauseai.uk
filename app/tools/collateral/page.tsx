@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import Nav from "@/components/Nav";
 import NoAnalytics from "@/components/NoAnalytics";
-import CollateralStudio from "./CollateralStudio";
+import CollateralApp from "./CollateralApp";
 import "./collateral.css";
 
 // Volunteer tool: unlisted, kept out of search results and the sitemap (see HIDDEN_ROUTES in app/sitemap.ts).
@@ -27,7 +27,7 @@ export default function CollateralPage() {
             Pick a format and a style, fill in the text, and download. Everything happens in your browser, so nothing is uploaded.
             Just need a QR code? Use the <Link href="/tools/qr">QR code generator</Link>.
           </p>
-          <CollateralStudio />
+          <CollateralApp />
         </div>
       </main>
     </>

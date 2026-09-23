@@ -41,6 +41,7 @@ import {
   type Values,
 } from "@/lib/collateral/templates";
 import { DEFAULT_THEME_ID, getTheme, THEMES } from "@/lib/collateral/themes";
+import Slider from "./Slider";
 
 const STORAGE_KEY = "pauseai-collateral-v2";
 const PREVIEW_MAX_SIDE = 1400;
@@ -517,6 +518,7 @@ export default function CollateralStudio() {
           })}
         </section>
 
+        {template.id !== "caption" && (
         <section>
           <h2>5. QR codes (optional)</h2>
           {qrCodes.map((code, i) => (
@@ -567,6 +569,7 @@ export default function CollateralStudio() {
           */}
           {qrCodes.length > 0 && qrAvailability.reason && <p className="collateral-hint">{qrAvailability.reason}</p>}
         </section>
+        )}
 
         <section>
           <h2>6. Photo (optional)</h2>
@@ -680,23 +683,5 @@ export default function CollateralStudio() {
         </section>
       </div>
     </div>
-  );
-}
-
-interface SliderProps {
-  label: string;
-  min: number;
-  max: number;
-  step: number;
-  value: number;
-  onChange: (value: number) => void;
-}
-
-function Slider({ label, min, max, step, value, onChange }: SliderProps) {
-  return (
-    <label className="collateral-slider">
-      <span>{label}</span>
-      <input type="range" min={min} max={max} step={step} value={value} onChange={(e) => onChange(Number(e.target.value))} />
-    </label>
   );
 }

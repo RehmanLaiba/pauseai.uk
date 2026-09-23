@@ -67,6 +67,29 @@
   color: var(--text-secondary);
 }
 
+.collateral-mode-switch {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 24px;
+}
+
+.collateral-mode-switch button {
+  padding: 10px 16px;
+  border: 1px solid var(--border-strong);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.collateral-mode-switch button[aria-checked="true"] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
 .collateral-studio {
   display: grid;
   gap: 32px;
@@ -231,6 +254,69 @@
   margin: 14px 0 0;
 }
 
+.collateral-slide-list {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.collateral-slide-row {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.collateral-slide-select {
+  display: grid;
+  flex: 1;
+  gap: 2px;
+  min-width: 0;
+  padding: 10px 12px;
+  border: 1px solid var(--border-strong);
+  border-radius: 8px;
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  text-align: left;
+  cursor: pointer;
+}
+
+.collateral-slide-select span {
+  overflow: hidden;
+  font-size: 13px;
+  color: var(--text-secondary);
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.collateral-slide-select[aria-current="true"] {
+  border-color: var(--accent);
+  box-shadow: 0 0 0 2px var(--accent);
+}
+
+.collateral-slide-move {
+  display: flex;
+  flex: none;
+  gap: 2px;
+}
+
+.collateral-slide-move button {
+  width: 32px;
+  height: 40px;
+  border: 1px solid var(--border-strong);
+  border-radius: 6px;
+  background: var(--surface);
+  color: var(--text);
+  font-size: 16px;
+  cursor: pointer;
+}
+
+.collateral-slide-move button:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
 .collateral-choice-grid {
   display: grid;
   gap: 8px;
@@ -255,9 +341,24 @@
 }
 
 .collateral-choice[aria-checked="true"],
-.collateral-swatch[aria-checked="true"] {
+.collateral-swatch[aria-checked="true"],
+.collateral-choice-checkbox.is-checked {
   border-color: var(--accent);
   box-shadow: 0 0 0 2px var(--accent);
+}
+
+.collateral-choice-checkbox {
+  cursor: pointer;
+}
+
+.collateral-choice-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.collateral-custom-format-toggle {
+  margin-top: 16px;
 }
 
 .collateral-swatches {
