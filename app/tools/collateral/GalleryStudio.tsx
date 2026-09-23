@@ -439,7 +439,12 @@ export default function GalleryStudio() {
           {(!logo || !fontsReady) && <p className="collateral-loading">Loading…</p>}
         </div>
         <p className="collateral-preview-meta">
-          Slide {activeIndex + 1} of {slides.length} · {effectiveFormat.label} · {formatDimensionLabel(effectiveFormat)}
+          Slide {activeIndex + 1} of {slides.length} ·{" "}
+          {customFormat
+            ? `${format.label} · ${formatDimensionLabel(format)}`
+            : firstSelectedVariant
+              ? `Crop for ${firstSelectedVariant.label} · ${formatDimensionLabel(effectiveFormat)}`
+              : formatDimensionLabel(effectiveFormat)}
         </p>
         {photo && <p className="collateral-preview-meta">Drag the photo to move it. Scroll or pinch to zoom.</p>}
       </div>

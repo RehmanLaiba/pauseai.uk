@@ -1,4 +1,4 @@
-export type ThemeId = "orange" | "cream" | "black";
+export type ThemeId = "orange" | "cream" | "black" | "clear";
 
 export interface Theme {
   id: ThemeId;
@@ -15,6 +15,8 @@ export interface Theme {
   accentText: string;
   /** Path of the logo variant that reads well on `bg`. */
   logoSrc: string;
+  /** When true, photos show at full strength always — the "Photo strength" slider and theme tint are skipped. */
+  noPhotoTint?: boolean;
 }
 
 // The orange in the logo (see public/images/logos). Every orange in the collateral tools comes from here,
@@ -60,6 +62,18 @@ export const THEMES: Theme[] = [
     onAccent: INK,
     accentText: BRAND_ORANGE,
     logoSrc: `${LOGO_DIR}/logo-color-on-dark.svg`,
+  },
+  {
+    id: "clear",
+    label: "Clear",
+    bg: "#FFFFFF",
+    text: INK,
+    muted: "#5C544A",
+    accent: BRAND_ORANGE,
+    onAccent: INK,
+    accentText: ORANGE_TEXT,
+    logoSrc: `${LOGO_DIR}/logo-color-on-light.svg`,
+    noPhotoTint: true,
   },
 ];
 

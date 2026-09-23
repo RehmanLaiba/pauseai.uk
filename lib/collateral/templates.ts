@@ -118,6 +118,7 @@ function paintBackground(a: DrawArgs) {
   if (!photo) return;
   const r = coverRect(photo.width, photo.height, width, height, photoSettings.zoom, photoSettings.focalX, photoSettings.focalY);
   ctx.drawImage(photo.source, r.x, r.y, r.w, r.h);
+  if (theme.noPhotoTint) return;
   ctx.globalAlpha = 1 - photoSettings.visible;
   ctx.fillStyle = theme.bg;
   ctx.fillRect(0, 0, width, height);

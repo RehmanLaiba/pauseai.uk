@@ -627,14 +627,16 @@ export default function CollateralStudio() {
                 value={photoSettings.focalY}
                 onChange={(focalY) => setPhotoSettings((s) => ({ ...s, focalY }))}
               />
-              <Slider
-                label="Photo strength"
-                min={0.1}
-                max={0.7}
-                step={0.01}
-                value={photoSettings.visible}
-                onChange={(visible) => setPhotoSettings((s) => ({ ...s, visible }))}
-              />
+              {!theme.noPhotoTint && (
+                <Slider
+                  label="Photo strength"
+                  min={0.1}
+                  max={0.7}
+                  step={0.01}
+                  value={photoSettings.visible}
+                  onChange={(visible) => setPhotoSettings((s) => ({ ...s, visible }))}
+                />
+              )}
             </div>
           )}
         </section>
