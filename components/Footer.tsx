@@ -18,6 +18,7 @@ export default function Footer() {
         </div>
         <div className="footer-links">
           <Link href="/donate">Donate</Link>
+          <Link href="/events">Events</Link>
           <a href={site.openLetterUrl} target="_blank" rel="noreferrer">Open letter</a>
           <a href={site.whatsappUrl} target="_blank" rel="noreferrer">WhatsApp community</a>
           <a href={site.shopUrl} target="_blank" rel="noreferrer">Shop</a>

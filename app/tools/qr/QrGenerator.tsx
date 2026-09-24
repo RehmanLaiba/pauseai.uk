@@ -1,49 +1,72 @@
 "use client";
 
-import { useMemo, useState } from "react";
-import { downloadCanvasPng, downloadText } from "@/lib/collateral/export";
-import { qrFilenameStem, qrMinPrintMm, qrMinScreenPx, qrTarget } from "@/lib/collateral/qr";
+import { useMemo, useState, useSyncExternalStore } from "react";
+import { canvasToPngBlob, downloadCanvasPng, downloadText } from "@/lib/collateral/export";
+import { isWebAddress, qrFilenameStem, qrMinPrintMm, qrTarget } from "@/lib/collateral/qr";
 import { qrShape, qrSvg } from "@/lib/collateral/qrShape";
 import { loadDataUrl } from "@/lib/collateral/render";
 
-const PNG_SIZES = [512, 1024, 2048, 4096];
+/** Big enough for print and slides. The SVG covers anything larger. */
+const PNG_SIZE = 2048;
 const PANEL = "#FFFFFF";
 
 function svgDataUrl(svg: string): string {
   return `data:image/svg+xml;charset=utf-8,${encodeURIComponent(svg)}`;
 }
 
+/** How this browser can hand the PNG over besides downloading it: the share sheet on phones, the clipboard elsewhere. */
+type Handoff = "share" | "copy" | null;
+
+const noSubscribe = () => () => {};
+
+function detectHandoff(): Handoff {
+  const probe = new File([""], "qr.png", { type: "image/png" });
+  if (typeof navigator.canShare === "function" && navigator.canShare({ files: [probe] })) return "share";
+  if (typeof ClipboardItem !== "undefined" && typeof navigator.clipboard?.write === "function") return "copy";
+  return null;
+}
+
 export default function QrGenerator() {
   const [url, setUrl] = useState("pauseai.uk");
   // UTM tagging is switched off for now, see qrTarget in lib/collateral/qr.ts.
-  // const [track, setTrack] = useState(true);
   const track = false;
   const [logo, setLogo] = useState(true);
-  const [transparent, setTransparent] = useState(false);
-  const [pngSize, setPngSize] = useState(1024);
   const [busy, setBusy] = useState(false);
   const [message, setMessage] = useState<string | null>(null);
+  // Browser features, so unknown while rendering on the server. They never change, so there is nothing to subscribe to.
+  const handoff = useSyncExternalStore(noSubscribe, detectHandoff, () => null);
 
-  const target = qrTarget(url, track);
-  const background = transparent ? null : PANEL;
+  const valid = isWebAddress(url);
+  const target = valid ? qrTarget(url, track) : "";
+  const stem = `pauseai-qr-${qrFilenameStem(url)}`;
 
   // The preview is the same SVG that gets downloaded.
   const preview = useMemo(() => {
     if (!target) return null;
     try {
       const shape = qrShape(target, 1000, logo);
-      return { modules: shape.modules, src: svgDataUrl(qrSvg(shape, { background, roundedPanel: false })) };
+      return { modules: shape.modules, src: svgDataUrl(qrSvg(shape, { background: PANEL, roundedPanel: false })) };
     } catch {
       return null;
     }
-  }, [target, logo, background]);
+  }, [target, logo]);
 
-  const stem = `pauseai-qr-${qrFilenameStem(url)}`;
+  async function pngCanvas(): Promise<HTMLCanvasElement> {
+    const svg = qrSvg(qrShape(target, PNG_SIZE, logo), { background: PANEL, roundedPanel: false });
+    const image = await loadDataUrl(svgDataUrl(svg));
+    const canvas = document.createElement("canvas");
+    canvas.width = PNG_SIZE;
+    canvas.height = PNG_SIZE;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) throw new Error("Canvas is not supported in this browser");
+    ctx.drawImage(image.source, 0, 0, PNG_SIZE, PNG_SIZE);
+    return canvas;
+  }
 
   function onDownloadSvg() {
     if (!target) return;
     setMessage(null);
-    downloadText(qrSvg(qrShape(target, 1000, logo), { background, roundedPanel: false }), `${stem}.svg`, "image/svg+xml");
+    downloadText(qrSvg(qrShape(target, 1000, logo), { background: PANEL, roundedPanel: false }), `${stem}.svg`, "image/svg+xml");
   }
 
   async function onDownloadPng() {
@@ -51,49 +74,66 @@ export default function QrGenerator() {
     setBusy(true);
     setMessage(null);
     try {
-      const svg = qrSvg(qrShape(target, pngSize, logo), { background, roundedPanel: false });
-      const image = await loadDataUrl(svgDataUrl(svg));
-      const canvas = document.createElement("canvas");
-      canvas.width = pngSize;
-      canvas.height = pngSize;
-      const ctx = canvas.getContext("2d");
-      if (!ctx) throw new Error("Canvas is not supported in this browser");
-      ctx.drawImage(image.source, 0, 0, pngSize, pngSize);
-      await downloadCanvasPng(canvas, `${stem}-${pngSize}.png`);
+      await downloadCanvasPng(await pngCanvas(), `${stem}.png`);
     } catch {
-      setMessage("Could not create the PNG. Try a smaller size, or download the SVG.");
+      setMessage("Could not create the PNG. Try the SVG instead.");
     } finally {
       setBusy(false);
     }
   }
 
+  async function onShare() {
+    if (!target) return;
+    setMessage(null);
+    try {
+      const blob = await canvasToPngBlob(await pngCanvas());
+      await navigator.share({ files: [new File([blob], `${stem}.png`, { type: "image/png" })] });
+    } catch (e) {
+      // Closing the share sheet is not an error.
+      if (!(e instanceof DOMException && e.name === "AbortError")) setMessage("Could not share the image. Download it instead.");
+    }
+  }
+
+  async function onCopy() {
+    if (!target) return;
+    setMessage(null);
+    try {
+      // Safari only allows the write if the promise for the image is handed over straight away.
+      const blob = pngCanvas().then(canvasToPngBlob);
+      await navigator.clipboard.write([new ClipboardItem({ "image/png": blob })]);
+      setMessage("Copied. Paste it into your document or message.");
+    } catch {
+      setMessage("Could not copy the image. Download it instead.");
+    }
+  }
+
+  const invalid = url.trim() !== "" && !valid;
+
   return (
-    <div className="collateral-studio">
+    <div className="collateral-studio is-qr">
       <div className="collateral-preview">
         <div className="collateral-qr-preview">
           {preview ? (
             // eslint-disable-next-line @next/next/no-img-element -- generated SVG data URL, not a file next/image can optimise
-            <img
-              src={preview.src}
-              alt={`QR code for ${target}`}
-              className={transparent ? "collateral-qr-image is-transparent" : "collateral-qr-image"}
-            />
+            <img src={preview.src} alt={`QR code for ${target}`} className="collateral-qr-image" />
           ) : (
-            <p className="collateral-loading">Type a web address to make a QR code.</p>
+            <p className="collateral-loading">{invalid ? "Check the web address to see the code." : "Type a web address to make a QR code."}</p>
           )}
         </div>
         {preview && (
           <p className="collateral-preview-meta">
-            Opens <strong>{target}</strong>
+            Opens{" "}
+            <a href={target} target="_blank" rel="noopener noreferrer">
+              {target}
+            </a>
           </p>
         )}
       </div>
 
       <div className="collateral-controls">
         <section>
-          <h2>1. Web address</h2>
           <label className="collateral-label" htmlFor="qr-url">
-            Where should the code go?
+            Web address
           </label>
           <input
             id="qr-url"
@@ -103,51 +143,39 @@ export default function QrGenerator() {
             maxLength={200}
             placeholder="e.g. pauseai.uk/join"
             value={url}
+            aria-invalid={invalid || undefined}
+            aria-describedby={invalid ? "qr-url-error" : undefined}
             onChange={(e) => setUrl(e.target.value)}
           />
-          {/* UTM tagging is switched off until we have a way to read the results. See qrTarget in lib/collateral/qr.ts.
-          <label className="collateral-toggle collateral-qr-track" htmlFor="qr-track">
-            <input id="qr-track" type="checkbox" checked={track} onChange={(e) => setTrack(e.target.checked)} />
-            Tag the link so scans can be counted
-          </label>
-          <p className="collateral-hint">Adds utm_source=collateral&amp;utm_medium=qr to the link.</p>
-          */}
-        </section>
-
-        <section>
-          <h2>2. Look</h2>
-          <label className="collateral-toggle" htmlFor="qr-logo">
+          {invalid && (
+            <p id="qr-url-error" className="collateral-field-error">
+              That does not look like a web address. Try something like pauseai.uk/join.
+            </p>
+          )}
+          <label className="collateral-toggle collateral-qr-logo" htmlFor="qr-logo">
             <input id="qr-logo" type="checkbox" checked={logo} onChange={(e) => setLogo(e.target.checked)} />
             Pause symbol in the middle
           </label>
-          <label className="collateral-toggle" htmlFor="qr-transparent">
-            <input id="qr-transparent" type="checkbox" checked={transparent} onChange={(e) => setTransparent(e.target.checked)} />
-            Transparent background
-          </label>
-          {transparent && (
-            <p className="collateral-hint">Only place a transparent code on a plain, light background, or it may not scan.</p>
-          )}
         </section>
 
         <section>
-          <h2>3. Download</h2>
-          <label className="collateral-label" htmlFor="qr-size">
-            PNG size
-          </label>
-          <select id="qr-size" value={pngSize} onChange={(e) => setPngSize(Number(e.target.value))}>
-            {PNG_SIZES.map((s) => (
-              <option key={s} value={s}>
-                {s} × {s} px
-              </option>
-            ))}
-          </select>
-          <div className="collateral-actions collateral-qr-downloads">
+          <div className="collateral-actions">
             <button type="button" className="btn primary large" onClick={onDownloadPng} disabled={!preview || busy}>
               {busy ? "Preparing…" : "Download PNG"}
             </button>
             <button type="button" className="btn ghost large" onClick={onDownloadSvg} disabled={!preview}>
               Download SVG
             </button>
+            {handoff === "share" && (
+              <button type="button" className="btn ghost large" onClick={onShare} disabled={!preview}>
+                Share
+              </button>
+            )}
+            {handoff === "copy" && (
+              <button type="button" className="btn ghost large" onClick={onCopy} disabled={!preview}>
+                Copy image
+              </button>
+            )}
             {message && (
               <p className="collateral-message" role="status">
                 {message}
@@ -164,10 +192,6 @@ export default function QrGenerator() {
               <li>
                 Print it at least <strong>{qrMinPrintMm(preview.modules)} mm</strong> wide.
               </li>
-              <li>
-                On a screen, show it at least <strong>{qrMinScreenPx(preview.modules)} px</strong> wide.
-              </li>
-              <li>Keep the white border around it. Do not crop it or stretch it.</li>
               {preview.modules >= 53 && <li>This address makes a dense code. A shorter link scans more easily.</li>}
               <li>Test it with a phone before you print.</li>
             </ul>

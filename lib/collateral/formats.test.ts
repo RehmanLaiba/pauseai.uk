@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { aspectClass, BLEED_MM, FORMATS, getFormat, MAX_CANVAS_PIXELS, mmToPx, renderSize } from "./formats";
+import { aspectClass, BLEED_MM, FORMATS, getFormat, MAX_CANVAS_PIXELS, mmToPx, renderSize, showsQrCodes } from "./formats";
 
 describe("formats", () => {
   it("has unique ids", () => {
@@ -14,6 +14,14 @@ describe("formats", () => {
   it("uses exact pixel sizes for digital formats", () => {
     expect(renderSize(getFormat("story"))).toEqual({ width: 1080, height: 1920, bleedPx: 0 });
     expect(renderSize(getFormat("luma-cover"))).toEqual({ width: 1080, height: 1080, bleedPx: 0 });
+  });
+
+  it("leaves QR codes off social posts unless asked, off the Luma cover always, and on print and slides", () => {
+    expect(showsQrCodes(getFormat("ig-square"), false)).toBe(false);
+    expect(showsQrCodes(getFormat("ig-square"), true)).toBe(true);
+    expect(showsQrCodes(getFormat("luma-cover"), true)).toBe(false);
+    expect(showsQrCodes(getFormat("a5"), false)).toBe(true);
+    expect(showsQrCodes(getFormat("slide"), false)).toBe(true);
   });
 
   it("renders A5 at 300 dpi", () => {

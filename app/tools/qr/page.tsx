@@ -24,8 +24,8 @@ export default function QrPage() {
           </Link>
           <h1 className="collateral-title">QR code generator</h1>
           <p className="collateral-lede">
-            Make a QR code for any web address and download it as a PNG or SVG. Everything happens in your browser. Making a whole
-            flyer or post? Use the <Link href="/tools/collateral">collateral maker</Link>, which can add QR codes for you.
+            Make a QR code for any web address. Making a whole flyer or post? The <Link href="/tools/collateral">collateral maker</Link>{" "}
+            adds QR codes for you.
           </p>
           <QrGenerator />
         </div>

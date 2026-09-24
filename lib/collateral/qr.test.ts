@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import {
+  isWebAddress,
   MAX_QR_CODES,
   normaliseUrl,
   QR_MAX_SHARE_MULTI,
@@ -27,6 +28,16 @@ describe("normaliseUrl", () => {
 
   it("returns empty for empty input", () => {
     expect(normaliseUrl("   ")).toBe("");
+  });
+});
+
+describe("isWebAddress", () => {
+  it.each(["pauseai.uk", "pauseai.uk/join?x=1", "https://lu.ma/abc123", " www.example.co.uk "])("accepts %j", (input) => {
+    expect(isWebAddress(input)).toBe(true);
+  });
+
+  it.each(["", "not a url", "pauseai", "https://", "mailto:hello@pauseai.uk", "pauseai.uk/some page"])("rejects %j", (input) => {
+    expect(isWebAddress(input)).toBe(false);
   });
 });
 
@@ -158,5 +169,19 @@ describe("print and screen size guidance", () => {
 
   it("matches the pixel-per-module rule", () => {
     expect(qrMinScreenPx(45)).toBeGreaterThanOrEqual(45 * QR_MIN_MODULE_PX);
+  });
+});
+
+describe("qrPlan size preference", () => {
+  const plan = (sizePref?: "m" | "l") =>
+    qrPlan({ urls: ["pauseai.uk"], track: false, width: 1080, height: 1350, sizePref });
+
+  it("makes Large larger than the default Medium", () => {
+    expect(plan("m").size).toBe(plan().size);
+    expect(plan("l").size).toBeGreaterThan(plan().size);
+  });
+
+  it("never goes below the scannable minimum", () => {
+    expect(plan("m").size).toBeGreaterThanOrEqual(qrMinScreenPx(qrMatrix("https://pauseai.uk").length));
   });
 });

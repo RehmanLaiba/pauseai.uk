@@ -5,14 +5,21 @@ const project: Project = {
   formatId: "a5",
   templateId: "event",
   themeId: "cream",
-  values: { event: { headline: "Letter writing night", date: "Thursday 15 October" } },
-  qrCodes: [
-    { label: "RSVP", url: "luma.com/pauseai.uk" },
-    { label: "Join WhatsApp", url: "pauseai.uk/join" },
-  ],
+  values: { event: { headline: "Letter writing night", date: "2026-10-15", start: "19:00" } },
+  qrCodes: {
+    event: [
+      { label: "RSVP", url: "luma.com/pauseai.uk" },
+      { label: "Join WhatsApp", url: "pauseai.uk/join" },
+    ],
+    announcement: [{ label: "Join", url: "pauseai.uk/join" }],
+  },
   trackQr: false,
+  qrSize: "l",
   photo: { kind: "library", id: "westminster" },
-  photoSettings: { zoom: 2, focalX: 0.2, focalY: 0.8, visible: 0.3 },
+  partnerLogos: [{ name: "partner.png", dataUrl: "data:image/png;base64,iVBORw0KGgo=" }],
+  photoSettings: { zoom: 2, focalX: 0.2, focalY: 0.8 },
+  headlineScale: 1.2,
+  screenQr: true,
 };
 
 function withEdit(edit: (o: Record<string, unknown>) => void): string {
@@ -70,11 +77,18 @@ describe("parseProject cleans untrusted content", () => {
     expect(result.project.values.event).not.toHaveProperty("date");
   });
 
-  it("keeps at most four QR codes with clamped text", () => {
+  it("keeps at most four QR codes per layout, with clamped text", () => {
     const many = Array.from({ length: 9 }, (_, i) => ({ label: "L".repeat(99), url: `example.com/${i}` }));
-    const result = parseProject(withEdit((o) => (o.qrCodes = many)));
-    expect(result.ok && result.project.qrCodes).toHaveLength(4);
-    expect(result.ok && result.project.qrCodes[0].label).toHaveLength(32);
+    const result = parseProject(withEdit((o) => (o.qrCodes = { event: many, nope: many })));
+    expect(result.ok && Object.keys(result.project.qrCodes)).toEqual(["event"]);
+    expect(result.ok && result.project.qrCodes.event).toHaveLength(4);
+    expect(result.ok && result.project.qrCodes.event[0].label).toHaveLength(32);
+  });
+
+  it("gives the single QR code list of an older file to the layout it was saved on", () => {
+    const codes = [{ label: "RSVP", url: "lu.ma/abc" }];
+    const result = parseProject(withEdit((o) => (o.qrCodes = codes)));
+    expect(result.ok && result.project.qrCodes).toEqual({ event: codes });
   });
 
   it("ignores unknown library photos", () => {
@@ -95,8 +109,44 @@ describe("parseProject cleans untrusted content", () => {
     expect(result.ok && result.project.photo).toBeNull();
   });
 
-  it("clamps photo settings", () => {
+  it("drops free-text dates and times from older saves, so the date and time pickers get their defaults", () => {
+    const result = parseProject(withEdit((o) => (o.values = { event: { date: "Thursday 15 October", start: "7pm", end: "", time: "7pm" } })));
+    expect(result.ok && result.project.values.event).toEqual({ end: "" });
+  });
+
+  it("opens a design saved with the retired Clear style as Cream", () => {
+    const result = parseProject(withEdit((o) => Object.assign(o, { themeId: "clear" })));
+    expect(result.ok && result.project).toMatchObject({ themeId: "cream" });
+  });
+
+  it("drops settings the tool no longer offers from older files", () => {
+    const result = parseProject(withEdit((o) => Object.assign(o, { tint: "strong", align: "center", qrSize: "s" })));
+    expect(result.ok && result.project).toEqual({ ...project, qrSize: "m" });
+  });
+
+  it("clamps photo settings and ignores the colour strength older files saved with them", () => {
     const result = parseProject(withEdit((o) => (o.photoSettings = { zoom: 99, focalX: -5, focalY: "a", visible: 9 })));
-    expect(result.ok && result.project.photoSettings).toEqual({ zoom: 4, focalX: 0, focalY: 0.5, visible: 0.7 });
+    expect(result.ok && result.project.photoSettings).toEqual({ zoom: 4, focalX: 0, focalY: 0.5 });
+  });
+
+  it("defaults newer fields that an older file does not have", () => {
+    const result = parseProject(
+      withEdit((o) => {
+        for (const k of ["qrSize", "partnerLogos", "headlineScale"]) delete o[k];
+      }),
+    );
+    expect(result.ok && result.project).toMatchObject({ qrSize: "m", partnerLogos: [], headlineScale: 1 });
+  });
+
+  it("clamps the title size nudge and rejects unknown QR sizes", () => {
+    const result = parseProject(withEdit((o) => Object.assign(o, { headlineScale: 9, qrSize: "xl" })));
+    expect(result.ok && result.project).toMatchObject({ headlineScale: 1.3, qrSize: "m" });
+  });
+
+  it("only accepts raster partner logos, at most two", () => {
+    const png = { name: "a", dataUrl: "data:image/png;base64,iVBORw0KGgo=" };
+    const svg = { name: "b", dataUrl: "data:image/svg+xml;base64,PHN2Zz4=" };
+    const result = parseProject(withEdit((o) => (o.partnerLogos = [svg, png, png, png])));
+    expect(result.ok && result.project.partnerLogos).toEqual([png, png]);
   });
 });
