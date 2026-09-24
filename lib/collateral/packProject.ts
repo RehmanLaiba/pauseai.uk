@@ -1,7 +1,7 @@
 import { clampHeadlineScale } from "./design";
 import { FORMATS } from "./formats";
-import { MAX_ZOOM, type PhotoView } from "./photoTransform";
-import { isRecord, num, parseDesignData, type DesignData } from "./project";
+import type { PhotoView } from "./photoTransform";
+import { isRecord, parseDesignData, parsePhotoView, type DesignData } from "./project";
 
 export const PACK_PROJECT_APP = "pauseai-collateral-pack";
 export const PACK_PROJECT_VERSION = 1;
@@ -15,6 +15,8 @@ export interface PackOutput {
   /** The photo crop for this format, since each shape needs its own. */
   photoView: PhotoView;
   headlineScale: number;
+  /** Whether QR codes show on this format when it is a screen format, where they are left out by default. */
+  screenQr: boolean;
 }
 
 /** Everything needed to reopen a campaign pack. Plain data, so it can be saved as JSON. */
@@ -26,7 +28,7 @@ export interface PackProject extends DesignData {
 export const DEFAULT_PHOTO_VIEW: PhotoView = { zoom: 1, focalX: 0.5, focalY: 0.5 };
 
 export function newPackOutput(formatId: string): PackOutput {
-  return { formatId, photoView: { ...DEFAULT_PHOTO_VIEW }, headlineScale: 1 };
+  return { formatId, photoView: { ...DEFAULT_PHOTO_VIEW }, headlineScale: 1, screenQr: false };
 }
 
 export function serializePackProject(project: PackProject, now = new Date()): string {
@@ -54,11 +56,11 @@ export function parsePackProject(text: string): PackParseResult {
   for (const o of Array.isArray(raw.outputs) ? raw.outputs.filter(isRecord) : []) {
     const formatId = typeof o.formatId === "string" ? o.formatId : "";
     if (!FORMATS.some((f) => f.id === formatId) || byId.has(formatId)) continue;
-    const v = isRecord(o.photoView) ? o.photoView : {};
     byId.set(formatId, {
       formatId,
-      photoView: { zoom: num(v.zoom, 1, MAX_ZOOM, 1), focalX: num(v.focalX, 0, 1, 0.5), focalY: num(v.focalY, 0, 1, 0.5) },
+      photoView: parsePhotoView(o.photoView),
       headlineScale: clampHeadlineScale(o.headlineScale),
+      screenQr: o.screenQr === true,
     });
   }
   const outputs = FORMATS.filter((f) => byId.has(f.id)).map((f) => byId.get(f.id)!);

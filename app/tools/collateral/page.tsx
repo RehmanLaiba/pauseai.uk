@@ -28,8 +28,8 @@ export default async function CollateralPage() {
           </Link>
           <h1 className="collateral-title">Collateral maker</h1>
           <p className="collateral-lede">
-            Pick a format and a style, fill in the text, and download. Everything happens in your browser, so nothing is uploaded.
-            Just need a QR code? Use the <Link href="/tools/qr">QR code generator</Link>.
+            Make on-brand posts, flyers and event covers. Nothing leaves your browser. Just need a QR code? Use the{" "}
+            <Link href="/tools/qr">QR code generator</Link>.
           </p>
           <CollateralApp events={events} />
         </div>

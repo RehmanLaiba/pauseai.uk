@@ -1,5 +1,5 @@
-import type { QrSize, TextAlign } from "./design";
-import { renderSize, type Format } from "./formats";
+import { PHOTO_TINTS, type QrSize } from "./design";
+import { renderSize, showsQrCodes, type Format } from "./formats";
 import { LintCollector, lintLinksInText, lintUnreadableUrl, type LintIssue } from "./lint";
 import { FONT_LOADS, type Drawable, type PhotoSettings, type Template, type Values } from "./templates";
 import type { QrCode } from "./qr";
@@ -63,13 +63,15 @@ export interface RenderOptions {
   values: Values;
   logo: Drawable;
   photo: Drawable | null;
-  photoSettings: PhotoSettings;
+  /** Photo zoom and position. Leave `visible` out to pick the colour over the photo automatically (see autoPhotoVisible). */
+  photoSettings: Omit<PhotoSettings, "visible"> & { visible?: number };
   qrCodes: QrCode[];
   trackQr: boolean;
   qrSize?: QrSize;
-  align?: TextAlign;
   headlineScale?: number;
   partnerLogos?: Drawable[];
+  /** Show QR codes on a screen format, where they are left out by default (see showsQrCodes). */
+  screenQr?: boolean;
   /** Include bleed (print formats only). */
   bleed?: boolean;
   /** Scale output down so its longest side is at most this many px. Used for the live preview. */
@@ -78,8 +80,46 @@ export interface RenderOptions {
   lint?: boolean;
 }
 
+type DrawOptions = RenderOptions & { photoSettings: PhotoSettings };
+
+/** Size of the draw that picks the colour over the photo. Small, since it runs before every redraw. */
+const TINT_PROBE_MAX_SIDE = 600;
+
+/**
+ * The lightest tint step whose text reads well over the photo: first one where every line passes and none sits on
+ * a busy patch, then one where every line passes, then the strongest. One small draw is enough, since the text
+ * boxes and the untinted photo behind them do not change with the tint.
+ */
+export function autoPhotoVisible(opts: RenderOptions): number {
+  const steps = PHOTO_TINTS.map((t) => t.visible);
+  if (!opts.photo) return steps[0];
+  const lint = new LintCollector();
+  const maxSide = Math.min(opts.maxSide ?? Infinity, TINT_PROBE_MAX_SIDE);
+  draw(document.createElement("canvas"), { ...opts, maxSide, photoSettings: { ...opts.photoSettings, visible: steps[0] } }, lint);
+  return steps.find((v) => lint.readsAt(v, true)) ?? steps.find((v) => lint.readsAt(v, false)) ?? steps[steps.length - 1];
+}
+
+/**
+ * What the format actually shows: nothing to point people to on a page they are already on (the Luma cover), and
+ * QR codes on screen formats only when asked for.
+ */
+function forFormat(opts: RenderOptions): RenderOptions {
+  const { format } = opts;
+  if (format.kind === "digital" && format.onPage) return { ...opts, values: { ...opts.values, cta: "", url: "" }, qrCodes: [] };
+  return showsQrCodes(format, opts.screenQr ?? false) ? opts : { ...opts, qrCodes: [] };
+}
+
 /** Draws the collateral into `canvas`, sizing the canvas to match. Returns the final pixel size, and any problems when asked. */
-export function renderCollateral(canvas: HTMLCanvasElement, opts: RenderOptions): { width: number; height: number; issues: LintIssue[] } {
+export function renderCollateral(canvas: HTMLCanvasElement, requested: RenderOptions): { width: number; height: number; issues: LintIssue[] } {
+  const opts = forFormat(requested);
+  const visible = opts.photoSettings.visible ?? autoPhotoVisible(opts);
+  const drawn: DrawOptions = { ...opts, photoSettings: { ...opts.photoSettings, visible } };
+  const lint = drawn.lint ? new LintCollector() : undefined;
+  const size = draw(canvas, drawn, lint);
+  return { width: size.width, height: size.height, issues: lint ? lint.finish(size.dpi) : [] };
+}
+
+function draw(canvas: HTMLCanvasElement, opts: DrawOptions, lint: LintCollector | undefined): { width: number; height: number; dpi?: number } {
   const size = renderSize(opts.format, { bleed: opts.bleed });
   const scale = opts.maxSide ? Math.min(1, opts.maxSide / Math.max(size.width, size.height)) : 1;
   const width = Math.max(1, Math.round(size.width * scale));
@@ -88,7 +128,6 @@ export function renderCollateral(canvas: HTMLCanvasElement, opts: RenderOptions)
   canvas.height = height;
   const ctx = canvas.getContext("2d");
   if (!ctx) throw new Error("Canvas is not supported in this browser");
-  const lint = opts.lint ? new LintCollector() : undefined;
   opts.template.draw({
     ctx,
     width,
@@ -105,7 +144,6 @@ export function renderCollateral(canvas: HTMLCanvasElement, opts: RenderOptions)
     qrCodes: opts.qrCodes,
     trackQr: opts.trackQr,
     qrSize: opts.qrSize,
-    align: opts.align,
     headlineScale: opts.headlineScale,
     partnerLogos: opts.partnerLogos,
     lint,
@@ -114,7 +152,7 @@ export function renderCollateral(canvas: HTMLCanvasElement, opts: RenderOptions)
     lintLinksInText(lint, opts.template.fields, opts.values);
     lintUnreadableUrl(lint, opts.values);
   }
-  return { width, height, issues: lint ? lint.finish(size.dpi) : [] };
+  return { width, height, dpi: size.dpi };
 }
 
 /** Downscales a partner logo and encodes it as a PNG data URL, keeping transparency, so it can be saved with a project. */

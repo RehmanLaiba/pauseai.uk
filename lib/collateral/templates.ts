@@ -1,5 +1,5 @@
 import { hexToRgb } from "./contrast";
-import type { QrSize, TextAlign } from "./design";
+import type { QrSize } from "./design";
 import { EVENTS_PAGE_URL, exampleEventDate, formatPickedDate, formatPickedTimeRange } from "./eventText";
 import { aspectClass, layoutMarginUnits, type AspectClass } from "./formats";
 import type { LintCollector } from "./lint";
@@ -32,7 +32,7 @@ export interface PhotoSettings {
   zoom: number;
   focalX: number;
   focalY: number;
-  /** 0..1, how much of the photo shows through the theme tint (see PHOTO_TINTS). Gallery slides use 1: untinted. */
+  /** 0..1, how much of the photo shows through the theme tint (see PHOTO_TINTS). */
   visible: number;
 }
 
@@ -59,8 +59,6 @@ export interface DrawArgs {
   trackQr: boolean;
   /** Preferred QR size. Medium when left out. */
   qrSize?: QrSize;
-  /** Body text alignment. The header always keeps the logos left and the group right. */
-  align?: TextAlign;
   /** Multiplier on the title's automatic size range, from the title size nudge. 1 when left out. */
   headlineScale?: number;
   /** Partner logos, drawn to the right of the PauseAI logo. */
@@ -123,12 +121,32 @@ function smallTextColours(a: DrawArgs): { muted: string; accentText: string } {
   return { muted: onPhoto?.muted ?? a.theme.muted, accentText: onPhoto?.accentText ?? a.theme.accentText };
 }
 
+/**
+ * Text over a photo gets a soft halo in the style's own colour, so it blends into the tint rather than reading as
+ * an outline, and lifts the text off busy or bright patches. Blur is a share of the font size.
+ */
+const HALO_BLUR = 0.35;
+const HALO_ALPHA = 0.85;
+/**
+ * How much extra style colour the halo puts behind a line, for the contrast check. Deliberately below what the
+ * halo gives right around the letters, since the check measures the line's whole box.
+ */
+export const HALO_COVERAGE = 0.3;
+
 /** fillText, noting the text for the checks. Uses the context's current font and fill. */
 function fillText(a: DrawArgs, text: string, x: number, y: number, maxWidth?: number) {
   const { ctx } = a;
-  if (a.lint) noteTextForLint(a, a.lint, text, x, y, parseFloat(/([\d.]+)px/.exec(ctx.font)?.[1] ?? "0"), maxWidth);
+  const size = parseFloat(/([\d.]+)px/.exec(ctx.font)?.[1] ?? "0");
+  if (a.lint) noteTextForLint(a, a.lint, text, x, y, size, maxWidth);
+  const halo = a.photo ? hexToRgb(a.theme.bg) : null;
+  if (halo) {
+    ctx.save();
+    ctx.shadowColor = `rgba(${halo.join(", ")}, ${HALO_ALPHA})`;
+    ctx.shadowBlur = size * HALO_BLUR;
+  }
   if (maxWidth === undefined) ctx.fillText(text, x, y);
   else ctx.fillText(text, x, y, maxWidth);
+  if (halo) ctx.restore();
 }
 
 /** Text this size or larger, in design units, counts as large for contrast (3:1 rather than 4.5:1). */
@@ -150,7 +168,7 @@ function noteTextForLint(a: DrawArgs, lint: LintCollector, text: string, x: numb
     h: m.actualBoundingBoxAscent + m.actualBoundingBoxDescent,
   };
   const u = Math.sqrt(a.width * a.height) / 1000;
-  lint.noteTextBox(text, rect, hexToRgb(String(ctx.fillStyle)), size >= LARGE_TEXT_UNITS * u);
+  lint.noteTextBox(text, rect, hexToRgb(String(ctx.fillStyle)), size >= LARGE_TEXT_UNITS * u, HALO_COVERAGE);
 }
 
 function font(weight: number | string, size: number, family: string): string {
@@ -403,12 +421,10 @@ function drawFooter(a: DrawArgs, g: Geometry): number {
 
   // Codes beside the text only get that spot if the pill and the URL (shrunk no further than
   // MIN_URL_SCALE) fit in what is left of the row. Otherwise they take their own row, so nothing overlaps.
-  // Centred designs always give the codes their own centred row.
-  const centre = a.align === "center";
   const planned = qrLayout(a, g);
   const besideRoom = planned ? g.right - planned.blockW - gap - g.left : g.cw;
   const fitsBeside = pillW <= besideRoom && urlW * MIN_URL_SCALE <= besideRoom;
-  const q = planned?.side && (centre || !fitsBeside) ? { ...planned, side: false } : planned;
+  const q = planned?.side && !fitsBeside ? { ...planned, side: false } : planned;
   const textRight = q?.side ? g.right - q.blockW - gap : g.right;
 
   const stacked = Boolean(cta && url && g.left + pillW + gap + urlW > textRight);
@@ -430,26 +446,12 @@ function drawFooter(a: DrawArgs, g: Geometry): number {
       top = Math.min(qy, textBottom - textH);
     } else {
       const qy = g.bottom - textH - (textH ? gap : 0) - q.blockH;
-      drawQrBlock(a, q, centre ? g.left + (g.cw - q.blockW) / 2 : g.left, qy);
+      drawQrBlock(a, q, g.left, qy);
       top = qy;
     }
   }
 
-  // Where the pill and URL start. Centred designs centre the row, or each line when stacked.
-  const room = textRight - g.left;
-  const urlDrawW = url ? Math.min(urlRoom, (urlW * urlFs) / fs) : 0;
-  let pillX = g.left;
-  let urlDrawX = urlX;
-  if (centre) {
-    if (cta && url && !stacked) {
-      pillX = g.left + (room - (pillW + gap + urlDrawW)) / 2;
-      urlDrawX = pillX + pillW + gap;
-    } else {
-      pillX = g.left + (room - pillW) / 2;
-      urlDrawX = g.left + (room - urlDrawW) / 2;
-    }
-  }
-
+  const pillX = g.left;
   const pillY = textBottom - textH;
   const urlY = stacked ? pillY + pillH + fs * 0.85 : pillY + pillH / 2;
   if (cta) {
@@ -468,18 +470,16 @@ function drawFooter(a: DrawArgs, g: Geometry): number {
     ctx.textAlign = "left";
     ctx.textBaseline = "middle";
     // maxWidth squeezes a URL that is still too long at the smallest size, rather than letting it run under a QR code.
-    fillText(a, url, urlDrawX, urlY, urlRoom);
+    fillText(a, url, urlX, urlY, urlRoom);
   }
   return top;
 }
 
-/** Lines of text from the top-left of a block `width` wide, centred in it when the design is centred. */
-function drawLines(a: DrawArgs, lines: string[], x: number, y: number, lineHeightPx: number, width: number) {
-  const centre = a.align === "center";
-  a.ctx.textAlign = centre ? "center" : "left";
+/** Lines of text from the top-left of a block. */
+function drawLines(a: DrawArgs, lines: string[], x: number, y: number, lineHeightPx: number) {
+  a.ctx.textAlign = "left";
   a.ctx.textBaseline = "top";
-  const lx = centre ? x + width / 2 : x;
-  lines.forEach((line, i) => fillText(a, line, lx, y + i * lineHeightPx));
+  lines.forEach((line, i) => fillText(a, line, x, y + i * lineHeightPx));
 }
 
 /**
@@ -511,14 +511,8 @@ function drawKicker(a: DrawArgs, g: Geometry, text: string, y: number): number {
   setTracking(ctx, tracking);
   ctx.fillStyle = smallTextColours(a).accentText;
   ctx.textBaseline = "top";
-  if (a.align === "center") {
-    ctx.textAlign = "center";
-    // Tracking adds trailing space after the last glyph, so shift by half of it to stay optically centred.
-    fillText(a, text.toUpperCase(), g.left + g.cw / 2 + tracking / 2, y);
-  } else {
-    ctx.textAlign = "left";
-    fillText(a, text.toUpperCase(), g.left, y);
-  }
+  ctx.textAlign = "left";
+  fillText(a, text.toUpperCase(), g.left, y);
   setTracking(ctx, 0);
   return size * 1.3;
 }
@@ -571,16 +565,9 @@ function maxHeadlineFont(cls: AspectClass, u: number): number {
 // Templates
 
 const FOOTER_FIELDS: FieldDef[] = [
-  { key: "cta", label: "Button text", kind: "text", maxLength: 28, hint: "Clear it to remove the button", default: "Join PauseAI UK" },
-  {
-    key: "url",
-    label: "Web address",
-    kind: "text",
-    maxLength: 60,
-    hint: "A short link reads best. Clear it to remove",
-    default: "pauseai.uk",
-  },
-  { key: "group", label: "Local group", kind: "text", maxLength: 24, hint: "e.g. London. Leave blank for national.", default: "" },
+  { key: "cta", label: "Button text", kind: "text", maxLength: 28, hint: "Optional", default: "Join PauseAI UK" },
+  { key: "url", label: "Web address", kind: "text", maxLength: 60, hint: "Short reads best", default: "pauseai.uk" },
+  { key: "group", label: "Local group", kind: "text", maxLength: 24, hint: "e.g. London", default: "" },
 ];
 
 const announcement: Template = {
@@ -588,9 +575,8 @@ const announcement: Template = {
   label: "Announcement",
   description: "Big headline with a call to action. Good for social posts and slides.",
   fields: [
-    { key: "kicker", label: "Kicker", kind: "text", maxLength: 40, hint: "Small line above the headline", default: "Take action" },
+    { key: "kicker", label: "Kicker", kind: "text", maxLength: 40, default: "Take action" },
     { key: "headline", label: "Headline", kind: "textarea", maxLength: 90, default: "Safety before superintelligence" },
-    { key: "uppercase", label: "Uppercase headline", kind: "toggle", default: "true" },
     { key: "sub", label: "Sub-line", kind: "textarea", maxLength: 140, default: "Community-led action for safe and accountable AI across the UK." },
     ...FOOTER_FIELDS,
   ],
@@ -604,7 +590,7 @@ const announcement: Template = {
     const kickerH = kicker ? 30 * g.u * 1.3 + 22 * g.u : 0;
     const sub = values.sub?.trim();
     const subReserve = sub ? Math.min(zone.height * 0.3, 200 * g.u) : 0;
-    const headlineText = values.uppercase === "true" ? (values.headline ?? "").toUpperCase() : (values.headline ?? "");
+    const headlineText = values.headline ?? "";
 
     const range = headlineRange(a, maxHeadlineFont(g.cls, g.u), 34 * g.u);
     const headline = fitText(measurer(ctx, 900, DISPLAY_FONT), headlineText, {
@@ -636,13 +622,13 @@ const announcement: Template = {
     }
     ctx.fillStyle = theme.text;
     ctx.font = font(900, headline.fontSize, DISPLAY_FONT);
-    drawLines(a, headline.lines, g.left, y, headline.lineHeightPx, g.cw);
+    drawLines(a, headline.lines, g.left, y, headline.lineHeightPx);
     y += headline.height;
     if (subFit) {
       y += 22 * g.u;
       ctx.fillStyle = smallTextColours(a).muted;
       ctx.font = font(500, subFit.fontSize, BODY_FONT);
-      drawLines(a, subFit.lines, g.left, y, subFit.lineHeightPx, g.cw);
+      drawLines(a, subFit.lines, g.left, y, subFit.lineHeightPx);
     }
   },
 };
@@ -654,7 +640,6 @@ const event: Template = {
   fields: [
     { key: "kicker", label: "Kicker", kind: "text", maxLength: 40, default: "Join us" },
     { key: "headline", label: "Event title", kind: "textarea", maxLength: 80, default: "Letter writing night" },
-    { key: "uppercase", label: "Uppercase title", kind: "toggle", default: "true" },
     { key: "date", label: "Date", kind: "date", default: exampleEventDate() },
     { key: "start", label: "Start time", kind: "time", default: "19:00" },
     { key: "end", label: "End time", kind: "time", hint: "Optional", default: "" },
@@ -677,7 +662,7 @@ const event: Template = {
     const venue = values.venue?.trim();
     const blurb = compact ? "" : (values.blurb?.trim() ?? "");
 
-    const headlineText = values.uppercase === "true" ? (values.headline ?? "").toUpperCase() : (values.headline ?? "");
+    const headlineText = values.headline ?? "";
 
     // Lays the body out with the date and venue at `detailScale` of their full size, with or without the description.
     const fitBody = (detailScale: number, withBlurb: boolean) => {
@@ -753,30 +738,26 @@ const event: Template = {
     }
     ctx.fillStyle = theme.text;
     ctx.font = font(900, headline.fontSize, DISPLAY_FONT);
-    drawLines(a, headline.lines, g.left, y, headline.lineHeightPx, g.cw);
+    drawLines(a, headline.lines, g.left, y, headline.lineHeightPx);
     y += headline.height;
 
     if (detailsH) {
       y += 30 * g.u;
-      // Left-aligned details hang off an accent rule. Centred ones drop the rule, which would look lopsided.
-      const centre = a.align === "center";
-      const textX = centre ? g.left : g.left + 30 * g.u;
-      const textW = centre ? g.cw : g.cw - 30 * g.u;
-      if (!centre) {
-        ctx.fillStyle = theme.accentText;
-        ctx.fillRect(g.left, y, 8 * g.u, detailsH);
-      }
+      // The details hang off an accent rule.
+      const textX = g.left + 30 * g.u;
+      ctx.fillStyle = theme.accentText;
+      ctx.fillRect(g.left, y, 8 * g.u, detailsH);
       let ty = y;
       if (whenFit) {
         ctx.fillStyle = theme.text;
         ctx.font = font(800, whenFit.fontSize, BODY_FONT);
-        drawLines(a, whenFit.lines, textX, ty, whenFit.lineHeightPx, textW);
+        drawLines(a, whenFit.lines, textX, ty, whenFit.lineHeightPx);
         ty += whenFit.height + 6 * g.u;
       }
       if (venueFit) {
         ctx.fillStyle = smallTextColours(a).muted;
         ctx.font = font(600, venueFit.fontSize, BODY_FONT);
-        drawLines(a, venueFit.lines, textX, ty, venueFit.lineHeightPx, textW);
+        drawLines(a, venueFit.lines, textX, ty, venueFit.lineHeightPx);
       }
       y += detailsH;
     }
@@ -784,7 +765,7 @@ const event: Template = {
       y += 18 * g.u;
       ctx.fillStyle = smallTextColours(a).muted;
       ctx.font = font(500, blurbFit.fontSize, BODY_FONT);
-      drawLines(a, blurbFit.lines, g.left, y, blurbFit.lineHeightPx, g.cw);
+      drawLines(a, blurbFit.lines, g.left, y, blurbFit.lineHeightPx);
     }
   },
 };
@@ -824,33 +805,29 @@ const quote: Template = {
 
     const total = markH + q.height + attrH;
     let y = zone.top + Math.max(0, (zone.height - total) / 2);
-    const centre = a.align === "center";
-    // Single lines (quote mark, name, role) start here, and are centred on it when the design is centred.
-    const lineX = centre ? g.left + g.cw / 2 : g.left;
-
     if (markH) {
       ctx.fillStyle = theme.accentText;
       ctx.font = font(900, 260 * g.u, DISPLAY_FONT);
-      ctx.textAlign = centre ? "center" : "left";
+      ctx.textAlign = "left";
       ctx.textBaseline = "alphabetic";
-      fillText(a, "“", centre ? lineX : g.left - 6 * g.u, y + 210 * g.u);
+      fillText(a, "“", g.left - 6 * g.u, y + 210 * g.u);
       y += markH;
     }
     ctx.fillStyle = theme.text;
     ctx.font = font(700, q.fontSize, DISPLAY_FONT);
-    drawLines(a, q.lines, g.left, y, q.lineHeightPx, g.cw);
+    drawLines(a, q.lines, g.left, y, q.lineHeightPx);
     y += q.height;
 
     if (attrH) {
       y += 30 * g.u;
-      ctx.textAlign = centre ? "center" : "left";
+      ctx.textAlign = "left";
       if (name) {
         const tracking = 34 * g.u * 0.1;
         ctx.font = font(800, 34 * g.u, BODY_FONT);
         setTracking(ctx, tracking);
         ctx.fillStyle = smallTextColours(a).accentText;
         ctx.textBaseline = "top";
-        fillText(a, name.toUpperCase(), centre ? lineX + tracking / 2 : lineX, y);
+        fillText(a, name.toUpperCase(), g.left, y);
         setTracking(ctx, 0);
         y += 34 * g.u * 1.3;
       }
@@ -858,7 +835,7 @@ const quote: Template = {
         ctx.font = font(500, 28 * g.u, BODY_FONT);
         ctx.fillStyle = smallTextColours(a).muted;
         ctx.textBaseline = "top";
-        fillText(a, role, lineX, y);
+        fillText(a, role, g.left, y);
       }
     }
   },

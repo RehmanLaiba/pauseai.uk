@@ -1,7 +1,7 @@
 "use client";
 
 import type { ReactNode } from "react";
-import { MAX_PARTNER_LOGOS, PHOTO_TINTS, QR_SIZES } from "@/lib/collateral/design";
+import { MAX_PARTNER_LOGOS, QR_SIZES } from "@/lib/collateral/design";
 import { eventDayLabel, eventFieldValues, eventLink, type CalendarEvent } from "@/lib/collateral/eventText";
 import { isLumaEventLink } from "@/lib/collateral/lint";
 import { LIBRARY_PHOTOS, type LibraryPhoto } from "@/lib/collateral/photos";
@@ -9,9 +9,9 @@ import { QR_LABEL_MAX, QR_URL_MAX } from "@/lib/collateral/project";
 import { MAX_QR_CODES, normaliseUrl, type QrCode } from "@/lib/collateral/qr";
 import { drawableToPngDataUrl, fileToDrawable, loadDataUrl, loadImage } from "@/lib/collateral/render";
 import { defaultValues, getTemplate } from "@/lib/collateral/templates";
-import { getTheme, THEMES } from "@/lib/collateral/themes";
 import CharCount from "./CharCount";
-import { DESIGN_TEMPLATES, designTemplate, designValues, type DesignState } from "./designState";
+import StylePicker from "./StylePicker";
+import { DESIGN_TEMPLATES, designQrCodes, designTemplate, designValues, withQrCodes, type DesignState } from "./designState";
 
 interface Props {
   design: DesignState;
@@ -20,21 +20,24 @@ interface Props {
   events: CalendarEvent[];
   /** Number of the first section here, since each studio puts its own sections before or after. */
   firstSection: number;
-  /** Extra photo controls from the studio, e.g. crop sliders. */
+  /** Extra photo controls from the studio, e.g. fine crop controls. */
   photoExtras?: ReactNode;
-  /** Why QR codes are hidden or trimmed on the current format, when there is one format. */
-  qrReason?: string;
-  onOpenGallery?: () => void;
+  /** Shown under the headline field, e.g. the title size nudge. */
+  headlineExtras?: ReactNode;
+  /** Shown under the QR codes when there are some: e.g. whether they show on the current format, and why. */
+  qrNote?: ReactNode;
+  /** Called when a volunteer adds a QR code, e.g. to show codes on a format that leaves them out by default. */
+  onQrAdded?: () => void;
   onMessage: (message: string | null) => void;
 }
 
 const sameUrl = (a: string, b: string) => normaliseUrl(a).toLowerCase() === normaliseUrl(b).toLowerCase();
 
 /** Layout, style, text, QR codes, photo and partner logos: everything about a design except its format. */
-export default function DesignControls({ design, update, events, firstSection, photoExtras, qrReason, onOpenGallery, onMessage }: Props) {
+export default function DesignControls({ design, update, events, firstSection, photoExtras, headlineExtras, qrNote, onQrAdded, onMessage }: Props) {
   const template = designTemplate(design);
-  const theme = getTheme(design.themeId);
   const values = designValues(design);
+  const qrCodes = designQrCodes(design);
   const n = (i: number) => firstSection + i;
 
   function setValue(key: string, value: string) {
@@ -49,24 +52,32 @@ export default function DesignControls({ design, update, events, firstSection, p
     update((d) => {
       const before = { ...defaultValues(getTemplate("event")), ...d.valuesByTemplate.event };
       // The first QR code opens the event itself, replacing any code for the old address or an earlier imported event.
-      const replaced = d.qrCodes.filter((c) => (before.url && sameUrl(c.url, before.url)) || isLumaEventLink(c.url));
-      const others = d.qrCodes.filter((c) => !replaced.includes(c));
-      const qrCodes = [{ label: replaced[0]?.label || "Scan to RSVP", url: link }, ...others].slice(0, MAX_QR_CODES);
+      const current = d.qrCodesByTemplate.event ?? [];
+      const replaced = current.filter((c) => (before.url && sameUrl(c.url, before.url)) || isLumaEventLink(c.url));
+      const others = current.filter((c) => !replaced.includes(c));
+      const codes = [{ label: replaced[0]?.label || "Scan to RSVP", url: link }, ...others].slice(0, MAX_QR_CODES);
       const event = { ...before, ...filled, group: filled.group || before.group };
-      return { ...d, templateId: "event", valuesByTemplate: { ...d.valuesByTemplate, event }, qrCodes };
+      return {
+        ...d,
+        templateId: "event",
+        valuesByTemplate: { ...d.valuesByTemplate, event },
+        qrCodesByTemplate: { ...d.qrCodesByTemplate, event: codes },
+      };
     });
-    onMessage(`Filled in from “${ev.name}”. The QR code opens the event, and the printed link is our events page. Check the text before you download.`);
+    onMessage(
+      `Filled in from “${ev.name}” with the Event layout. The QR code opens the event, and the printed link is our events page. Check the text before you download.`,
+    );
   }
 
   // The first code opens the design's own web address, since that is almost always where it should go.
   // Later codes start blank, so two codes never quietly point at the same place.
   function newQr(): QrCode {
-    if (design.qrCodes.length > 0) return { label: "", url: "" };
+    if (qrCodes.length > 0) return { label: "", url: "" };
     return { label: template.id === "event" ? "Scan to RSVP" : "Scan to join", url: values.url?.trim() || "pauseai.uk" };
   }
 
   function updateQr(index: number, patch: Partial<QrCode>) {
-    update((d) => ({ ...d, qrCodes: d.qrCodes.map((c, i) => (i === index ? { ...c, ...patch } : c)) }));
+    update((d) => withQrCodes(d, designQrCodes(d).map((c, i) => (i === index ? { ...c, ...patch } : c))));
   }
 
   async function onPhoto(file: File | undefined) {
@@ -122,55 +133,32 @@ export default function DesignControls({ design, update, events, firstSection, p
             </button>
           ))}
         </div>
-        {onOpenGallery && (
-          <p className="collateral-hint">
-            Photo with a caption, or a post with several slides?
-            <button type="button" className="collateral-link" onClick={onOpenGallery}>
-              Use Gallery / carousel
-            </button>
-          </p>
-        )}
-      </section>
-
-      <section>
-        <h2>{n(1)}. Style</h2>
-        <div className="collateral-swatches" role="radiogroup" aria-label="Style">
-          {THEMES.map((t) => (
-            <button
-              key={t.id}
-              type="button"
-              role="radio"
-              aria-checked={t.id === theme.id}
-              className="collateral-swatch"
-              onClick={() => update((d) => ({ ...d, themeId: t.id }))}
-            >
-              <span className="collateral-swatch-chip" style={{ background: t.bg, color: t.text }} aria-hidden="true">
-                <i style={{ background: t.accent }} />
-              </span>
-              {t.label}
-            </button>
-          ))}
-        </div>
-      </section>
-
-      <section>
-        <h2>{n(2)}. Text</h2>
+        {/* Right under the Event card, which is last in the list. Kept outside the radio group, which may only hold its options. */}
         {events.length > 0 && (
-          <div className="collateral-field">
+          <div className={`collateral-event-import${template.id === "event" ? " is-active" : ""}`}>
             <label className="collateral-label" htmlFor="collateral-import-event">
-              Fill in from one of our events
-              <span> · Optional</span>
+              Start from one of our events
             </label>
             <select id="collateral-import-event" value="" onChange={(e) => importEvent(e.target.value)}>
-              <option value="">Pick an upcoming event…</option>
+              <option value="">Choose an event…</option>
               {events.map((ev) => (
                 <option key={ev.id} value={ev.id}>
                   {eventDayLabel(ev)} · {ev.name}
                 </option>
               ))}
             </select>
+            <p className="collateral-hint">Fills in the Event layout, and adds a QR code for the event.</p>
           </div>
         )}
+      </section>
+
+      <section>
+        <h2>{n(1)}. Style</h2>
+        <StylePicker themeId={design.themeId} onTheme={(themeId) => update((d) => ({ ...d, themeId }))} />
+      </section>
+
+      <section>
+        <h2>{n(2)}. Text</h2>
         {template.fields.map((field) => {
           const id = `collateral-${template.id}-${field.key}`;
           const value = values[field.key] ?? "";
@@ -196,22 +184,15 @@ export default function DesignControls({ design, update, events, firstSection, p
                 <input id={id} type="text" maxLength={field.maxLength} value={value} onChange={(e) => setValue(field.key, e.target.value)} />
               )}
               <CharCount value={value} max={field.maxLength} />
+              {field.key === "headline" && headlineExtras}
             </div>
           );
         })}
-        <span className="collateral-label">Text alignment</span>
-        <div className="collateral-segmented" role="radiogroup" aria-label="Text alignment">
-          {(["left", "center"] as const).map((align) => (
-            <button key={align} type="button" role="radio" aria-checked={design.align === align} onClick={() => update((d) => ({ ...d, align }))}>
-              {align === "left" ? "Left" : "Centre"}
-            </button>
-          ))}
-        </div>
       </section>
 
       <section>
         <h2>{n(3)}. QR codes (optional)</h2>
-        {design.qrCodes.map((code, i) => (
+        {qrCodes.map((code, i) => (
           <div key={i} className="collateral-qr-row">
             <div className="collateral-qr-fields">
               <input
@@ -236,7 +217,7 @@ export default function DesignControls({ design, update, events, firstSection, p
               type="button"
               className="collateral-qr-remove"
               aria-label={`Remove QR code ${i + 1}`}
-              onClick={() => update((d) => ({ ...d, qrCodes: d.qrCodes.filter((_, j) => j !== i) }))}
+              onClick={() => update((d) => withQrCodes(d, designQrCodes(d).filter((_, j) => j !== i)))}
             >
               ×
             </button>
@@ -245,15 +226,16 @@ export default function DesignControls({ design, update, events, firstSection, p
         <button
           type="button"
           className="btn ghost small"
-          disabled={design.qrCodes.length >= MAX_QR_CODES}
+          disabled={qrCodes.length >= MAX_QR_CODES}
           onClick={() => {
             const code = newQr();
-            update((d) => ({ ...d, qrCodes: [...d.qrCodes, code] }));
+            update((d) => withQrCodes(d, [...designQrCodes(d), code]));
+            onQrAdded?.();
           }}
         >
-          {design.qrCodes.length === 0 ? "Add a QR code" : `Add another (${design.qrCodes.length} of ${MAX_QR_CODES})`}
+          {qrCodes.length === 0 ? "Add a QR code" : `Add another (${qrCodes.length} of ${MAX_QR_CODES})`}
         </button>
-        {design.qrCodes.length > 0 && (
+        {qrCodes.length > 0 && (
           <>
             <span className="collateral-label collateral-qr-size-label">Size</span>
             <div className="collateral-segmented" role="radiogroup" aria-label="QR code size">
@@ -263,16 +245,14 @@ export default function DesignControls({ design, update, events, firstSection, p
                 </button>
               ))}
             </div>
-            <p className="collateral-hint">Codes never go below the size phones can scan, so Small may look the same as Medium.</p>
           </>
         )}
         {/* UTM tagging is switched off until we have a way to read the results. See qrTarget in lib/collateral/qr.ts. */}
-        {design.qrCodes.length > 0 && qrReason && <p className="collateral-hint">{qrReason}</p>}
+        {qrCodes.length > 0 && qrNote}
       </section>
 
       <section>
         <h2>{n(4)}. Photo (optional)</h2>
-        <p className="collateral-hint">Pick one of ours:</p>
         <div className="collateral-photo-grid">
           {LIBRARY_PHOTOS.map((item) => (
             <button
@@ -287,7 +267,7 @@ export default function DesignControls({ design, update, events, firstSection, p
             />
           ))}
         </div>
-        <p className="collateral-hint">…or upload your own:</p>
+        <p className="collateral-hint">Or upload your own:</p>
         <input type="file" accept="image/*" aria-label="Upload a photo" onChange={(e) => onPhoto(e.target.files?.[0])} />
         {design.photo && (
           <div className="collateral-photo-controls">
@@ -297,14 +277,6 @@ export default function DesignControls({ design, update, events, firstSection, p
                 Remove
               </button>
             </p>
-            <span className="collateral-label collateral-tint-label">Colour over the photo</span>
-            <div className="collateral-segmented" role="radiogroup" aria-label="Colour over the photo">
-              {PHOTO_TINTS.map((t) => (
-                <button key={t.id} type="button" role="radio" aria-checked={design.tint === t.id} onClick={() => update((d) => ({ ...d, tint: t.id }))}>
-                  {t.label}
-                </button>
-              ))}
-            </div>
             {photoExtras}
           </div>
         )}
@@ -313,7 +285,7 @@ export default function DesignControls({ design, update, events, firstSection, p
       <section>
         <h2>{n(5)}. Partner logos (optional)</h2>
         <p className="collateral-hint">
-          For events run with another organisation. Logos sit to the right of ours. A PNG with a transparent background works best.
+          For joint events. A PNG with a transparent background works best.
         </p>
         {design.partnerLogos.map((logo, i) => (
           <p key={`${logo.name}-${i}`} className="collateral-hint">

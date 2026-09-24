@@ -67,30 +67,14 @@ export async function pdfBytesDigital(canvases: HTMLCanvasElement[]): Promise<Ui
   return pdf.save();
 }
 
-/** Multi-page PDF at trim size plus bleed, one page per canvas, with TrimBox/BleedBox set so print shops can find the trim. */
-export async function downloadCanvasesPdf(
-  canvases: HTMLCanvasElement[],
-  format: { widthMm: number; heightMm: number },
-  bleedMm: number,
-  filename: string,
-): Promise<void> {
-  const bytes = await pdfBytesForPrint(canvases, format, bleedMm);
-  download(new Blob([bytes as BlobPart], { type: "application/pdf" }), filename);
-}
-
 /** One-page PDF at trim size plus bleed, with TrimBox/BleedBox set so print shops can find the trim. */
-export function downloadCanvasPdf(
+export async function downloadCanvasPdf(
   canvas: HTMLCanvasElement,
   format: { widthMm: number; heightMm: number },
   bleedMm: number,
   filename: string,
 ): Promise<void> {
-  return downloadCanvasesPdf([canvas], format, bleedMm, filename);
-}
-
-/** Multi-page PDF for a digital (pixel-sized) format, one page per canvas at 1px = 1pt. No bleed/trim — for sharing, not print. */
-export async function downloadCanvasesPdfDigital(canvases: HTMLCanvasElement[], filename: string): Promise<void> {
-  const bytes = await pdfBytesDigital(canvases);
+  const bytes = await pdfBytesForPrint([canvas], format, bleedMm);
   download(new Blob([bytes as BlobPart], { type: "application/pdf" }), filename);
 }
 
@@ -102,20 +86,6 @@ export function downloadCanvasPng(canvas: HTMLCanvasElement, filename: string): 
       resolve();
     }, "image/png");
   });
-}
-
-/**
- * Zips one PNG per canvas into a single download. Browsers block or silently drop a burst of downloads
- * triggered from one click, so a multi-image export has to land as one file.
- */
-export async function downloadCanvasesPngZip(canvases: HTMLCanvasElement[], entryNameFor: (index: number) => string, filename: string): Promise<void> {
-  // Loaded on demand so the editor page stays light.
-  const { default: JSZip } = await import("jszip");
-  const zip = new JSZip();
-  const blobs = await Promise.all(canvases.map(canvasToPngBlob));
-  blobs.forEach((blob, i) => zip.file(entryNameFor(i), blob));
-  const bytes = await zip.generateAsync({ type: "blob" });
-  download(bytes, filename);
 }
 
 /** Zips named files into one download, e.g. a campaign pack's PNGs and print PDFs. */

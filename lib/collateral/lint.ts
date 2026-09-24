@@ -1,5 +1,4 @@
 import { busySample, worstFailure, type Backdrop, type Rect, type Rgb, type TextSample } from "./contrast";
-import { PHOTO_TINTS } from "./design";
 
 /** One problem the checks list shows beside Download. */
 export interface LintIssue {
@@ -70,10 +69,21 @@ export class LintCollector {
   }
 
   /** Records a line of text drawn over the photo. `rect` is in canvas pixels. Ignored when there is no photo. */
-  noteTextBox(text: string, rect: Rect, rgb: Rgb | null, large: boolean) {
+  noteTextBox(text: string, rect: Rect, rgb: Rgb | null, large: boolean, halo = 0) {
     if (!this.backdrop || !rgb || !text.trim()) return;
     const k = this.backdropScale;
-    this.samples.push({ text, rect: { x: rect.x * k, y: rect.y * k, w: rect.w * k, h: rect.h * k }, rgb, large });
+    this.samples.push({ text, rect: { x: rect.x * k, y: rect.y * k, w: rect.w * k, h: rect.h * k }, rgb, large, halo });
+  }
+
+  /**
+   * Whether every line over the photo would pass its contrast check with `visible` of the photo showing, and,
+   * when `calm` is set, sit on a calm enough patch too. True when there is no photo or no text over it.
+   */
+  readsAt(visible: number, calm: boolean): boolean {
+    const { backdrop, photo, samples } = this;
+    if (!backdrop || !photo || samples.length === 0) return true;
+    if (worstFailure(backdrop, samples, photo.bg, visible)) return false;
+    return !calm || !busySample(backdrop, samples, photo.bg, visible);
   }
 
   /** Adds checks that need the whole drawing, then returns the issues, warnings first. */
@@ -101,7 +111,8 @@ export class LintCollector {
       this.add({
         id: "contrast",
         level: "warn",
-        message: `“${snippet(failure.sample.text)}” is hard to read over the photo: ${failure.low.toFixed(1)}:1, and it needs ${failure.required}:1. ${this.contrastFix()}`,
+        // The colour over the photo is already the strongest that helps (see renderCollateral), so the fix is the photo or style.
+        message: `“${snippet(failure.sample.text)}” may be hard to read. Try adjusting the image so the text sits on a plainer part, or try a different image or style.`,
       });
       return;
     }
@@ -110,22 +121,9 @@ export class LintCollector {
       this.add({
         id: "busy-background",
         level: "info",
-        message: `“${snippet(busy.text)}” sits on a busy part of the photo. More colour over the photo, or moving it, will help.`,
+        message: `“${snippet(busy.text)}” sits on a busy part of the image. Try adjusting the image so the text sits on a plainer part.`,
       });
     }
-  }
-
-  /** The lightest tint step that makes every line pass, or what to do when none does. */
-  private contrastFix(): string {
-    const { backdrop, photo, samples } = this;
-    if (!backdrop || !photo) return "";
-    // Tint steps from least to most colour, more tinted than now.
-    const stronger = [...PHOTO_TINTS].sort((a, b) => b.visible - a.visible).filter((t) => t.visible < photo.visible);
-    const fix = stronger.find((t) => !worstFailure(backdrop, samples, photo.bg, t.visible));
-    if (fix) return `Choose ${fix.label} under “Colour over the photo” to fix it.`;
-    return stronger.length
-      ? "Even Strong colour is not enough here: move or zoom the photo, or pick another style."
-      : "Move or zoom the photo so the text sits on a plainer part, or pick another style.";
   }
 }
 

@@ -1,3 +1,4 @@
+import { tintVisible } from "./design";
 import { DEFAULT_THEME_ID } from "./themes";
 import type { Drawable, PhotoSettings } from "./templates";
 
@@ -5,8 +6,13 @@ export const MIN_SLIDES = 2;
 export const MAX_SLIDES = 10;
 export const CAPTION_MAX = 200;
 
-/** Gallery slides are photo-forward: no theme tint over the image, unlike the single-image templates. */
-export const DEFAULT_SLIDE_PHOTO_SETTINGS: PhotoSettings = { zoom: 1, focalX: 0.5, focalY: 0.5, visible: 1 };
+/**
+ * Slides always have Medium colour over the photo: the caption sits on its own dark band, so it reads whatever the
+ * strength, and the lighter step keeps the photo forward while the slide's style still shows.
+ */
+export const SLIDE_PHOTO_VISIBLE = tintVisible("medium");
+
+export const DEFAULT_SLIDE_PHOTO_SETTINGS: PhotoSettings = { zoom: 1, focalX: 0.5, focalY: 0.5, visible: SLIDE_PHOTO_VISIBLE };
 
 export interface SlidePhoto {
   drawable: Drawable;

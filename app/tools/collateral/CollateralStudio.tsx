@@ -1,21 +1,22 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { tintVisible } from "@/lib/collateral/design";
 import type { CalendarEvent } from "@/lib/collateral/eventText";
 import { downloadCanvasPdf, downloadCanvasPng, downloadText, exportFilename } from "@/lib/collateral/export";
 import { BLEED_MM, DEFAULT_FORMAT_ID, FORMAT_GROUPS, FORMATS, formatDimensionLabel, getFormat, renderSize } from "@/lib/collateral/formats";
+import QrFormatNote from "./QrFormatNote";
 import { sameIssues, type LintIssue } from "@/lib/collateral/lint";
-import { MAX_ZOOM, type PhotoView } from "@/lib/collateral/photoTransform";
+import type { PhotoView } from "@/lib/collateral/photoTransform";
 import { parseProject, serializeProject, type Project } from "@/lib/collateral/project";
 import { qrPlan, usableQrCodes } from "@/lib/collateral/qr";
 import { renderCollateral, type RenderOptions } from "@/lib/collateral/render";
 import { defaultValues, type Drawable } from "@/lib/collateral/templates";
 import { getTheme } from "@/lib/collateral/themes";
 import Checks from "./Checks";
+import CropControls from "./CropControls";
 import DesignControls from "./DesignControls";
-import { designFromData, designTemplate, designToData, designValues, newDesign, type DesignState } from "./designState";
-import Slider from "./Slider";
+import { designFromData, designQrCodes, designTemplate, designToData, designValues, newDesign, withQrCodes, type DesignState } from "./designState";
+import ProjectMenu from "./ProjectMenu";
 import TitleSizeControl from "./TitleSizeControl";
 import { usePhotoGestures } from "./usePhotoGestures";
 import { useStudioAssets } from "./useStudioAssets";
@@ -28,12 +29,14 @@ const DEFAULT_VIEW: PhotoView = { zoom: 1, focalX: 0.5, focalY: 0.5 };
 /** Checks that mean the title size nudge may help. */
 const TITLE_ISSUES = ["text-overflow", "title-small"];
 
-export default function CollateralStudio({ onOpenGallery, events }: { onOpenGallery: () => void; events: CalendarEvent[] }) {
+export default function CollateralStudio({ events }: { events: CalendarEvent[] }) {
   const [formatId, setFormatId] = useState(DEFAULT_FORMAT_ID);
   const [design, setDesign] = useState<DesignState>(() => newDesign());
   // A crop belongs to the photo it was set on, so a new photo starts centred and unzoomed.
   const [photoViewState, setPhotoViewState] = useState<{ photo: Drawable | null; view: PhotoView }>({ photo: null, view: DEFAULT_VIEW });
   const [headlineScale, setHeadlineScale] = useState(1);
+  // QR codes on a screen format (social posts), where they are left out unless asked for.
+  const [screenQr, setScreenQr] = useState(false);
   const [issues, setIssues] = useState<LintIssue[]>([]);
   const [restored, setRestored] = useState(false);
   const [busy, setBusy] = useState(false);
@@ -41,7 +44,6 @@ export default function CollateralStudio({ onOpenGallery, events }: { onOpenGall
   // Restores what the last Reset cleared. Only offered while the reset message is showing.
   const [undoReset, setUndoReset] = useState<(() => void) | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const openInputRef = useRef<HTMLInputElement>(null);
   const { fontsReady, logos, error: assetError } = useStudioAssets();
 
   const format = getFormat(formatId);
@@ -57,7 +59,7 @@ export default function CollateralStudio({ onOpenGallery, events }: { onOpenGall
     width: exportSize.width,
     height: exportSize.height,
     dpi: exportSize.dpi,
-    urls: usableQrCodes(design.qrCodes).map((c) => c.url),
+    urls: usableQrCodes(designQrCodes(design)).map((c) => c.url),
     track: design.trackQr,
     sizePref: design.qrSize,
   }).reason;
@@ -76,10 +78,11 @@ export default function CollateralStudio({ onOpenGallery, events }: { onOpenGall
     (embedUploads: boolean): Project => ({
       ...designToData(design, embedUploads),
       formatId,
-      photoSettings: { ...photoView, visible: tintVisible(design.tint) },
+      photoSettings: photoView,
       headlineScale,
+      screenQr,
     }),
-    [design, formatId, photoView, headlineScale],
+    [design, formatId, photoView, headlineScale, screenQr],
   );
 
   // Puts a saved or restored project on screen. Returns false if an image could not be loaded.
@@ -88,6 +91,7 @@ export default function CollateralStudio({ onOpenGallery, events }: { onOpenGall
     setDesign(loaded);
     setFormatId(project.formatId);
     setHeadlineScale(project.headlineScale);
+    setScreenQr(project.screenQr);
     const { zoom, focalX, focalY } = project.photoSettings;
     setPhotoViewState({ photo: loaded.photo?.drawable ?? null, view: { zoom, focalX, focalY } });
     return ok;
@@ -129,11 +133,11 @@ export default function CollateralStudio({ onOpenGallery, events }: { onOpenGall
       values,
       logo: logo!,
       photo: design.photo?.drawable ?? null,
-      photoSettings: { ...photoView, visible: tintVisible(design.tint) },
-      qrCodes: design.qrCodes,
+      photoSettings: photoView,
+      qrCodes: designQrCodes(design),
       trackQr: design.trackQr,
       qrSize: design.qrSize,
-      align: design.align,
+      screenQr,
       headlineScale,
       partnerLogos: design.partnerLogos.map((l) => l.drawable),
       bleed,
@@ -184,14 +188,13 @@ export default function CollateralStudio({ onOpenGallery, events }: { onOpenGall
     setMessage(null);
     try {
       downloadText(serializeProject(currentProject(true)), exportFilename([template.id, format.id, "project"], "json"), "application/json");
-      setMessage("Project saved. Use “Open project” to carry on editing later.");
+      setMessage("Project file saved. Open it from the ⋯ menu to carry on editing.");
     } catch {
       setMessage("Could not save the project.");
     }
   }
 
   async function onOpenProject(file: File | undefined) {
-    if (openInputRef.current) openInputRef.current.value = "";
     if (!file) return;
     setMessage(null);
     if (file.size > MAX_PROJECT_FILE_BYTES) {
@@ -210,9 +213,8 @@ export default function CollateralStudio({ onOpenGallery, events }: { onOpenGall
   function onReset() {
     const before = { design, photoViewState, headlineScale };
     setDesign((d) => ({
-      ...d,
+      ...withQrCodes(d, []),
       valuesByTemplate: { ...d.valuesByTemplate, [template.id]: defaultValues(template) },
-      qrCodes: [],
       photo: null,
       partnerLogos: [],
     }));
@@ -227,18 +229,6 @@ export default function CollateralStudio({ onOpenGallery, events }: { onOpenGall
     });
   }
 
-  const downloadButtons = (
-    <>
-      <button type="button" className="btn primary large" onClick={onDownloadPng} disabled={!ready}>
-        {busy ? "Preparing…" : "Download PNG"}
-      </button>
-      {format.kind === "print" && (
-        <button type="button" className="btn primary large" onClick={onDownloadPdf} disabled={!ready}>
-          {busy ? "Preparing…" : `Download print PDF (+${BLEED_MM} mm bleed)`}
-        </button>
-      )}
-    </>
-  );
   const titleFlagged = issues.some((i) => TITLE_ISSUES.includes(i.id));
   const shown = message ?? assetError;
 
@@ -258,11 +248,29 @@ export default function CollateralStudio({ onOpenGallery, events }: { onOpenGall
         </div>
         <p className="collateral-preview-meta">
           {format.label} · {formatDimensionLabel(format)}
+          {design.photo && " · Drag the photo to move it. Scroll or pinch to zoom."}
         </p>
-        {design.photo && <p className="collateral-preview-meta">Drag the photo to move it. Scroll or pinch to zoom.</p>}
         <div className="collateral-preview-actions">
           <Checks issues={issues} />
-          {downloadButtons}
+          <button type="button" className="btn primary large" onClick={onDownloadPng} disabled={!ready}>
+            {busy ? "Preparing…" : "Download PNG"}
+          </button>
+          {format.kind === "print" && (
+            <button type="button" className="btn primary large" onClick={onDownloadPdf} disabled={!ready}>
+              {busy ? "Preparing…" : `Download print PDF (+${BLEED_MM} mm bleed)`}
+            </button>
+          )}
+          <ProjectMenu noun="project" onSave={onSaveProject} onOpen={onOpenProject} onReset={onReset} saveDisabled={!restored} />
+          {shown && (
+            <p className="collateral-message" role="status">
+              {shown}
+              {message === RESET_MESSAGE && undoReset && (
+                <button type="button" className="collateral-link" onClick={undoReset}>
+                  Undo
+                </button>
+              )}
+            </p>
+          )}
         </div>
       </div>
 
@@ -291,62 +299,12 @@ export default function CollateralStudio({ onOpenGallery, events }: { onOpenGall
           update={update}
           events={events}
           firstSection={2}
-          qrReason={qrReason}
-          onOpenGallery={onOpenGallery}
+          qrNote={<QrFormatNote format={format} screenQr={screenQr} onScreenQr={setScreenQr} reason={qrReason} />}
+          onQrAdded={() => setScreenQr(true)}
           onMessage={setMessage}
-          photoExtras={
-            <>
-              <Slider label="Zoom" min={1} max={MAX_ZOOM} step={0.05} value={photoView.zoom} onChange={(zoom) => setPhotoView((v) => ({ ...v, zoom }))} />
-              <Slider label="Left / right" min={0} max={1} step={0.01} value={photoView.focalX} onChange={(focalX) => setPhotoView((v) => ({ ...v, focalX }))} />
-              <Slider label="Up / down" min={0} max={1} step={0.01} value={photoView.focalY} onChange={(focalY) => setPhotoView((v) => ({ ...v, focalY }))} />
-            </>
-          }
+          headlineExtras={<TitleSizeControl value={headlineScale} onChange={setHeadlineScale} flagged={titleFlagged} />}
+          photoExtras={<CropControls view={photoView} onChange={(patch) => setPhotoView((v) => ({ ...v, ...patch }))} />}
         />
-
-        <section className="collateral-actions">
-          <div className="collateral-actions-checks">
-            <Checks issues={issues} />
-            <TitleSizeControl value={headlineScale} onChange={setHeadlineScale} flagged={titleFlagged} />
-          </div>
-          {downloadButtons}
-          <button type="button" className="btn ghost large" onClick={onReset}>
-            Reset
-          </button>
-          {shown && (
-            <p className="collateral-message" role="status">
-              {shown}
-              {message === RESET_MESSAGE && undoReset && (
-                <button type="button" className="collateral-link" onClick={undoReset}>
-                  Undo
-                </button>
-              )}
-            </p>
-          )}
-        </section>
-
-        <section>
-          <h2>Save your work</h2>
-          <p className="collateral-hint">
-            Save a project file to edit later or send to another volunteer. It holds your text, style, QR codes, photo and partner logos. It
-            is not uploaded anywhere.
-          </p>
-          <div className="collateral-actions">
-            <button type="button" className="btn ghost" onClick={onSaveProject} disabled={!restored}>
-              Save project
-            </button>
-            <button type="button" className="btn ghost" onClick={() => openInputRef.current?.click()}>
-              Open project
-            </button>
-            <input
-              ref={openInputRef}
-              type="file"
-              accept=".json,application/json"
-              hidden
-              aria-label="Open a saved project"
-              onChange={(e) => onOpenProject(e.target.files?.[0])}
-            />
-          </div>
-        </section>
       </div>
     </div>
   );

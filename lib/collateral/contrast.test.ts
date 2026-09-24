@@ -66,6 +66,14 @@ describe("worstFailure", () => {
   it("passes once enough style colour is blended over", () => {
     expect(worstFailure(grey, [sample(INK)], ORANGE, 0.25)).toBeNull();
   });
+
+  it("counts a halo behind the text as extra style colour", () => {
+    // Large orange text on the Black style over a light photo: about 2.7:1 bare, about 4.3:1 with the halo.
+    const light = backdrop(() => [200, 200, 200]);
+    const bare = sample(ORANGE, true);
+    expect(worstFailure(light, [bare], [0, 0, 0], 0.5)).not.toBeNull();
+    expect(worstFailure(light, [{ ...bare, halo: 0.3 }], [0, 0, 0], 0.5)).toBeNull();
+  });
 });
 
 describe("busySample", () => {

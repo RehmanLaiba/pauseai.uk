@@ -17,6 +17,13 @@ export interface DigitalFormat extends FormatBase {
   height: number;
   /** Share of the width, from the left, that the platform covers below the header (X puts the profile photo there). */
   safeLeft?: number;
+  /** Seen on a phone or computer, where a QR code is rarely scanned, so codes are left out unless asked for. */
+  screen?: boolean;
+  /**
+   * Shown on the page people act on, such as the event's own Luma page, so there is nothing to point them to:
+   * QR codes, the button and the web address are always left out.
+   */
+  onPage?: boolean;
 }
 
 export interface PrintFormat extends FormatBase {
@@ -28,12 +35,12 @@ export interface PrintFormat extends FormatBase {
 export type Format = DigitalFormat | PrintFormat;
 
 export const FORMATS: Format[] = [
-  { id: "ig-square", label: "Instagram / Facebook square", group: "Social", kind: "digital", width: 1080, height: 1080 },
-  { id: "ig-portrait", label: "Instagram portrait (4:5)", group: "Social", kind: "digital", width: 1080, height: 1350 },
-  { id: "story", label: "Story / Reel / TikTok / WhatsApp status", group: "Social", kind: "digital", width: 1080, height: 1920 },
-  { id: "x-post", label: "X / Twitter post", group: "Social", kind: "digital", width: 1600, height: 900 },
-  { id: "link-share", label: "LinkedIn / Facebook link share", group: "Social", kind: "digital", width: 1200, height: 630 },
-  { id: "fb-event", label: "Facebook event cover", group: "Social", kind: "digital", width: 1920, height: 1005 },
+  { id: "ig-square", label: "Instagram / Facebook square", group: "Social", kind: "digital", width: 1080, height: 1080, screen: true },
+  { id: "ig-portrait", label: "Instagram portrait (4:5)", group: "Social", kind: "digital", width: 1080, height: 1350, screen: true },
+  { id: "story", label: "Story / Reel / TikTok / WhatsApp status", group: "Social", kind: "digital", width: 1080, height: 1920, screen: true },
+  { id: "x-post", label: "X / Twitter post", group: "Social", kind: "digital", width: 1600, height: 900, screen: true },
+  { id: "link-share", label: "LinkedIn / Facebook link share", group: "Social", kind: "digital", width: 1200, height: 630, screen: true },
+  { id: "fb-event", label: "Facebook event cover", group: "Social", kind: "digital", width: 1920, height: 1005, screen: true },
   {
     id: "x-header",
     label: "X header",
@@ -42,9 +49,19 @@ export const FORMATS: Format[] = [
     width: 1500,
     height: 500,
     safeLeft: 0.28,
+    screen: true,
     note: "The bottom-left is kept clear, because X puts your profile photo there.",
   },
-  { id: "luma-cover", label: "Luma event cover", group: "Events", kind: "digital", width: 1080, height: 1080, note: "Square, works for Luma cards and pages." },
+  {
+    id: "luma-cover",
+    label: "Luma event cover",
+    group: "Events",
+    kind: "digital",
+    width: 1080,
+    height: 1080,
+    onPage: true,
+    note: "Shown on the event page itself, so it leaves out QR codes, the button and the web address.",
+  },
   { id: "slide", label: "Slide / Zoom background (16:9)", group: "Slides", kind: "digital", width: 1920, height: 1080 },
   { id: "a6", label: "A6 handout", group: "Print", kind: "print", widthMm: 105, heightMm: 148 },
   { id: "a5", label: "A5 flyer", group: "Print", kind: "print", widthMm: 148, heightMm: 210 },
@@ -56,6 +73,16 @@ export const DEFAULT_FORMAT_ID = "ig-square";
 
 export function getFormat(id: string): Format {
   return FORMATS.find((f) => f.id === id) ?? FORMATS.find((f) => f.id === DEFAULT_FORMAT_ID)!;
+}
+
+/**
+ * Whether QR codes are drawn on `format`: never on a page people are already on, only when asked for on screen
+ * formats, always otherwise (print and slides).
+ */
+export function showsQrCodes(format: Format, screenQr: boolean): boolean {
+  if (format.kind !== "digital") return true;
+  if (format.onPage) return false;
+  return !format.screen || screenQr;
 }
 
 export function mmToPx(mm: number, dpi: number): number {

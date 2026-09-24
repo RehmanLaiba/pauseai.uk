@@ -1,20 +1,6 @@
 import { describe, expect, it } from "vitest";
-import { clampHeadlineScale, snapTint, tintVisible } from "./design";
+import { clampHeadlineScale } from "./design";
 import { findLink, isLumaEventLink, isUnreadableLink, LintCollector, lintLinksInText, lintUnreadableUrl, splitByScope } from "./lint";
-
-describe("photo tint steps", () => {
-  it("round-trips each step", () => {
-    for (const tint of ["strong", "medium"] as const) expect(snapTint(tintVisible(tint))).toBe(tint);
-  });
-
-  it("snaps older slider values to the nearest step", () => {
-    expect(snapTint(0.3)).toBe("strong");
-    expect(snapTint(0.45)).toBe("medium");
-    expect(snapTint(0.7)).toBe("medium");
-    // The retired None step saved 1, which now opens on the lightest step.
-    expect(snapTint(1)).toBe("medium");
-  });
-});
 
 describe("clampHeadlineScale", () => {
   it("keeps the nudge on tidy steps within range", () => {
@@ -44,6 +30,12 @@ describe("LintCollector", () => {
     const lint = new LintCollector();
     lint.noteText(4);
     expect(lint.finish()).toEqual([]);
+  });
+
+  it("reads at any tint when there is no photo behind the text", () => {
+    const lint = new LintCollector();
+    lint.noteTextBox("Headline", { x: 0, y: 0, w: 10, h: 10 }, [0, 0, 0], true);
+    expect(lint.readsAt(0.5, true)).toBe(true);
   });
 });
 
@@ -121,3 +113,4 @@ describe("unreadable links", () => {
     expect(lint.finish()).toEqual([expect.objectContaining({ id: "url-unreadable", scope: "design" })]);
   });
 });
+

@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { tintVisible } from "@/lib/collateral/design";
 import type { CalendarEvent } from "@/lib/collateral/eventText";
 import { canvasToPngBlob, downloadFilesZip, downloadText, exportFilename, pdfBytesForPrint } from "@/lib/collateral/export";
 import { BLEED_MM, FORMAT_GROUPS, FORMATS, formatDimensionLabel, type Format } from "@/lib/collateral/formats";
@@ -12,8 +11,11 @@ import { renderCollateral, type RenderOptions } from "@/lib/collateral/render";
 import { defaultValues, type Drawable } from "@/lib/collateral/templates";
 import { getTheme } from "@/lib/collateral/themes";
 import Checks from "./Checks";
+import CropControls from "./CropControls";
 import DesignControls from "./DesignControls";
-import { designFromData, designTemplate, designToData, designValues, newDesign, type DesignState } from "./designState";
+import { designFromData, designQrCodes, designTemplate, designToData, designValues, newDesign, withQrCodes, type DesignState } from "./designState";
+import ProjectMenu from "./ProjectMenu";
+import QrFormatNote from "./QrFormatNote";
 import TitleSizeControl from "./TitleSizeControl";
 import { usePhotoGestures } from "./usePhotoGestures";
 import { useStudioAssets } from "./useStudioAssets";
@@ -63,6 +65,8 @@ export default function PackStudio({ events }: { events: CalendarEvent[] }) {
   const [selected, setSelected] = useState<string[]>(DEFAULT_PACK_FORMAT_IDS);
   const [activeId, setActiveId] = useState<string>(DEFAULT_PACK_FORMAT_IDS[0]);
   const [headlineScales, setHeadlineScales] = useState<Record<string, number>>({});
+  // Screen formats (social posts) that show QR codes anyway. They are left out of those by default.
+  const [screenQrs, setScreenQrs] = useState<Record<string, boolean>>({});
   const [viewsState, setViewsState] = useState<ViewsState>({ photo: null, views: {} });
   const [issuesById, setIssuesById] = useState<Record<string, LintIssue[]>>({});
   const [restored, setRestored] = useState(false);
@@ -70,7 +74,6 @@ export default function PackStudio({ events }: { events: CalendarEvent[] }) {
   const [message, setMessage] = useState<string | null>(null);
   const [undoReset, setUndoReset] = useState<(() => void) | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const openInputRef = useRef<HTMLInputElement>(null);
   const { fontsReady, logos, error: assetError } = useStudioAssets();
 
   const template = designTemplate(design);
@@ -102,9 +105,10 @@ export default function PackStudio({ events }: { events: CalendarEvent[] }) {
         formatId: f.id,
         photoView: (viewsState.photo === design.photo?.drawable ? viewsState.views[f.id] : undefined) ?? DEFAULT_PHOTO_VIEW,
         headlineScale: headlineScales[f.id] ?? 1,
+        screenQr: screenQrs[f.id] ?? false,
       })),
     }),
-    [design, selected, viewsState, headlineScales],
+    [design, selected, viewsState, headlineScales, screenQrs],
   );
 
   const applyProject = useCallback(async (project: PackProject): Promise<boolean> => {
@@ -112,6 +116,7 @@ export default function PackStudio({ events }: { events: CalendarEvent[] }) {
     setDesign(loaded);
     setSelected(project.outputs.map((o) => o.formatId));
     setHeadlineScales(Object.fromEntries(project.outputs.map((o) => [o.formatId, o.headlineScale])));
+    setScreenQrs(Object.fromEntries(project.outputs.map((o) => [o.formatId, o.screenQr])));
     setViewsState({ photo: loaded.photo?.drawable ?? null, views: Object.fromEntries(project.outputs.map((o) => [o.formatId, o.photoView])) });
     return ok;
   }, []);
@@ -150,11 +155,11 @@ export default function PackStudio({ events }: { events: CalendarEvent[] }) {
       values,
       logo: logo!,
       photo: currentPhoto,
-      photoSettings: { ...viewFor(formatId), visible: tintVisible(design.tint) },
-      qrCodes: design.qrCodes,
+      photoSettings: viewFor(formatId),
+      qrCodes: designQrCodes(design),
       trackQr: design.trackQr,
       qrSize: design.qrSize,
-      align: design.align,
+      screenQr: screenQrs[formatId] ?? false,
       headlineScale: headlineScales[formatId] ?? 1,
       partnerLogos: design.partnerLogos.map((l) => l.drawable),
     };
@@ -203,14 +208,13 @@ export default function PackStudio({ events }: { events: CalendarEvent[] }) {
     setMessage(null);
     try {
       downloadText(serializePackProject(currentProject(true)), exportFilename([template.id, "pack", "project"], "json"), "application/json");
-      setMessage("Pack saved. Use “Open pack” to carry on editing later.");
+      setMessage("Pack file saved. Open it from the ⋯ menu to carry on editing.");
     } catch {
       setMessage("Could not save the pack.");
     }
   }
 
   async function onOpenProject(file: File | undefined) {
-    if (openInputRef.current) openInputRef.current.value = "";
     if (!file) return;
     setMessage(null);
     if (file.size > MAX_PROJECT_FILE_BYTES) {
@@ -229,9 +233,8 @@ export default function PackStudio({ events }: { events: CalendarEvent[] }) {
   function onReset() {
     const before = { design, selected, headlineScales, viewsState };
     setDesign((d) => ({
-      ...d,
+      ...withQrCodes(d, []),
       valuesByTemplate: { ...d.valuesByTemplate, [template.id]: defaultValues(template) },
-      qrCodes: [],
       photo: null,
       partnerLogos: [],
     }));
@@ -253,11 +256,6 @@ export default function PackStudio({ events }: { events: CalendarEvent[] }) {
   const ownIssues = Object.fromEntries(formats.map((f, i) => [f.id, own[i]]));
   const needAttention = formats.filter((f) => ownIssues[f.id].some((i) => i.level === "warn")).length;
   const activeIssues = active ? (ownIssues[active.id] ?? []) : [];
-  const downloadButton = (
-    <button type="button" className="btn primary large" onClick={onDownloadPack} disabled={!ready || formats.length === 0}>
-      {busy ? "Preparing…" : `Download ${formats.length} ${formats.length === 1 ? "format" : "formats"} (.zip)`}
-    </button>
-  );
   const designWarnings = designIssues.filter((i) => i.level === "warn").length;
   const summary =
     formats.length === 0
@@ -279,7 +277,7 @@ export default function PackStudio({ events }: { events: CalendarEvent[] }) {
       {/* Overview first: every format with its checks, then the one being adjusted, larger. */}
       <div className="collateral-preview is-pack">
         {logo && fontsReady && formats.length > 0 && (
-          <div className="collateral-pack-grid" role="group" aria-label="Formats in the pack">
+          <div className="collateral-pack-grid" role="group" aria-label="Formats in the pack. Pick one to adjust it.">
             {formats.map((f) => (
               <PackThumb
                 key={f.id}
@@ -293,10 +291,23 @@ export default function PackStudio({ events }: { events: CalendarEvent[] }) {
             ))}
           </div>
         )}
-        {designIssues.length > 0 && <Checks issues={designIssues} title="Checks for every format" />}
         <div className="collateral-preview-actions">
-          <p className="collateral-hint">{summary}</p>
-          {downloadButton}
+          {designIssues.length > 0 && <Checks issues={designIssues} title="Checks for every format" />}
+          <p className="collateral-hint collateral-actions-summary">{summary}</p>
+          <button type="button" className="btn primary large" onClick={onDownloadPack} disabled={!ready || formats.length === 0}>
+            {busy ? "Preparing…" : `Download ${formats.length} ${formats.length === 1 ? "format" : "formats"} (.zip)`}
+          </button>
+          <ProjectMenu noun="pack" onSave={onSaveProject} onOpen={onOpenProject} onReset={onReset} saveDisabled={!restored} />
+          {shown && (
+            <p className="collateral-message" role="status">
+              {shown}
+              {message === RESET_MESSAGE && undoReset && (
+                <button type="button" className="collateral-link" onClick={undoReset}>
+                  Undo
+                </button>
+              )}
+            </p>
+          )}
         </div>
         {active ? (
           <>
@@ -326,7 +337,7 @@ export default function PackStudio({ events }: { events: CalendarEvent[] }) {
 
         <section>
           <h2>7. Formats</h2>
-          <p className="collateral-hint">Tick every format you need. One download gives you all of them, each laid out for its size.</p>
+          <p className="collateral-hint">One download gives you every ticked format, each laid out for its size.</p>
           {FORMAT_GROUPS.map((group) => (
             <fieldset key={group} className="collateral-format-group">
               <legend>{group}</legend>
@@ -342,70 +353,24 @@ export default function PackStudio({ events }: { events: CalendarEvent[] }) {
 
         {active && (
           <section>
-            <h2>Adjust one format</h2>
-            <label className="collateral-label" htmlFor="collateral-pack-active">
-              Format<span> · Or pick one from the previews</span>
-            </label>
-            <select id="collateral-pack-active" value={active.id} onChange={(e) => setActiveId(e.target.value)}>
-              {formats.map((f) => (
-                <option key={f.id} value={f.id}>
-                  {f.label}
-                  {ownIssues[f.id].some((i) => i.level === "warn") ? " (needs a look)" : ""}
-                </option>
-              ))}
-            </select>
-            <p className="collateral-hint">Changes here apply to this format only. Drag the photo in the preview to crop it for this format.</p>
+            <h2>Adjust {active.label}</h2>
+            <p className="collateral-hint">Changes here only apply to this format. Pick another format from the previews.</p>
             <Checks issues={activeIssues} title={`Checks for ${active.label}`} />
             <TitleSizeControl
               value={headlineScales[active.id] ?? 1}
               onChange={(v) => setHeadlineScales((prev) => ({ ...prev, [active.id]: v }))}
               flagged={activeIssues.some((i) => TITLE_ISSUES.includes(i.id))}
             />
+            {designQrCodes(design).length > 0 && (
+              <QrFormatNote
+                format={active}
+                screenQr={screenQrs[active.id] ?? false}
+                onScreenQr={(on) => setScreenQrs((prev) => ({ ...prev, [active.id]: on }))}
+              />
+            )}
+            {design.photo && <CropControls view={activeView} onChange={(patch) => setActiveView((v) => ({ ...v, ...patch }))} />}
           </section>
         )}
-
-        <section className="collateral-actions">
-          {designIssues.length > 0 && <Checks issues={designIssues} title="Checks for every format" />}
-          <p className="collateral-hint collateral-actions-summary">{summary}</p>
-          {downloadButton}
-          <button type="button" className="btn ghost large" onClick={onReset}>
-            Reset
-          </button>
-          {shown && (
-            <p className="collateral-message" role="status">
-              {shown}
-              {message === RESET_MESSAGE && undoReset && (
-                <button type="button" className="collateral-link" onClick={undoReset}>
-                  Undo
-                </button>
-              )}
-            </p>
-          )}
-        </section>
-
-        <section>
-          <h2>Save your work</h2>
-          <p className="collateral-hint">
-            Save the pack to edit later or send to another volunteer. It holds your text, style, QR codes, photo, partner logos and formats. It
-            is not uploaded anywhere.
-          </p>
-          <div className="collateral-actions">
-            <button type="button" className="btn ghost" onClick={onSaveProject} disabled={!restored}>
-              Save pack
-            </button>
-            <button type="button" className="btn ghost" onClick={() => openInputRef.current?.click()}>
-              Open pack
-            </button>
-            <input
-              ref={openInputRef}
-              type="file"
-              accept=".json,application/json"
-              hidden
-              aria-label="Open a saved pack"
-              onChange={(e) => onOpenProject(e.target.files?.[0])}
-            />
-          </div>
-        </section>
       </div>
     </div>
   );

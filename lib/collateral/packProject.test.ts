@@ -5,17 +5,16 @@ const pack: PackProject = {
   templateId: "event",
   themeId: "black",
   values: { event: { headline: "Public meeting", date: "2026-10-28" } },
-  qrCodes: [{ label: "Scan to RSVP", url: "lu.ma/abc" }],
+  qrCodes: { event: [{ label: "Scan to RSVP", url: "lu.ma/abc" }] },
   trackQr: false,
   qrSize: "m",
-  align: "left",
   photo: { kind: "library", id: "deepmind" },
-  tint: "strong",
   partnerLogos: [],
   // In format list order: social formats come before print.
   outputs: [
+    { ...newPackOutput("ig-square"), screenQr: true },
     newPackOutput("story"),
-    { formatId: "a5", photoView: { zoom: 1.5, focalX: 0.3, focalY: 0.6 }, headlineScale: 0.9 },
+    { formatId: "a5", photoView: { zoom: 1.5, focalX: 0.3, focalY: 0.6 }, headlineScale: 0.9, screenQr: false },
   ],
 };
 
@@ -35,6 +34,7 @@ describe("serializePackProject / parsePackProject", () => {
     expect(result.ok && result.project.outputs.map((x) => x.formatId)).toEqual(["story", "a5"]);
   });
 
+
   it("clamps each output's crop and title nudge", () => {
     const o = JSON.parse(serializePackProject(pack));
     o.outputs = [{ formatId: "a5", photoView: { zoom: 50, focalX: 2, focalY: "x" }, headlineScale: 0.1 }];
@@ -43,6 +43,7 @@ describe("serializePackProject / parsePackProject", () => {
       formatId: "a5",
       photoView: { zoom: 4, focalX: 1, focalY: 0.5 },
       headlineScale: 0.7,
+      screenQr: false,
     });
   });
 });

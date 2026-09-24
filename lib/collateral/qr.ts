@@ -17,6 +17,22 @@ export function normaliseUrl(input: string): string {
 }
 
 /**
+ * Whether `input` looks like a web address a phone can open: no spaces, and a host name with a dot in it, like
+ * "pauseai.uk/join". Catches typos and pasted sentences before they become a code that goes nowhere.
+ */
+export function isWebAddress(input: string): boolean {
+  const trimmed = input.trim();
+  if (!trimmed || /\s/.test(trimmed)) return false;
+  try {
+    const { hostname, username } = new URL(normaliseUrl(trimmed));
+    // A user name means something like "mailto:someone@example.com" was read as a login.
+    return !username && /^[a-z0-9-]+(\.[a-z0-9-]+)*\.[a-z]{2,}$/i.test(hostname);
+  } catch {
+    return false;
+  }
+}
+
+/**
  * The address a QR code should open.
  *
  * UTM tagging is switched off for now, because we have no way to read the results yet.
@@ -108,7 +124,7 @@ export function qrPlan(opts: {
   const modules = targets.map((t) => qrMatrix(t).length);
   const u = Math.sqrt(opts.width * opts.height) / 1000;
   const cls = aspectClass(opts.width, opts.height);
-  const sizeScale = opts.sizePref === "s" ? 0.8 : opts.sizePref === "l" ? 1.3 : 1;
+  const sizeScale = opts.sizePref === "l" ? 1.3 : 1;
   const preferred = (cls === "banner" ? 150 : cls === "story" ? 250 : 210) * u * sizeScale;
   // Large may also take a bigger share of the design than the usual cap.
   const shareScale = opts.sizePref === "l" ? 1.25 : 1;

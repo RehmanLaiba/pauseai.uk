@@ -59,6 +59,8 @@ export interface TextSample {
   rgb: Rgb;
   /** Large text needs 3:1 rather than 4.5:1. */
   large: boolean;
+  /** Extra share of the style colour a halo behind the text adds over the tint, 0 when it has none. */
+  halo?: number;
 }
 
 /** Share of pixels behind a line that may fall below the pass mark: one bright spot should not fail a whole title. */
@@ -121,7 +123,7 @@ export interface ContrastFailure {
 export function worstFailure(backdrop: Backdrop, samples: TextSample[], bg: Rgb, visible: number): ContrastFailure | null {
   let worst: ContrastFailure | null = null;
   for (const sample of samples) {
-    const result = sampleContrast(backdrop, sample.rect, sample.rgb, bg, visible);
+    const result = sampleContrast(backdrop, sample.rect, sample.rgb, bg, visible * (1 - (sample.halo ?? 0)));
     if (!result) continue;
     const required = requiredContrast(sample.large);
     if (result.low >= required) continue;
@@ -137,7 +139,7 @@ export const BUSY_SPREAD = 0.2;
 export function busySample(backdrop: Backdrop, samples: TextSample[], bg: Rgb, visible: number): TextSample | null {
   for (const sample of samples) {
     if (sample.large) continue;
-    const result = sampleContrast(backdrop, sample.rect, sample.rgb, bg, visible);
+    const result = sampleContrast(backdrop, sample.rect, sample.rgb, bg, visible * (1 - (sample.halo ?? 0)));
     if (result && result.spread > BUSY_SPREAD) return sample;
   }
   return null;

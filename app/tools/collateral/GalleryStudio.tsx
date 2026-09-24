@@ -4,17 +4,13 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import type { PointerEvent as ReactPointerEvent } from "react";
 import {
   canvasToPngBlob,
-  downloadCanvasesPdf,
-  downloadCanvasesPdfDigital,
-  downloadCanvasesPngZip,
   downloadPlatformBundleZip,
   downloadText,
   exportFilename,
   pdfBytesDigital,
-  pdfBytesForPrint,
   type PlatformExportGroup,
 } from "@/lib/collateral/export";
-import { BLEED_MM, DEFAULT_FORMAT_ID, FORMAT_GROUPS, FORMATS, formatDimensionLabel, getFormat, type Format } from "@/lib/collateral/formats";
+import { DEFAULT_FORMAT_ID, formatDimensionLabel, getFormat, type Format } from "@/lib/collateral/formats";
 import {
   CAPTION_MAX,
   DEFAULT_SLIDE_PHOTO_SETTINGS,
@@ -33,14 +29,16 @@ import {
   type GallerySlideData,
 } from "@/lib/collateral/galleryProject";
 import { LIBRARY_PHOTOS, type LibraryPhoto } from "@/lib/collateral/photos";
-import { MAX_ZOOM, panPhoto, zoomPhoto } from "@/lib/collateral/photoTransform";
+import { panPhoto, zoomPhoto } from "@/lib/collateral/photoTransform";
 import { ALL_PLATFORM_IDS, CAROUSEL_PLATFORMS, type PlatformId } from "@/lib/collateral/platforms";
 import type { ProjectPhoto } from "@/lib/collateral/project";
 import { drawableToJpegDataUrl, fileToDrawable, loadDataUrl, loadFonts, loadImage, renderCollateral } from "@/lib/collateral/render";
 import { getTemplate, type Drawable } from "@/lib/collateral/templates";
-import { DEFAULT_THEME_ID, getTheme, THEMES } from "@/lib/collateral/themes";
+import { DEFAULT_THEME_ID, getTheme } from "@/lib/collateral/themes";
 import CharCount from "./CharCount";
-import Slider from "./Slider";
+import CropControls from "./CropControls";
+import ProjectMenu from "./ProjectMenu";
+import StylePicker from "./StylePicker";
 
 const CAPTION_TEMPLATE = getTemplate("caption");
 const STORAGE_KEY = "pauseai-collateral-gallery-v1";
@@ -106,9 +104,7 @@ function SlideThumb(props: {
 }
 
 export default function GalleryStudio() {
-  const [formatId, setFormatId] = useState(DEFAULT_FORMAT_ID);
   const [platforms, setPlatforms] = useState<Set<PlatformId>>(() => new Set(ALL_PLATFORM_IDS));
-  const [customFormat, setCustomFormat] = useState(false);
   const [slides, setSlides] = useState<Slide[]>(() => [newSlide(), newSlide()]);
   const [activeIndex, setActiveIndex] = useState(0);
   const [logo, setLogo] = useState<Drawable | null>(null);
@@ -121,11 +117,9 @@ export default function GalleryStudio() {
   // Which platform crop the preview shows, when the selected platforms need more than one.
   const [previewFormatId, setPreviewFormatId] = useState<string | null>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
-  const openInputRef = useRef<HTMLInputElement>(null);
   const pointers = useRef(new Map<number, { x: number; y: number }>());
   const pinch = useRef<{ dist: number; zoom: number } | null>(null);
 
-  const format = getFormat(formatId);
   const previewCrops: PreviewCrop[] = [];
   for (const v of CAROUSEL_PLATFORMS) {
     if (!platforms.has(v.platform)) continue;
@@ -134,7 +128,7 @@ export default function GalleryStudio() {
     else previewCrops.push({ formatId: v.formatId, label: v.label });
   }
   const previewCrop = previewCrops.find((c) => c.formatId === previewFormatId) ?? previewCrops[0];
-  const effectiveFormat = customFormat ? format : getFormat(previewCrop?.formatId ?? DEFAULT_FORMAT_ID);
+  const effectiveFormat = getFormat(previewCrop?.formatId ?? DEFAULT_FORMAT_ID);
   const activeSlide = slides[Math.min(activeIndex, slides.length - 1)] ?? slides[0];
   const activeTheme = getTheme(activeSlide.themeId);
   const photo = activeSlide.photo;
@@ -152,21 +146,17 @@ export default function GalleryStudio() {
 
   const currentProject = useCallback(
     (embed: boolean): GalleryProject => ({
-      formatId,
       slides: slides.map(
         (s): GallerySlideData => ({ photo: projectPhoto(s.photo, embed), photoSettings: s.photoSettings, caption: s.caption, themeId: s.themeId }),
       ),
       platforms: Array.from(platforms),
-      customFormat,
     }),
-    [formatId, slides, platforms, customFormat],
+    [slides, platforms],
   );
 
   // Puts a saved or restored gallery on screen. Returns false if any photo could not be loaded.
   const applyProject = useCallback(async (project: GalleryProject): Promise<boolean> => {
-    setFormatId(project.formatId);
     setPlatforms(new Set(project.platforms));
-    setCustomFormat(project.customFormat);
     let allOk = true;
     const loaded = await Promise.all(
       project.slides.map(async (s): Promise<Slide> => {
@@ -422,37 +412,6 @@ export default function GalleryStudio() {
     return canvas;
   }
 
-  async function onDownloadImages() {
-    if (!logo) return;
-    setBusy(true);
-    setMessage(null);
-    try {
-      const canvases = await Promise.all(slides.map((s) => renderSlideCanvas(s, format, false)));
-      await downloadCanvasesPngZip(canvases, (i) => `${i + 1}.png`, exportFilename(["gallery", format.id], "zip"));
-    } catch {
-      setMessage("Could not create the images. Try a smaller format.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
-  async function onDownloadPdf() {
-    if (!logo) return;
-    setBusy(true);
-    setMessage(null);
-    try {
-      const bleed = format.kind === "print";
-      const canvases = await Promise.all(slides.map((s) => renderSlideCanvas(s, format, bleed)));
-      const filename = exportFilename(["gallery", format.id], "pdf");
-      if (format.kind === "print") await downloadCanvasesPdf(canvases, format, BLEED_MM, filename);
-      else await downloadCanvasesPdfDigital(canvases, filename);
-    } catch {
-      setMessage("Could not create the PDF. Try again, or download the images instead.");
-    } finally {
-      setBusy(false);
-    }
-  }
-
   function togglePlatform(id: PlatformId) {
     setPlatforms((prev) => {
       const next = new Set(prev);
@@ -478,13 +437,13 @@ export default function GalleryStudio() {
           groups.push({ folder: variant.platform, kind: "images", pngBlobs: blobs });
         }
         if (variant.export === "pdf" || variant.export === "both") {
-          const bytes = fmt.kind === "print" ? await pdfBytesForPrint(canvases, fmt, BLEED_MM) : await pdfBytesDigital(canvases);
+          const bytes = await pdfBytesDigital(canvases);
           groups.push({ folder: variant.platform, kind: "pdf", pdfBytes: bytes, pdfName: exportFilename([variant.platform, "carousel"], "pdf") });
         }
       }
       await downloadPlatformBundleZip(groups, exportFilename(["gallery", "platforms"], "zip"));
     } catch {
-      setMessage("Could not create the export. Try again, or use a custom format instead.");
+      setMessage("Could not create the export. Try again, or with fewer slides.");
     } finally {
       setBusy(false);
     }
@@ -493,15 +452,14 @@ export default function GalleryStudio() {
   function onSaveProject() {
     setMessage(null);
     try {
-      downloadText(serializeGalleryProject(currentProject(true)), exportFilename(["gallery", format.id, "project"], "json"), "application/json");
-      setMessage("Project saved. Use “Open project” to carry on editing later.");
+      downloadText(serializeGalleryProject(currentProject(true)), exportFilename(["gallery", "project"], "json"), "application/json");
+      setMessage("Project file saved. Open it from the ⋯ menu to carry on editing.");
     } catch {
       setMessage("Could not save the project.");
     }
   }
 
   async function onOpenProject(file: File | undefined) {
-    if (openInputRef.current) openInputRef.current.value = "";
     if (!file) return;
     setMessage(null);
     if (file.size > MAX_PROJECT_FILE_BYTES) {
@@ -518,65 +476,63 @@ export default function GalleryStudio() {
   }
 
   async function onReset() {
-    const before = { slides, activeIndex, platforms, customFormat };
+    const before = { slides, activeIndex, platforms };
     const seeded = await exampleSlides();
     setSlides(seeded);
     setActiveIndex(0);
     setPlatforms(new Set(ALL_PLATFORM_IDS));
-    setCustomFormat(false);
     setMessage(RESET_MESSAGE);
     setUndoReset(() => () => {
       setSlides(before.slides);
       setActiveIndex(before.activeIndex);
       setPlatforms(before.platforms);
-      setCustomFormat(before.customFormat);
       setUndoReset(null);
       setMessage(null);
     });
   }
 
   const ready = !busy && Boolean(logo) && fontsReady;
-  const downloadButtons = customFormat ? (
-    <>
-      <button type="button" className="btn primary large" onClick={onDownloadImages} disabled={!ready}>
-        {busy ? "Preparing…" : `Download ${slides.length} images (.zip)`}
-      </button>
-      <button type="button" className="btn primary large" onClick={onDownloadPdf} disabled={!ready}>
-        {busy ? "Preparing…" : "Download PDF"}
-      </button>
-    </>
-  ) : (
-    <button type="button" className="btn primary large" onClick={onDownloadForPlatforms} disabled={!ready || platforms.size === 0}>
-      {busy ? "Preparing…" : "Download for selected platforms"}
-    </button>
-  );
 
   return (
     <div className="collateral-studio">
       <div className="collateral-preview">
-        <div className="collateral-preview-frame">
-          <canvas
-            ref={canvasRef}
-            role="img"
-            aria-label={`Preview of slide ${activeIndex + 1} of ${slides.length}`}
-            hidden={!logo || !fontsReady}
-            className={photo ? "is-draggable" : undefined}
-            onPointerDown={onPointerDown}
-            onPointerMove={onPointerMove}
-            onPointerUp={onPointerEnd}
-            onPointerCancel={onPointerEnd}
-          />
-          {(!logo || !fontsReady) && <p className="collateral-loading">Loading…</p>}
+        <div className="collateral-preview-pin">
+          <div className="collateral-preview-frame">
+            <canvas
+              ref={canvasRef}
+              role="img"
+              aria-label={`Preview of slide ${activeIndex + 1} of ${slides.length}`}
+              hidden={!logo || !fontsReady}
+              className={photo ? "is-draggable" : undefined}
+              onPointerDown={onPointerDown}
+              onPointerMove={onPointerMove}
+              onPointerUp={onPointerEnd}
+              onPointerCancel={onPointerEnd}
+            />
+            {(!logo || !fontsReady) && <p className="collateral-loading">Loading…</p>}
+          </div>
+          {logo && fontsReady && (
+            <div className="collateral-filmstrip" role="group" aria-label="All slides">
+              {slides.map((s, i) => (
+                <SlideThumb
+                  key={s.id}
+                  slide={s}
+                  format={effectiveFormat}
+                  logo={logo}
+                  index={i}
+                  active={i === activeIndex}
+                  onSelect={() => setActiveIndex(i)}
+                />
+              ))}
+            </div>
+          )}
         </div>
         <p className="collateral-preview-meta">
           Slide {activeIndex + 1} of {slides.length} ·{" "}
-          {customFormat
-            ? `${format.label} · ${formatDimensionLabel(format)}`
-            : previewCrop
-              ? `Crop for ${previewCrop.label} · ${formatDimensionLabel(effectiveFormat)}`
-              : formatDimensionLabel(effectiveFormat)}
+          {previewCrop ? `Crop for ${previewCrop.label} · ${formatDimensionLabel(effectiveFormat)}` : formatDimensionLabel(effectiveFormat)}
+          {photo && " · Drag the photo to move it. Scroll or pinch to zoom."}
         </p>
-        {!customFormat && previewCrops.length > 1 && (
+        {previewCrops.length > 1 && (
           <div className="collateral-crop-picker" role="group" aria-label="Preview crop">
             {previewCrops.map((c) => (
               <button
@@ -590,35 +546,28 @@ export default function GalleryStudio() {
             ))}
           </div>
         )}
-        {photo ? (
-          <p className="collateral-preview-meta">Drag the photo to move it. Scroll or pinch to zoom.</p>
-        ) : (
-          !activeSlide.caption.trim() && (
-            <p className="collateral-preview-meta">This slide is empty. Pick a photo and write a caption for it below.</p>
-          )
-        )}
-        {logo && fontsReady && (
-          <div className="collateral-filmstrip" role="group" aria-label="All slides">
-            {slides.map((s, i) => (
-              <SlideThumb
-                key={s.id}
-                slide={s}
-                format={effectiveFormat}
-                logo={logo}
-                index={i}
-                active={i === activeIndex}
-                onSelect={() => setActiveIndex(i)}
-              />
-            ))}
-          </div>
-        )}
-        <div className="collateral-preview-actions">{downloadButtons}</div>
+        <div className="collateral-preview-actions">
+          <button type="button" className="btn primary large" onClick={onDownloadForPlatforms} disabled={!ready || platforms.size === 0}>
+            {busy ? "Preparing…" : "Download slides"}
+          </button>
+          <ProjectMenu noun="project" onSave={onSaveProject} onOpen={onOpenProject} onReset={onReset} saveDisabled={!restored} />
+          {message && (
+            <p className="collateral-message" role="status">
+              {message}
+              {message === RESET_MESSAGE && undoReset && (
+                <button type="button" className="collateral-link" onClick={undoReset}>
+                  Undo
+                </button>
+              )}
+            </p>
+          )}
+        </div>
       </div>
 
       <div className="collateral-controls">
         <section>
           <h2>1. Platforms</h2>
-          <p className="collateral-hint">Pick where this is going. One export gives you every platform&apos;s file(s), cropped to its own format.</p>
+          <p className="collateral-hint">One download gives each platform its own crop.</p>
           <div className="collateral-choice-grid" role="group" aria-label="Platforms">
             {CAROUSEL_PLATFORMS.map((v) => {
               const checked = platforms.has(v.platform);
@@ -626,7 +575,7 @@ export default function GalleryStudio() {
               return (
                 <label key={v.platform} className={`collateral-choice collateral-choice-checkbox${checked ? " is-checked" : ""}`}>
                   <span className="collateral-choice-head">
-                    <input type="checkbox" checked={checked} onChange={() => togglePlatform(v.platform)} disabled={customFormat} />
+                    <input type="checkbox" checked={checked} onChange={() => togglePlatform(v.platform)} />
                     <strong>{v.label}</strong>
                   </span>
                   <span>
@@ -637,106 +586,41 @@ export default function GalleryStudio() {
               );
             })}
           </div>
-          {!customFormat && platforms.size === 0 && <p className="collateral-hint">Pick at least one platform.</p>}
-
-          <label className="collateral-toggle collateral-custom-format-toggle" htmlFor="gallery-custom-format">
-            <input
-              id="gallery-custom-format"
-              type="checkbox"
-              checked={customFormat}
-              onChange={(e) => setCustomFormat(e.target.checked)}
-            />
-            Use a specific format instead (Luma cover, print flyer, Zoom background…)
-          </label>
-
-          {customFormat && (
-            <>
-              <label className="collateral-label" htmlFor="gallery-format">
-                Where will it be used?
-              </label>
-              <select id="gallery-format" value={format.id} onChange={(e) => setFormatId(e.target.value)}>
-                {FORMAT_GROUPS.map((group) => (
-                  <optgroup key={group} label={group}>
-                    {FORMATS.filter((f) => f.group === group).map((f) => (
-                      <option key={f.id} value={f.id}>
-                        {f.label} ({formatDimensionLabel(f)})
-                      </option>
-                    ))}
-                  </optgroup>
-                ))}
-              </select>
-            </>
-          )}
+          {platforms.size === 0 && <p className="collateral-hint">Pick at least one platform.</p>}
         </section>
 
         <section>
-          <h2>2. Slides</h2>
-          <div className="collateral-slide-list">
-            {slides.map((s, i) => (
-              <div key={s.id} className="collateral-slide-row">
-                <button
-                  type="button"
-                  className="collateral-slide-select"
-                  aria-current={i === activeIndex}
-                  onClick={() => setActiveIndex(i)}
-                >
-                  <strong>Slide {i + 1}</strong>
-                  <span>{s.caption.trim() || (s.photo ? s.photo.name : "Empty")}</span>
-                </button>
-                <div className="collateral-slide-move">
-                  <button type="button" aria-label={`Move slide ${i + 1} left`} disabled={i === 0} onClick={() => moveSlide(i, -1)}>
-                    ‹
-                  </button>
-                  <button type="button" aria-label={`Move slide ${i + 1} right`} disabled={i === slides.length - 1} onClick={() => moveSlide(i, 1)}>
-                    ›
-                  </button>
-                </div>
-                <button
-                  type="button"
-                  className="collateral-qr-remove"
-                  aria-label={`Remove slide ${i + 1}`}
-                  disabled={slides.length <= MIN_SLIDES}
-                  onClick={() => removeSlide(i)}
-                >
-                  ×
-                </button>
-              </div>
-            ))}
+          <h2>
+            2. Slide {activeIndex + 1} of {slides.length}
+          </h2>
+          <p className="collateral-hint">Pick a slide from the strip under the preview.</p>
+          <div className="collateral-actions collateral-slide-actions">
+            <button type="button" className="btn ghost small" disabled={activeIndex === 0} onClick={() => moveSlide(activeIndex, -1)}>
+              ← Move earlier
+            </button>
+            <button type="button" className="btn ghost small" disabled={activeIndex === slides.length - 1} onClick={() => moveSlide(activeIndex, 1)}>
+              Move later →
+            </button>
+            <button type="button" className="btn ghost small" disabled={slides.length <= MIN_SLIDES} onClick={() => removeSlide(activeIndex)}>
+              Remove
+            </button>
+            <button type="button" className="btn ghost small" disabled={slides.length >= MAX_SLIDES} onClick={addSlide}>
+              {`Add a slide (${slides.length} of ${MAX_SLIDES})`}
+            </button>
           </div>
-          <button type="button" className="btn ghost small" disabled={slides.length >= MAX_SLIDES} onClick={addSlide}>
-            {`Add a slide (${slides.length} of ${MAX_SLIDES})`}
-          </button>
         </section>
 
         <section>
           <h2>3. Style</h2>
-          <p className="collateral-hint">Slide {activeIndex + 1}. Each slide picks its own, so you can alternate looks.</p>
-          <div className="collateral-swatches" role="radiogroup" aria-label="Style">
-            {THEMES.map((t) => (
-              <button
-                key={t.id}
-                type="button"
-                role="radio"
-                aria-checked={t.id === activeTheme.id}
-                className="collateral-swatch"
-                onClick={() => updateSlide(activeSlide.id, { themeId: t.id })}
-              >
-                <span className="collateral-swatch-chip" style={{ background: t.bg, color: t.text }} aria-hidden="true">
-                  <i style={{ background: t.accent }} />
-                </span>
-                {t.label}
-              </button>
-            ))}
-          </div>
+          <p className="collateral-hint">Each slide can have its own colour.</p>
+          <StylePicker themeId={activeTheme.id} onTheme={(themeId) => updateSlide(activeSlide.id, { themeId })} />
         </section>
 
         <section>
           <h2>4. Caption</h2>
-          <label className="collateral-label" htmlFor="gallery-caption">
-            Slide {activeIndex + 1}
-          </label>
           <textarea
             id="gallery-caption"
+            aria-label={`Caption for slide ${activeIndex + 1}`}
             rows={3}
             maxLength={CAPTION_MAX}
             value={activeSlide.caption}
@@ -747,7 +631,6 @@ export default function GalleryStudio() {
 
         <section>
           <h2>5. Photo</h2>
-          <p className="collateral-hint">Pick one of ours:</p>
           <div className="collateral-photo-grid">
             {LIBRARY_PHOTOS.map((item) => (
               <button
@@ -762,7 +645,7 @@ export default function GalleryStudio() {
               />
             ))}
           </div>
-          <p className="collateral-hint">…or upload your own. Pick several at once to fill a slide each:</p>
+          <p className="collateral-hint">Or upload your own. Pick several to fill a slide each:</p>
           <input
             type="file"
             accept="image/*"
@@ -783,73 +666,12 @@ export default function GalleryStudio() {
                   Remove
                 </button>
               </p>
-              <Slider
-                label="Zoom"
-                min={1}
-                max={MAX_ZOOM}
-                step={0.05}
-                value={photoSettings.zoom}
-                onChange={(zoom) => updateSlide(activeSlide.id, (s) => ({ photoSettings: { ...s.photoSettings, zoom } }))}
-              />
-              <Slider
-                label="Left / right"
-                min={0}
-                max={1}
-                step={0.01}
-                value={photoSettings.focalX}
-                onChange={(focalX) => updateSlide(activeSlide.id, (s) => ({ photoSettings: { ...s.photoSettings, focalX } }))}
-              />
-              <Slider
-                label="Up / down"
-                min={0}
-                max={1}
-                step={0.01}
-                value={photoSettings.focalY}
-                onChange={(focalY) => updateSlide(activeSlide.id, (s) => ({ photoSettings: { ...s.photoSettings, focalY } }))}
+              <CropControls
+                view={photoSettings}
+                onChange={(patch) => updateSlide(activeSlide.id, (s) => ({ photoSettings: { ...s.photoSettings, ...patch } }))}
               />
             </div>
           )}
-        </section>
-
-        <section className="collateral-actions">
-          {downloadButtons}
-          <button type="button" className="btn ghost large" onClick={onReset}>
-            Reset
-          </button>
-          {message && (
-            <p className="collateral-message" role="status">
-              {message}
-              {message === RESET_MESSAGE && undoReset && (
-                <button type="button" className="collateral-link" onClick={undoReset}>
-                  Undo
-                </button>
-              )}
-            </p>
-          )}
-        </section>
-
-        <section>
-          <h2>Save your work</h2>
-          <p className="collateral-hint">
-            Save a project file to edit later or send to another volunteer. It holds your captions, style, and photos. It is not
-            uploaded anywhere.
-          </p>
-          <div className="collateral-actions">
-            <button type="button" className="btn ghost" onClick={onSaveProject} disabled={!restored}>
-              Save project
-            </button>
-            <button type="button" className="btn ghost" onClick={() => openInputRef.current?.click()}>
-              Open project
-            </button>
-            <input
-              ref={openInputRef}
-              type="file"
-              accept=".json,application/json"
-              hidden
-              aria-label="Open a saved gallery"
-              onChange={(e) => onOpenProject(e.target.files?.[0])}
-            />
-          </div>
         </section>
       </div>
     </div>

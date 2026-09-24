@@ -104,10 +104,15 @@
     gap: 48px;
   }
 
+  /* Pinned beside the form, and never taller than the screen, so Download is always in view. The preview is
+     capped to leave room for the checks and buttons under it; the column scrolls if a long checks list needs more. */
   .collateral-preview {
     position: sticky;
     top: 88px;
+    max-height: calc(100vh - 104px);
+    overflow-y: auto;
   }
+
 }
 
 /* ── Preview ───────────────────────────────────── */
@@ -128,6 +133,13 @@
   border: 1px solid var(--border);
   border-radius: 4px;
   box-shadow: 0 4px 24px var(--shadow);
+}
+
+/* Leaves room under the preview for the checks and buttons, so they stay on screen while it is pinned. */
+@media (min-width: 900px) {
+  .collateral-preview-frame canvas {
+    max-height: max(280px, calc(100vh - 330px));
+  }
 }
 
 .collateral-preview-frame canvas.is-draggable {
@@ -195,7 +207,8 @@
   background: var(--surface);
   color: var(--text);
   font: inherit;
-  font-size: 15px;
+  /* 16px or more, or iOS Safari zooms the page when a field is focused. */
+  font-size: 16px;
 }
 
 .collateral-controls textarea {
@@ -254,73 +267,6 @@
   color: var(--accent);
 }
 
-.collateral-qr-track {
-  margin: 14px 0 0;
-}
-
-.collateral-slide-list {
-  display: flex;
-  flex-direction: column;
-  gap: 8px;
-  margin-bottom: 12px;
-}
-
-.collateral-slide-row {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.collateral-slide-select {
-  display: grid;
-  flex: 1;
-  gap: 2px;
-  min-width: 0;
-  padding: 10px 12px;
-  border: 1px solid var(--border-strong);
-  border-radius: 8px;
-  background: var(--surface);
-  color: var(--text);
-  font: inherit;
-  text-align: left;
-  cursor: pointer;
-}
-
-.collateral-slide-select span {
-  overflow: hidden;
-  font-size: 13px;
-  color: var(--text-secondary);
-  text-overflow: ellipsis;
-  white-space: nowrap;
-}
-
-.collateral-slide-select[aria-current="true"] {
-  border-color: var(--accent);
-  box-shadow: 0 0 0 2px var(--accent);
-}
-
-.collateral-slide-move {
-  display: flex;
-  flex: none;
-  gap: 2px;
-}
-
-.collateral-slide-move button {
-  width: 32px;
-  height: 40px;
-  border: 1px solid var(--border-strong);
-  border-radius: 6px;
-  background: var(--surface);
-  color: var(--text);
-  font-size: 16px;
-  cursor: pointer;
-}
-
-.collateral-slide-move button:disabled {
-  opacity: 0.4;
-  cursor: not-allowed;
-}
-
 .collateral-choice-grid {
   display: grid;
   gap: 8px;
@@ -351,6 +297,21 @@
   box-shadow: 0 0 0 2px var(--accent);
 }
 
+/* Hangs off the Event card above it, since picking an event fills in that layout. */
+.collateral-event-import {
+  margin: -2px 0 0 14px;
+  padding: 12px 0 2px 14px;
+  border-left: 2px solid var(--border-strong);
+}
+
+.collateral-event-import.is-active {
+  border-left-color: var(--accent);
+}
+
+.collateral-event-import .collateral-hint {
+  margin-bottom: 0;
+}
+
 .collateral-choice-checkbox {
   cursor: pointer;
 }
@@ -359,10 +320,6 @@
   display: flex;
   align-items: center;
   gap: 8px;
-}
-
-.collateral-custom-format-toggle {
-  margin-top: 16px;
 }
 
 .collateral-swatches {
@@ -451,6 +408,84 @@
   margin-top: 8px;
   font-size: 14px;
   font-weight: 600;
+}
+
+.collateral-slider input {
+  accent-color: var(--accent);
+}
+
+.collateral-crop {
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+.collateral-crop summary {
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.collateral-field-error {
+  margin: 6px 0 0;
+  padding-left: 10px;
+  border-left: 3px solid var(--accent);
+  font-size: 14px;
+}
+
+.collateral-controls input[aria-invalid="true"] {
+  border-color: var(--accent);
+}
+
+.collateral-qr-logo {
+  margin: 14px 0 0;
+}
+
+/* ── ⋯ menu beside Download ────────────────────── */
+
+.collateral-menu {
+  position: relative;
+}
+
+.collateral-menu-button {
+  min-width: 52px;
+  font-size: 20px;
+  line-height: 1;
+  cursor: pointer;
+}
+
+/* Opens upwards: the button sits at the bottom of the preview column, which scrolls rather than grows. */
+.collateral-menu-list {
+  position: absolute;
+  bottom: calc(100% + 6px);
+  right: 0;
+  z-index: 20;
+  display: grid;
+  min-width: 200px;
+  padding: 6px;
+  border: 1px solid var(--border);
+  border-radius: 10px;
+  background: var(--surface);
+  box-shadow: 0 8px 24px var(--shadow);
+}
+
+.collateral-menu-list button {
+  padding: 10px 12px;
+  border: 0;
+  border-radius: 6px;
+  background: none;
+  color: var(--text);
+  font: inherit;
+  font-size: 14px;
+  text-align: left;
+  cursor: pointer;
+}
+
+.collateral-menu-list button:hover:not(:disabled) {
+  background: var(--bg);
+}
+
+.collateral-menu-list button:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
 }
 
 .collateral-actions {
@@ -593,16 +628,6 @@
   box-shadow: 0 4px 24px var(--shadow);
 }
 
-/* Checkerboard so a transparent background is visible. */
-.collateral-qr-image.is-transparent {
-  background-color: #fff;
-  background-image: conic-gradient(#e8e8e8 25%, transparent 0 50%, #e8e8e8 0 75%, transparent 0);
-  background-size: 20px 20px;
-}
-
-.collateral-qr-downloads {
-  margin-top: 14px;
-}
 
 .collateral-tips {
   margin: 0;
@@ -623,7 +648,7 @@
   color: var(--text-secondary);
 }
 
-/* A row of mutually exclusive buttons: alignment, QR size, photo colour. */
+/* A row of mutually exclusive buttons, e.g. QR size. */
 .collateral-segmented {
   display: inline-flex;
   flex-wrap: wrap;
@@ -648,8 +673,7 @@
   font-weight: 600;
 }
 
-.collateral-qr-size-label,
-.collateral-tint-label {
+.collateral-qr-size-label {
   margin-top: 14px;
 }
 
@@ -684,12 +708,6 @@
 
 .collateral-check.is-warn span {
   color: var(--accent);
-}
-
-.collateral-actions-checks {
-  display: grid;
-  flex-basis: 100%;
-  gap: 10px;
 }
 
 .collateral-actions-summary {
@@ -824,11 +842,17 @@
 
 /* ── Narrow screens ────────────────────────────── */
 
-/* The controls sit under the preview here, so keep a smaller preview pinned under the 77px nav to
-   show changes while typing. The download buttons stay in the controls. Last in the file so it
-   overrides the base rules above. */
+/* The controls sit under the preview here. The preview column's parts join the page's single column, so a
+   smaller preview stays pinned under the 77px nav while typing, and the checks and downloads (one set, shared
+   with wide screens) move after the form, where a volunteer finishes. Last in the file so it overrides the
+   base rules above. */
 @media (max-width: 899px) {
   .collateral-preview {
+    display: contents;
+  }
+
+  .collateral-preview-frame,
+  .collateral-preview-pin {
     position: sticky;
     top: 77px;
     z-index: 5;
@@ -836,6 +860,12 @@
     background: var(--bg);
     /* Extends the backdrop past the edges, so focus rings on the controls scrolling beneath do not peek out. */
     box-shadow: 0 0 0 12px var(--bg);
+  }
+
+  .collateral-preview-pin .collateral-preview-frame {
+    position: static;
+    padding: 0;
+    box-shadow: none;
   }
 
   .collateral-preview-frame {
@@ -846,11 +876,50 @@
     max-height: 32vh;
   }
 
-  .collateral-preview-meta,
-  .collateral-preview-actions,
-  .collateral-filmstrip,
-  .collateral-pack-grid {
+  .collateral-preview-meta {
     display: none;
+  }
+
+  .collateral-preview-actions {
+    order: 1;
+    justify-content: flex-start;
+    margin-top: 0;
+  }
+
+  /* Download fills the row beside the ⋯ menu, rather than every button taking a full row. */
+  .collateral-preview-actions .btn.primary {
+    flex: 1 1 0;
+    min-width: 0;
+    width: auto;
+  }
+
+  .collateral-menu-button.btn {
+    width: auto;
+  }
+
+  .collateral-slide-actions {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+  }
+
+  /* The pinned preview stops at the end of the studio, so give it room there rather than letting it cover Download. */
+  .collateral-studio:not(.is-qr)::after {
+    content: "";
+    order: 2;
+    height: calc(32vh + 80px);
+  }
+
+  .collateral-filmstrip {
+    margin-top: 8px;
+  }
+
+  .collateral-filmstrip canvas {
+    height: 44px;
+  }
+
+  .collateral-pack-grid {
+    margin-top: 0;
   }
 
   /* Keep a focused field clear of the pinned preview when the browser scrolls it into view. */
@@ -858,6 +927,15 @@
   .collateral-controls textarea,
   .collateral-controls select {
     scroll-margin-top: calc(77px + 32vh + 40px);
+  }
+
+  /* The QR code is not pinned: the address field comes straight after a smaller code, with where it opens. */
+  .is-qr .collateral-preview-meta {
+    display: block;
+  }
+
+  .is-qr .collateral-qr-image {
+    max-width: 240px;
   }
 }
 

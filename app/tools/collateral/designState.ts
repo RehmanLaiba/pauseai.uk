@@ -1,4 +1,4 @@
-import { DEFAULT_PHOTO_TINT, type PhotoTint, type QrSize, type TextAlign } from "@/lib/collateral/design";
+import type { QrSize } from "@/lib/collateral/design";
 import { LIBRARY_PHOTOS } from "@/lib/collateral/photos";
 import type { DesignData, PartnerLogoData, ProjectPhoto } from "@/lib/collateral/project";
 import type { QrCode } from "@/lib/collateral/qr";
@@ -9,7 +9,10 @@ import { DEFAULT_THEME_ID } from "@/lib/collateral/themes";
 // Caption is a gallery slide (photo-forward, no logo), so single designs offer the other layouts and point to the gallery.
 // Brush is suspended for now: its code stays in templates.ts so it can come back.
 const HIDDEN_TEMPLATE_IDS = ["caption", "brush"];
-export const DESIGN_TEMPLATES = TEMPLATES.filter((t) => !HIDDEN_TEMPLATE_IDS.includes(t.id));
+// Event goes last, so "fill in from one of our events" can sit right under it (see DesignControls).
+export const DESIGN_TEMPLATES = TEMPLATES.filter((t) => !HIDDEN_TEMPLATE_IDS.includes(t.id)).sort(
+  (a, b) => Number(a.id === "event") - Number(b.id === "event"),
+);
 
 export interface PhotoState {
   drawable: Drawable;
@@ -26,11 +29,10 @@ export interface DesignState {
   templateId: string;
   themeId: string;
   valuesByTemplate: Record<string, Values>;
-  qrCodes: QrCode[];
+  /** QR codes per layout, like the text. Read and write the current layout's with designQrCodes and withQrCodes. */
+  qrCodesByTemplate: Record<string, QrCode[]>;
   trackQr: boolean;
   qrSize: QrSize;
-  align: TextAlign;
-  tint: PhotoTint;
   photo: PhotoState | null;
   partnerLogos: PartnerLogoState[];
 }
@@ -40,11 +42,9 @@ export function newDesign(templateId = DEFAULT_TEMPLATE_ID): DesignState {
     templateId,
     themeId: DEFAULT_THEME_ID,
     valuesByTemplate: {},
-    qrCodes: [],
+    qrCodesByTemplate: {},
     trackQr: false,
     qrSize: "m",
-    align: "left",
-    tint: DEFAULT_PHOTO_TINT,
     photo: null,
     partnerLogos: [],
   };
@@ -61,6 +61,16 @@ export function designValues(design: DesignState): Values {
   return { ...defaultValues(template), ...design.valuesByTemplate[template.id] };
 }
 
+/** The current layout's QR codes. */
+export function designQrCodes(design: DesignState): QrCode[] {
+  return design.qrCodesByTemplate[designTemplate(design).id] ?? [];
+}
+
+/** The design with the current layout's QR codes replaced. */
+export function withQrCodes(design: DesignState, qrCodes: QrCode[]): DesignState {
+  return { ...design, qrCodesByTemplate: { ...design.qrCodesByTemplate, [designTemplate(design).id]: qrCodes } };
+}
+
 /**
  * Plain data for saving. Uploaded photos are embedded only when `embedUploads` is set: project files carry them,
  * browser autosave does not (too big). Partner logos are small once downscaled, so both keep them.
@@ -73,12 +83,10 @@ export function designToData(design: DesignState, embedUploads: boolean): Design
     templateId: design.templateId,
     themeId: design.themeId,
     values: design.valuesByTemplate,
-    qrCodes: design.qrCodes,
+    qrCodes: design.qrCodesByTemplate,
     trackQr: design.trackQr,
     qrSize: design.qrSize,
-    align: design.align,
     photo,
-    tint: design.tint,
     partnerLogos: design.partnerLogos.map(({ name, dataUrl }) => ({ name, dataUrl })),
   };
 }
@@ -115,11 +123,9 @@ export async function designFromData(data: DesignData): Promise<{ design: Design
       templateId: data.templateId,
       themeId: data.themeId,
       valuesByTemplate: data.values,
-      qrCodes: data.qrCodes,
+      qrCodesByTemplate: data.qrCodes,
       trackQr: data.trackQr,
       qrSize: data.qrSize,
-      align: data.align,
-      tint: data.tint,
       photo,
       partnerLogos,
     },

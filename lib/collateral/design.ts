@@ -1,43 +1,24 @@
 /**
- * How strongly the style's colour covers a photo. Two steps, so a design never ends up faintly tinted. There is
- * deliberately no untinted step: text straight on a photo needed an outline to read, which did not look good.
+ * How strongly the style's colour covers a photo, lightest first. Designs pick the lightest step their text reads
+ * on (see renderCollateral), so nobody has to choose. There is deliberately no untinted step: text straight on a
+ * photo needed an outline to read, which did not look good.
  */
-export type PhotoTint = "strong" | "medium";
+export type PhotoTint = "medium" | "strong";
 
-export const PHOTO_TINTS: { id: PhotoTint; label: string; visible: number }[] = [
-  { id: "strong", label: "Strong", visible: 0.25 },
-  { id: "medium", label: "Medium", visible: 0.5 },
+export const PHOTO_TINTS: { id: PhotoTint; visible: number }[] = [
+  { id: "medium", visible: 0.5 },
+  { id: "strong", visible: 0.25 },
 ];
-
-export const DEFAULT_PHOTO_TINT: PhotoTint = "strong";
 
 /** The PhotoSettings.visible value a tint step draws with. */
 export function tintVisible(tint: PhotoTint): number {
   return (PHOTO_TINTS.find((t) => t.id === tint) ?? PHOTO_TINTS[0]).visible;
 }
 
-/** The nearest tint step to an older value (the free slider, or the retired None step), so older saves open sensibly. */
-export function snapTint(visible: number): PhotoTint {
-  let best = PHOTO_TINTS[0];
-  for (const t of PHOTO_TINTS) if (Math.abs(t.visible - visible) < Math.abs(best.visible - visible)) best = t;
-  return best.id;
-}
-
-export function isPhotoTint(v: unknown): v is PhotoTint {
-  return PHOTO_TINTS.some((t) => t.id === v);
-}
-
-export type TextAlign = "left" | "center";
-
-export function isTextAlign(v: unknown): v is TextAlign {
-  return v === "left" || v === "center";
-}
-
-/** Preferred QR size. The scannable minimum and each layout's cap still apply. */
-export type QrSize = "s" | "m" | "l";
+/** Preferred QR size. Codes never go below the size phones can scan, and each layout caps how big they get. */
+export type QrSize = "m" | "l";
 
 export const QR_SIZES: { id: QrSize; label: string }[] = [
-  { id: "s", label: "Small" },
   { id: "m", label: "Medium" },
   { id: "l", label: "Large" },
 ];

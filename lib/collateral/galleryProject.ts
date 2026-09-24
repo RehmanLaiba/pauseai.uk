@@ -1,7 +1,6 @@
-import { getFormat } from "./formats";
-import { CAPTION_MAX, MAX_SLIDES } from "./gallery";
+import { CAPTION_MAX, MAX_SLIDES, SLIDE_PHOTO_VISIBLE } from "./gallery";
 import { ALL_PLATFORM_IDS, type PlatformId } from "./platforms";
-import { isRecord, parsePhotoSettings, parseProjectPhoto, str, type ProjectPhoto } from "./project";
+import { isRecord, parsePhotoView, parseProjectPhoto, str, type ProjectPhoto } from "./project";
 import type { PhotoSettings } from "./templates";
 import { getTheme } from "./themes";
 
@@ -17,12 +16,9 @@ export interface GallerySlideData {
 
 /** Everything needed to reopen a gallery. Plain data, so it can be saved as JSON. */
 export interface GalleryProject {
-  formatId: string;
   slides: GallerySlideData[];
-  /** Which platform cards are checked for the bundle export. */
+  /** Which platform cards are checked for the export. */
   platforms: PlatformId[];
-  /** Whether the format dropdown (rather than the platform cards) drives editing and export. */
-  customFormat: boolean;
 }
 
 export function serializeGalleryProject(project: GalleryProject, now = new Date()): string {
@@ -33,7 +29,8 @@ export type GalleryParseResult = { ok: true; project: GalleryProject } | { ok: f
 
 /**
  * Reads a saved gallery file. Forgiving about content (unknown ids fall back to defaults, long text is
- * trimmed, extra slides are dropped) and strict about shape, since the file is untrusted input.
+ * trimmed, extra slides are dropped) and strict about shape, since the file is untrusted input. Older files
+ * may name a single format for the whole gallery, which is no longer offered, so it is ignored.
  */
 export function parseGalleryProject(text: string): GalleryParseResult {
   let raw: unknown;
@@ -55,7 +52,8 @@ export function parseGalleryProject(text: string): GalleryParseResult {
     .slice(0, MAX_SLIDES)
     .map((s) => ({
       photo: parseProjectPhoto(s.photo),
-      photoSettings: parsePhotoSettings(s.photoSettings, 1),
+      // Colour strength is fixed for slides now, whatever an older file saved.
+      photoSettings: { ...parsePhotoView(s.photoSettings), visible: SLIDE_PHOTO_VISIBLE },
       caption: str(s.caption, CAPTION_MAX),
       themeId: getTheme(str(s.themeId, 40)).id,
     }));
@@ -65,10 +63,8 @@ export function parseGalleryProject(text: string): GalleryParseResult {
   return {
     ok: true,
     project: {
-      formatId: getFormat(str(raw.formatId, 40)).id,
       slides,
       platforms: rawPlatforms.length > 0 ? rawPlatforms : ALL_PLATFORM_IDS,
-      customFormat: raw.customFormat === true,
     },
   };
 }

@@ -6,18 +6,20 @@ const project: Project = {
   templateId: "event",
   themeId: "cream",
   values: { event: { headline: "Letter writing night", date: "2026-10-15", start: "19:00" } },
-  qrCodes: [
-    { label: "RSVP", url: "luma.com/pauseai.uk" },
-    { label: "Join WhatsApp", url: "pauseai.uk/join" },
-  ],
+  qrCodes: {
+    event: [
+      { label: "RSVP", url: "luma.com/pauseai.uk" },
+      { label: "Join WhatsApp", url: "pauseai.uk/join" },
+    ],
+    announcement: [{ label: "Join", url: "pauseai.uk/join" }],
+  },
   trackQr: false,
   qrSize: "l",
-  align: "center",
   photo: { kind: "library", id: "westminster" },
-  tint: "medium",
   partnerLogos: [{ name: "partner.png", dataUrl: "data:image/png;base64,iVBORw0KGgo=" }],
-  photoSettings: { zoom: 2, focalX: 0.2, focalY: 0.8, visible: 0.5 },
+  photoSettings: { zoom: 2, focalX: 0.2, focalY: 0.8 },
   headlineScale: 1.2,
+  screenQr: true,
 };
 
 function withEdit(edit: (o: Record<string, unknown>) => void): string {
@@ -75,11 +77,18 @@ describe("parseProject cleans untrusted content", () => {
     expect(result.project.values.event).not.toHaveProperty("date");
   });
 
-  it("keeps at most four QR codes with clamped text", () => {
+  it("keeps at most four QR codes per layout, with clamped text", () => {
     const many = Array.from({ length: 9 }, (_, i) => ({ label: "L".repeat(99), url: `example.com/${i}` }));
-    const result = parseProject(withEdit((o) => (o.qrCodes = many)));
-    expect(result.ok && result.project.qrCodes).toHaveLength(4);
-    expect(result.ok && result.project.qrCodes[0].label).toHaveLength(32);
+    const result = parseProject(withEdit((o) => (o.qrCodes = { event: many, nope: many })));
+    expect(result.ok && Object.keys(result.project.qrCodes)).toEqual(["event"]);
+    expect(result.ok && result.project.qrCodes.event).toHaveLength(4);
+    expect(result.ok && result.project.qrCodes.event[0].label).toHaveLength(32);
+  });
+
+  it("gives the single QR code list of an older file to the layout it was saved on", () => {
+    const codes = [{ label: "RSVP", url: "lu.ma/abc" }];
+    const result = parseProject(withEdit((o) => (o.qrCodes = codes)));
+    expect(result.ok && result.project.qrCodes).toEqual({ event: codes });
   });
 
   it("ignores unknown library photos", () => {
@@ -105,46 +114,33 @@ describe("parseProject cleans untrusted content", () => {
     expect(result.ok && result.project.values.event).toEqual({ end: "" });
   });
 
-  it("opens a design saved with the retired Clear style as Cream with the lightest tint", () => {
-    const result = parseProject(withEdit((o) => Object.assign(o, { themeId: "clear", tint: "strong" })));
-    expect(result.ok && result.project).toMatchObject({ themeId: "cream", tint: "medium" });
+  it("opens a design saved with the retired Clear style as Cream", () => {
+    const result = parseProject(withEdit((o) => Object.assign(o, { themeId: "clear" })));
+    expect(result.ok && result.project).toMatchObject({ themeId: "cream" });
   });
 
-  it("opens a design saved with the retired None tint on Medium", () => {
-    const result = parseProject(
-      withEdit((o) => Object.assign(o, { tint: "none", photoSettings: { zoom: 1, focalX: 0.5, focalY: 0.5, visible: 1 } })),
-    );
-    expect(result.ok && result.project.tint).toBe("medium");
+  it("drops settings the tool no longer offers from older files", () => {
+    const result = parseProject(withEdit((o) => Object.assign(o, { tint: "strong", align: "center", qrSize: "s" })));
+    expect(result.ok && result.project).toEqual({ ...project, qrSize: "m" });
   });
 
-  it("clamps photo settings", () => {
+  it("clamps photo settings and ignores the colour strength older files saved with them", () => {
     const result = parseProject(withEdit((o) => (o.photoSettings = { zoom: 99, focalX: -5, focalY: "a", visible: 9 })));
-    // visible follows the saved tint step, whatever the file says.
-    expect(result.ok && result.project.photoSettings).toEqual({ zoom: 4, focalX: 0, focalY: 0.5, visible: 0.5 });
-  });
-
-  it("gives a file from before the tint steps the step nearest its old photo strength", () => {
-    const result = parseProject(
-      withEdit((o) => {
-        delete o.tint;
-        o.photoSettings = { zoom: 1, focalX: 0.5, focalY: 0.5, visible: 0.45 };
-      }),
-    );
-    expect(result.ok && result.project.tint).toBe("medium");
+    expect(result.ok && result.project.photoSettings).toEqual({ zoom: 4, focalX: 0, focalY: 0.5 });
   });
 
   it("defaults newer fields that an older file does not have", () => {
     const result = parseProject(
       withEdit((o) => {
-        for (const k of ["qrSize", "align", "partnerLogos", "headlineScale"]) delete o[k];
+        for (const k of ["qrSize", "partnerLogos", "headlineScale"]) delete o[k];
       }),
     );
-    expect(result.ok && result.project).toMatchObject({ qrSize: "m", align: "left", partnerLogos: [], headlineScale: 1 });
+    expect(result.ok && result.project).toMatchObject({ qrSize: "m", partnerLogos: [], headlineScale: 1 });
   });
 
-  it("clamps the title size nudge and rejects unknown alignment and QR sizes", () => {
-    const result = parseProject(withEdit((o) => Object.assign(o, { headlineScale: 9, align: "justify", qrSize: "xl" })));
-    expect(result.ok && result.project).toMatchObject({ headlineScale: 1.3, align: "left", qrSize: "m" });
+  it("clamps the title size nudge and rejects unknown QR sizes", () => {
+    const result = parseProject(withEdit((o) => Object.assign(o, { headlineScale: 9, qrSize: "xl" })));
+    expect(result.ok && result.project).toMatchObject({ headlineScale: 1.3, qrSize: "m" });
   });
 
   it("only accepts raster partner logos, at most two", () => {

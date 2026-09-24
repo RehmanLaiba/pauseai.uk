@@ -1,22 +1,10 @@
-import {
-  clampHeadlineScale,
-  DEFAULT_PHOTO_TINT,
-  isPhotoTint,
-  isQrSize,
-  isTextAlign,
-  MAX_PARTNER_LOGOS,
-  snapTint,
-  tintVisible,
-  type PhotoTint,
-  type QrSize,
-  type TextAlign,
-} from "./design";
+import { clampHeadlineScale, isQrSize, MAX_PARTNER_LOGOS, type QrSize } from "./design";
 import { DATE_INPUT, TIME_INPUT } from "./eventText";
 import { getFormat } from "./formats";
 import { LIBRARY_PHOTOS } from "./photos";
-import { MAX_ZOOM } from "./photoTransform";
+import { MAX_ZOOM, type PhotoView } from "./photoTransform";
 import { MAX_QR_CODES, type QrCode } from "./qr";
-import { TEMPLATES, getTemplate, type FieldDef, type PhotoSettings, type Values } from "./templates";
+import { TEMPLATES, getTemplate, type FieldDef, type Values } from "./templates";
 import { getTheme } from "./themes";
 
 export const PROJECT_APP = "pauseai-collateral";
@@ -46,26 +34,26 @@ export interface DesignData {
   themeId: string;
   /** Text fields, kept per layout so switching layouts does not lose what was typed. */
   values: Record<string, Values>;
-  qrCodes: QrCode[];
+  /** QR codes, kept per layout like the text, so codes added on one layout do not turn up on another. */
+  qrCodes: Record<string, QrCode[]>;
   trackQr: boolean;
   qrSize: QrSize;
-  align: TextAlign;
   photo: ProjectPhoto | null;
-  tint: PhotoTint;
   partnerLogos: PartnerLogoData[];
 }
 
 /** Everything needed to reopen a single-image design. Plain data, so it can be saved as JSON. */
 export interface Project extends DesignData {
   formatId: string;
-  /** Photo zoom and position. `visible` mirrors `tint`, so older versions of the tool can still read the file. */
-  photoSettings: PhotoSettings;
+  /** Photo zoom and position. The colour over the photo is picked when drawing, so it is not saved. */
+  photoSettings: PhotoView;
   headlineScale: number;
+  /** Whether QR codes show when the format is a screen format, where they are left out by default. */
+  screenQr: boolean;
 }
 
 export function serializeProject(project: Project, now = new Date()): string {
-  const photoSettings = { ...project.photoSettings, visible: tintVisible(project.tint) };
-  return JSON.stringify({ app: PROJECT_APP, version: PROJECT_VERSION, savedAt: now.toISOString(), ...project, photoSettings }, null, 2);
+  return JSON.stringify({ app: PROJECT_APP, version: PROJECT_VERSION, savedAt: now.toISOString(), ...project }, null, 2);
 }
 
 export type ParseResult = { ok: true; project: Project } | { ok: false; error: string };
@@ -93,18 +81,13 @@ export function parseProjectPhoto(raw: unknown): ProjectPhoto | null {
   return null;
 }
 
-/**
- * Validates saved photo pan/zoom settings, shared by single-image and gallery projects. `maxVisible` matches
- * whichever UI saved the file: single-image templates keep photos tinted under a 0.7 cap, gallery slides are
- * photo-forward and allow the full range.
- */
-export function parsePhotoSettings(raw: unknown, maxVisible = 0.7): PhotoSettings {
+/** Validates a saved photo zoom and position, shared by every kind of project. Older files also hold `visible`, which is ignored. */
+export function parsePhotoView(raw: unknown): PhotoView {
   const ps = isRecord(raw) ? raw : {};
   return {
     zoom: num(ps.zoom, 1, MAX_ZOOM, 1),
     focalX: num(ps.focalX, 0, 1, 0.5),
     focalY: num(ps.focalY, 0, 1, 0.5),
-    visible: num(ps.visible, 0.1, maxVisible, 0.25),
   };
 }
 
@@ -126,15 +109,14 @@ export function parseProject(text: string): ParseResult {
     return { ok: false, error: "This project was saved by a newer version of the tool." };
   }
 
-  const design = parseDesignData(raw);
-  const photoSettings = { ...parsePhotoSettings(raw.photoSettings, 1), visible: tintVisible(design.tint) };
   return {
     ok: true,
     project: {
-      ...design,
+      ...parseDesignData(raw),
       formatId: getFormat(str(raw.formatId, 40)).id,
-      photoSettings,
+      photoSettings: parsePhotoView(raw.photoSettings),
       headlineScale: clampHeadlineScale(raw.headlineScale),
+      screenQr: raw.screenQr === true,
     },
   };
 }
@@ -147,8 +129,8 @@ function fitsKind(kind: FieldDef["kind"], value: string): boolean {
 }
 
 /**
- * Validates the design fields of a saved file from untrusted JSON. Fields added after a file was saved
- * get their defaults, and a file from before the tint steps gets the step nearest its old photo strength.
+ * Validates the design fields of a saved file from untrusted JSON. Fields added after a file was saved get their
+ * defaults. Settings the tool no longer offers (alignment, colour strength, small QR codes) are dropped.
  */
 export function parseDesignData(raw: Record<string, unknown>): DesignData {
   const values: Record<string, Values> = {};
@@ -163,12 +145,25 @@ export function parseDesignData(raw: Record<string, unknown>): DesignData {
     );
   }
 
-  const qrCodes: QrCode[] = Array.isArray(raw.qrCodes)
-    ? raw.qrCodes
-        .filter(isRecord)
-        .slice(0, MAX_QR_CODES)
-        .map((c) => ({ label: str(c.label, QR_LABEL_MAX), url: str(c.url, QR_URL_MAX) }))
-    : [];
+  const templateId = getTemplate(str(raw.templateId, 40)).id;
+  const parseCodes = (list: unknown): QrCode[] =>
+    Array.isArray(list)
+      ? list
+          .filter(isRecord)
+          .slice(0, MAX_QR_CODES)
+          .map((c) => ({ label: str(c.label, QR_LABEL_MAX), url: str(c.url, QR_URL_MAX) }))
+      : [];
+  const qrCodes: Record<string, QrCode[]> = {};
+  if (Array.isArray(raw.qrCodes)) {
+    // Older files kept one list for every layout. It belongs to the layout the file was saved on.
+    const codes = parseCodes(raw.qrCodes);
+    if (codes.length) qrCodes[templateId] = codes;
+  } else if (isRecord(raw.qrCodes)) {
+    for (const template of TEMPLATES) {
+      const codes = parseCodes(raw.qrCodes[template.id]);
+      if (codes.length) qrCodes[template.id] = codes;
+    }
+  }
 
   const partnerLogos: PartnerLogoData[] = Array.isArray(raw.partnerLogos)
     ? raw.partnerLogos
@@ -184,29 +179,15 @@ export function parseDesignData(raw: Record<string, unknown>): DesignData {
         .map((l) => ({ name: str(l.name, 120) || "Partner logo", dataUrl: l.dataUrl as string }))
     : [];
 
-  const oldVisible = isRecord(raw.photoSettings) ? num(raw.photoSettings.visible, 0, 1, tintVisible(DEFAULT_PHOTO_TINT)) : undefined;
-  // The retired Clear style never tinted its photo, so a design saved with it opens as Cream with the lightest tint.
-  // A saved "none" is not a tint step any more, so it falls through to its saved strength and snaps to Medium.
-  const tint: PhotoTint =
-    raw.themeId === "clear"
-      ? "medium"
-      : isPhotoTint(raw.tint)
-        ? raw.tint
-        : oldVisible !== undefined
-          ? snapTint(oldVisible)
-          : DEFAULT_PHOTO_TINT;
-
   return {
-    templateId: getTemplate(str(raw.templateId, 40)).id,
+    templateId,
     themeId: getTheme(str(raw.themeId, 40)).id,
     values,
     qrCodes,
     // Off unless a file explicitly turns it on. Tagging is currently disabled in qrTarget anyway.
     trackQr: raw.trackQr === true,
     qrSize: isQrSize(raw.qrSize) ? raw.qrSize : "m",
-    align: isTextAlign(raw.align) ? raw.align : "left",
     photo: parseProjectPhoto(raw.photo),
-    tint,
     partnerLogos,
   };
 }
